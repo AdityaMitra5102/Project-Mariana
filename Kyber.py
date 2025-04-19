@@ -72,10 +72,10 @@ class Kyber:
 		
 	def from_sk(self, sk):
 		sklenbytes=sk[0:3]
-		sklen=integer.from_bytes(sklen)
+		sklen=int.from_bytes(sklenbytes)
 		self.sk=sk[3:3+sklen]
 		self.pk=sk[3+sklen:]
-		self.encrypt(os.urandom(32)
+		self.encrypt(os.urandom(32))
 		
 	def from_pk(self, pk):
 		self.pk=pk

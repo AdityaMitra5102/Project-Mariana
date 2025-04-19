@@ -21,8 +21,8 @@ def generate_keypair():
 	
 def get_pub_key(priv):
 	cr=Kyber()
-	cr.from_sk(sk)
-	return cr.get_pk
+	cr.from_sk(priv)
+	return cr.get_pk()
 	
 	#privkeybytes=priv
 	#privkey = serialization.load_pem_private_key(privkeybytes, password=None)

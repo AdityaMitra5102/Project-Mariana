@@ -21,7 +21,7 @@ configfile='config.json'
 knownsys='knownsys.json'
 privkeyfile='privatekey.pem'
 
-logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s') #, filename='pqi.log', filemode='a')
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', filename='pqi.log', filemode='a')
 logs=logging.getLogger('internet')
 
 routerstart='routinginfo:'
@@ -334,9 +334,11 @@ def conn_keepalive_loop():
 				tracker_ip=tracker['ip']
 				tracker_port=tracker['port']
 				send_conn_req(tracker_ip, tracker_port)
-			time.sleep(15)	
-		except:
-			logs.error("Error occurred while opening tracker")
+		except Exception as e:
+			logs.error("Error occurred while opening tracker {e}")
+		time.sleep(15)	
+
+			
 		
 def init_threads():
 	routing_thread=threading.Thread(target=send_routing_loop)
