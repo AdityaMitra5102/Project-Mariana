@@ -1,3 +1,4 @@
+import requests
 import time
 import uuid
 import math
@@ -48,3 +49,7 @@ def check_valid_tracker(tracker):
 	tracker_port=tracker['port']
 	iplist=list_ip_addresses()
 	return tracker_ip not in iplist
+	
+def get_public_ip():
+	resp=requests.get('http://api.ipify.org')
+	return resp.text

@@ -27,6 +27,7 @@ logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(name)s - %(leve
 logs=logging.getLogger('internet')
 
 routerstart='routinginfo:'
+trackerstart='trackerinfo:'
 
 cam_table={}
 cam_table_lock=threading.Lock()
@@ -35,6 +36,8 @@ routing_table={}
 routing_table_lock=threading.Lock()
 
 trackers=[]
+trackers_lock=threading.Lock()
+
 known_machines={}
 
 packet_buffer={}
@@ -106,11 +109,17 @@ except:
 	logs.info('Private key generated')
 
 selfpubkey=get_pub_key(privkey)
+self_tracker_state=str(uuid.uuid4())
+self_public=False
 
 ############################# Layer 2 Transfers #############################
 
 def add_to_cam(nac, ip, port):
 	currtime=get_timestamp()
+	if nac==config['nac']:
+		logs.warning('Not adding self NAC to CAM Table.')
+		return
+		
 	if nac in cam_table:
 		logs.warning(f'NAC {nac} Already exists in CAM Table. Overwriting.')
 	with cam_table_lock:
@@ -129,6 +138,9 @@ def send_to_host(msg, nac):
 ############################# Layer 3 Transfers #############################
 	
 def add_to_routing(nac, hopcount, next_nac, pubkey):
+	if nac==config['nac']:
+		logs.warning('Not adding own NAC to routing table')
+		return
 	currtime=get_timestamp()
 	if nac in routing_table:
 		logs.warning(f'NAC {nac} Already exists in Routing Table.')
@@ -159,23 +171,49 @@ def send(msg, nac, retry=0):
 		if nac!=config['nac']:
 			logs.info('Forwarding to next hop relay node')
 			send(msg, routing_table[nac]['next_hop'])
+			
+############################# Tracker management #############################
+
+def add_to_tracker(ip, port):
+	trackerid=f'{ip}:{port}'
+	if trackerid in trackers:
+		logs.info('Tracker already present. Not adding')
+		return False
+	tracker={'ip': ip, 'port': port}
+	with trackers_lock:
+		trackers[trackerid]=tracker
+	save_tracker_list()
+	return True
+	
+def save_tracker_list():
+	try:
+		fl=open(os.path.join(filepath, trackerfile), 'w')
+		fl.write(json.dumps(trackers))
+		fl.close()
+		logs.info('Trackers saved')
+	except:
+		logs.info('Trackers not saved. Trackers may be reset during system restart.')
+
 		
 ############################# Process received packet #############################
 
 def process_packet(packet, ip, port):
-	source_nac=uuid_str(packet[:16])
-	flag=packet[16]
-	logs.info(f'Packet from {source_nac} flag {flag}')
-	if flag==3: #Payload packet
-		dest_nac=uuid_str(packet[17:33])
-		if dest_nac == config['nac']: #Packet for me
-			logs.info(f'Received packet for f{dest_nac}. Self processing.')
-			process_self_packet(packet)
+	try:
+		source_nac=uuid_str(packet[:16])
+		flag=packet[16]
+		logs.info(f'Packet from {source_nac} flag {flag}')
+		if flag==3: #Payload packet
+			dest_nac=uuid_str(packet[17:33])
+			if dest_nac == config['nac']: #Packet for me
+				logs.info(f'Received packet for f{dest_nac}. Self processing.')
+				process_self_packet(packet)
+			else:
+				logs.info(f'Received packet for f{dest_nac}. Forwarding')
+				send(packet, dest_nac) #Forward to destination
 		else:
-			logs.info(f'Received packet for f{dest_nac}. Forwarding')
-			send(packet, dest_nac) #Forward to destination
-	else:
-		process_special_packet(packet, ip, port)
+			process_special_packet(packet, ip, port)
+	except:
+		logs.warn('Packet out of format. Ignoring')
 		
 def process_special_packet(packet, ip, port):
 	source_nac=uuid_str(packet[:16])
@@ -186,9 +224,22 @@ def process_special_packet(packet, ip, port):
 		process_conn_accept(packet, ip, port)
 	if flag==2:
 		process_conn_reject(packet, ip, port)
+	if flag==9:
+		process_self_discovery(packet, ip, port)
+		
+def process_self_discovery(packet, ip, port):
+	source_nac=uuid_str(packet[:16])
+	flag=packet[16]
+	temp_state=uuid_str(packet[17:])
+	if tempstate==self_tracker_state:
+		logging.info('This system is routable. Promoting to tracker.')
+		add_to_tracker(get_public_ip, config['port'])
+		self_public=True
 		
 def process_conn_req(packet, ip, port):
 	source_nac=uuid_str(packet[:16])
+	if source_nac==config['nac']:
+		return
 	flag=packet[16]
 	if not check_valid_conn(source_nac, ip, port):
 		logs.warn(f'Connection initiated by blacklisted machine {source_nac} {ip}:{port}. Rejected.')
@@ -258,11 +309,22 @@ def process_incoming_routing(source_nac, payload):
 	routinginfo=json.loads(payload)
 	for nac in routinginfo:
 		add_to_routing(nac, routinginfo[nac]['hop_count']+1, source_nac, base64.b64decode(routinginfo[nac]['pubkey'].encode()))
+
+def process_incoming_tracker(source_nac, payload):
+	logs.info(f'Received tracker information from {source_nac}')
+	payload=payload[len(trackerstart):].decode()
+	trackerinfo=json.loads(payload)
+	for tracker in trackerinfo:
+		add_to_tracker(tracker['ip'], tracker['port'])
+
 	
 def process_payload(source_nac, payload):
 	logs.info(f'Received communication from {source_nac} payload.')
 	if payload.startswith(routerstart.encode()):
 		process_incoming_routing(source_nac, payload)
+		return
+	if payload.startswith(trackerstart.encode()):
+		process_incoming_tracker(source_nac, payload)
 		return
 	try:
 		resp=user_response(source_nac, payload)
@@ -281,7 +343,7 @@ def send_conn_reject(nac, ip, port):
 	sock.sendto(packet, (ip, port))
 
 def send_conn_req(ip, port):
-	logs.info(f'Sending connection request to tracker at {ip}:{port}')
+	#logs.info(f'Sending connection request to tracker at {ip}:{port}')
 	packet=gen_conn_req(config['nac'], selfpubkey)
 	sock.sendto(packet, (ip, port))
 	
@@ -308,6 +370,18 @@ def send_routing():
 	for nac in cam_table:
 		send_payload(nac, payload.encode())
 
+def send_tracker():
+	trackerinfo={}
+	for tracker in trackers:
+		trackerinfo[tracker]={}
+		trackerinfo[tracker]['ip']=trackerinfo[tracker]['ip']
+		trackerinfo[tracker]['port']=trackerinfo[tracker]['port']
+				
+	payload=trackerstart+json.dumps(trackerinfo)
+	for nac in cam_table:
+		send_payload(nac, payload.encode())
+
+
 ############################# Local node discovery #############################		
 		
 def local_node_discovery():
@@ -320,8 +394,26 @@ def local_node_discovery():
 
 			except:
 				pass
+
+############################# Tracker discovery #############################		
+
+def perform_self_discovery():
+	pub_ip=get_public_ip()
+	self_tracker_state=str(uuid.uuid4())
+	packet=gen_tracker_discovery(config['nac'], self_tracker_state)
+	sock.sendto(packet, (pub_ip, config['port']))
+
 		
 ############################# Threading loops #############################		
+		
+def self_discovery_loop():
+	while not self_public:
+		try:
+			logs.info('Trying self discovery')
+			perform_self_discovery()
+		except:
+			logs.error('Self discovery failed')
+		time.sleep(90)
 		
 def send_routing_loop():
 	while True:
@@ -331,6 +423,16 @@ def send_routing_loop():
 		except:
 			logs.error('Error occurred while sending routing information')
 		time.sleep(40)
+
+def send_tracker_loop():
+	while True:
+		try:
+			logs.info('Sharing tracker information with immediate nodes')
+			send_tracker()
+		except:
+			logs.error('Error occurred while sending tracker information')
+		time.sleep(70)
+
 		
 def receive_packet_loop():
 	while True:
@@ -338,7 +440,9 @@ def receive_packet_loop():
 			data, addr=sock.recvfrom(1500)
 			src_ip, src_port=addr
 			logs.info(f'Received packet from {src_ip}:{src_port}')
-			process_packet(data, src_ip, src_port)
+			#process_packet(data, src_ip, src_port)
+			process_packet_thread=threading.Thread(target=process_packet, args=(data, src_ip, src_port,))
+			process_packet_thread.start()
 		except Exception as e:
 			logs.error(f'Error occurred while receiving packet {e}')
 		
@@ -364,13 +468,17 @@ def local_node_discovery_loop():
 		
 def init_threads():
 	routing_thread=threading.Thread(target=send_routing_loop)
+	tracker_thread=threading.Thread(target=send_tracker_loop)
 	receive_thread=threading.Thread(target=receive_packet_loop)
 	keepalive_thread=threading.Thread(target=conn_keepalive_loop)
 	discovery_thread=threading.Thread(target=local_node_discovery_loop)
+	self_discovery_thread=threading.Thread(target=self_discovery_loop)
 	routing_thread.start()
+	tracker_thread.start()
 	receive_thread.start()
 	keepalive_thread.start()
 	discovery_thread.start()
+	self_discovery_thread.start()
 		
 if __name__=='__main__':
 	init_threads()

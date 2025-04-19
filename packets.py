@@ -22,9 +22,6 @@ def gen_payload_seq(src_nac, dest_nac, payload, dest_pubkey):
 	packet=uuid_bytes(src_nac)
 	packet=packet+flag_bytes(3)
 	packet=packet+uuid_bytes(dest_nac)
-	
-
-	
 	session=str(uuid.uuid4())
 	sessionbytes=uuid_bytes(session)
 	
@@ -41,3 +38,9 @@ def gen_payload_seq(src_nac, dest_nac, payload, dest_pubkey):
 		packets.append(currentpacket)
 		
 	return packets
+	
+def gen_tracker_discovery(nac, state):
+	packet=uuid_bytes(nac)
+	packet+=flag_bytes(9)
+	packet+=uuid_bytes(state)
+	return packet
