@@ -4,29 +4,51 @@ from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 import base64
 import os
 
+from Kyber import Kyber
+from kyber_py.pyaes import *
+
+
+
+
 def generate_keypair():
-	private_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
-	private_key_bytes = private_key.private_bytes(encoding=serialization.Encoding.PEM, format=serialization.PrivateFormat.PKCS8, encryption_algorithm=serialization.NoEncryption())
-	return private_key_bytes
+	cr=Kyber()
+	cr.keygen()
+	return cr.get_sk()
+
+	#private_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+	#private_key_bytes = private_key.private_bytes(encoding=serialization.Encoding.PEM, format=serialization.PrivateFormat.PKCS8, encryption_algorithm=serialization.NoEncryption())
+	#return private_key_bytes
 	
 def get_pub_key(priv):
-	privkeybytes=priv
-	privkey = serialization.load_pem_private_key(privkeybytes, password=None)
-	pubkey=privkey.public_key()
-	public_key_bytes = pubkey.public_bytes(encoding=serialization.Encoding.PEM, format=serialization.PublicFormat.SubjectPublicKeyInfo)
-	return public_key_bytes
+	cr=Kyber()
+	cr.from_sk(sk)
+	return cr.get_pk
+	
+	#privkeybytes=priv
+	#privkey = serialization.load_pem_private_key(privkeybytes, password=None)
+	#pubkey=privkey.public_key()
+	#public_key_bytes = pubkey.public_bytes(encoding=serialization.Encoding.PEM, format=serialization.PublicFormat.SubjectPublicKeyInfo)
+	#return public_key_bytes
 
 def encrypt(msg, pub):
-	pubkeybytes=pub
-	pubkey = serialization.load_pem_public_key(pubkeybytes)
-	encrypted = pubkey.encrypt(msg, padding.OAEP(mgf=padding.MGF1(algorithm=hashes.SHA256()), algorithm=hashes.SHA256(), label=None))
-	return encrypted	
+	cr=Kyber()
+	cr.from_pk(pub)
+	return cr.encrypt(msg)
+	
+	#pubkeybytes=pub
+	#pubkey = serialization.load_pem_public_key(pubkeybytes)
+	#encrypted = pubkey.encrypt(msg, padding.OAEP(mgf=padding.MGF1(algorithm=hashes.SHA256()), algorithm=hashes.SHA256(), label=None))
+	#return encrypted	
 	
 def decrypt(msg, priv):
-	privkeybytes=priv
-	privkey = serialization.load_pem_private_key(privkeybytes, password=None)
-	decrypted = privkey.decrypt(msg, padding.OAEP(mgf=padding.MGF1(algorithm=hashes.SHA256()), algorithm=hashes.SHA256(), label=None))
-	return decrypted
+	cr=Kyber()
+	cr.from_sk(priv)
+	return cr.decrypt(msg)
+	
+	#privkeybytes=priv
+	#privkey = serialization.load_pem_private_key(privkeybytes, password=None)
+	#decrypted = privkey.decrypt(msg, padding.OAEP(mgf=padding.MGF1(algorithm=hashes.SHA256()), algorithm=hashes.SHA256(), label=None))
+	#return decrypted
 
 def aes_keygen():
 	key = AESGCM.generate_key(bit_length=256)
