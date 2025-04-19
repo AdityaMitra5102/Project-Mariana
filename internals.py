@@ -454,8 +454,8 @@ def conn_keepalive_loop():
 	while True:
 		try:
 			for tracker in trackers:
-				tracker_ip=tracker['ip']
-				tracker_port=tracker['port']
+				tracker_ip=trackers[tracker]['ip']
+				tracker_port=trackers[tracker]['port']
 				send_conn_req(tracker_ip, tracker_port)
 		except Exception as e:
 			logs.error("Error occurred while opening tracker {e}")
