@@ -318,7 +318,7 @@ def process_incoming_tracker(source_nac, payload):
 	payload=payload[len(trackerstart):].decode()
 	trackerinfo=json.loads(payload)
 	for tracker in trackerinfo:
-		add_to_tracker(tracker['ip'], tracker['port'])
+		add_to_tracker(trackerinfo[tracker]['ip'], trackerinfo[tracker]['port'])
 
 	
 def process_payload(source_nac, payload):
