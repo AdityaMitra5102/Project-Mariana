@@ -21,7 +21,6 @@
 	right: 0px;
 	bottom: 0px;
 	padding: 0px;
-	cursor: none;
 	margin: 0px;
 	overflow: hidden;
 	display: flex;
@@ -42,16 +41,146 @@ canvas {
     color: white;
     
     font-family: Arial, sans-serif;
-    pointer-events: none; /* Allows clicks to pass through to the canvas */
   }
 
+  
+.material-icons {
+  font-family: 'Material Icons';
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  -webkit-font-feature-settings: 'liga';
+  -webkit-font-smoothing: antialiased;
+}
+
+  .searchBox {
+    position: absolute;
+    top: 90%;
+    left: 50%;
+    transform:  translate(-50%,50%);
+    background: #2f3640;
+    height: 40px;
+    border-radius: 40px;
+    padding: 10px;
+
+}
+
+.searchBox:hover > .searchInput {
+    width: 240px;
+    padding: 0 6px;
+}
+
+.searchBox:hover > .searchButton {
+  background: white;
+  color : #2f3640;
+}
+
+.searchButton {
+    color: white;
+    float: right;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #2f3640;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: 0.4s;
+}
+
+.searchInput {
+    border:none;
+    background: none;
+    outline:none;
+    float:left;
+    padding: 0;
+    color: white;
+    font-size: 16px;
+    transition: 0.4s;
+    line-height: 40px;
+    width: 0px;
+
+}
+
+@media screen and (max-width: 620px) {
+.searchBox:hover > .searchInput {
+    width: 150px;
+    padding: 0 6px;
+}
+}
+  
   </style>
 
 
 </head>
 
 <body>
-    <div class="overlay-text"><center><h1>Project Mariana</h1><br>The Encrypted Internet. By Cryptane</center></div>
+    <div class="overlay-text"><center><h1>Project Mariana</h1><br>The Encrypted Internet. By Cryptane</center>
+    
+
+    
+        <div class="searchBox">
+
+            <input class="searchInput" id="searchinput" type="text" name="" placeholder="Search">
+            <button class="searchButton" href="#" onclick="search()">
+                <i class="material-icons">
+                    🔍
+                </i>
+            </button>
+        </div>
+
+    
+    </div>
+    <script>
+      document.getElementById('searchinput').addEventListener('keypress', function(event) {
+    if (event.key === 'Enter') {
+        event.preventDefault(); // Prevent default form submission if this is in a form
+        search();
+    }
+});
+function search() {
+    var inp = document.getElementById('searchinput').value;
+    
+    // Check if input appears to be a URL
+    if (inp.startsWith('http://') || inp.startsWith('https://') || inp.includes('://')) {
+        // Parse the URL
+        try {
+            let url = new URL(inp);
+            // Extract all parts except the existing TLD
+            let hostname = url.hostname;
+            let parts = hostname.split('.');
+            // Remove the existing TLD if present
+            if (parts.length > 1) {
+                parts.pop();
+            }
+            // Add .mariana as the TLD
+            hostname = parts.join('.') + '.mariana';
+            // Reconstruct the URL with the new hostname
+            url.hostname = hostname;
+            window.open(url.toString());
+        } catch (e) {
+            // If URL parsing fails, treat it as a simple text
+            if (!inp.endsWith('.mariana')) {
+                inp = inp + '.mariana';
+            }
+            window.open('http://' + inp);
+        }
+    } else {
+        // Not a URL - treat as simple text
+        if (!inp.endsWith('.mariana')) {
+            inp = inp + '.mariana';
+        }
+        window.open('http://' + inp);
+    }
+}
+    </script>
 <script id="2d-fragment-shader" type="x-shader/x-fragment">// <![CDATA[
 
 // Look below at line 23 for realism.
