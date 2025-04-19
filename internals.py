@@ -35,7 +35,7 @@ cam_table_lock=threading.Lock()
 routing_table={}
 routing_table_lock=threading.Lock()
 
-trackers=[]
+trackers={}
 trackers_lock=threading.Lock()
 
 known_machines={}
@@ -229,6 +229,8 @@ def process_special_packet(packet, ip, port):
 		process_self_discovery(packet, ip, port)
 		
 def process_self_discovery(packet, ip, port):
+	global self_tracker_state
+	global self_public
 	source_nac=uuid_str(packet[:16])
 	flag=packet[16]
 	temp_state=uuid_str(packet[17:])
@@ -399,6 +401,7 @@ def local_node_discovery():
 ############################# Tracker discovery #############################		
 
 def perform_self_discovery():
+	global self_tracker_state
 	pub_ip=get_public_ip()
 	self_tracker_state=str(uuid.uuid4())
 	packet=gen_tracker_discovery(config['nac'], self_tracker_state)
