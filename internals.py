@@ -61,7 +61,7 @@ except:
 	port_create_fail=True
 	port=0
 	while port_create_fail:
-		port=random.randint(1024, 49152)
+		port=random.randint(1024, 2048)
 		try:
 			sock.bind(('0.0.0.0', port))
 			port_create_fail=False
@@ -313,10 +313,11 @@ def send_routing():
 def local_node_discovery():
 	logs.info('Attempting local node discovery')
 	baddrs=get_baddr()
-	for port in range(1024, 49152):
-		for bcast in baddrs:
+	for bcast in baddrs:
+		for port in range(1024, 2048):
 			try:
 				send_conn_req(bcast, port)
+
 			except:
 				pass
 		
