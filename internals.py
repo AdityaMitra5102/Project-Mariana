@@ -77,7 +77,7 @@ except:
 	logs.info('Config file written')
 	
 			
-logs.info(f'Binded to port {config['port']}')
+logs.info(f'Binded to port {config["port"]}')
 
 try:
 	fl=open(os.path.join(filepath, knownsys), 'r')
