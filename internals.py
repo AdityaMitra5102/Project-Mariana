@@ -12,6 +12,7 @@ from crypto import *
 from utils import *
 from userops import *
 from packets import *
+from nodediscoveryutils import *
 
 ############################# INIT SYSTEMS #############################
 
@@ -310,11 +311,14 @@ def send_routing():
 ############################# Local node discovery #############################		
 		
 def local_node_discovery():
+	logs.info('Attempting local node discovery')
+	baddrs=get_baddr()
 	for port in range(1024, 49152):
-		try:
-			send_conn_req('255.255.255.255', port)
-		except:
-			pass
+		for bcast in baddrs:
+			try:
+				send_conn_req(bcast, port)
+			except:
+				pass
 		
 ############################# Threading loops #############################		
 		
