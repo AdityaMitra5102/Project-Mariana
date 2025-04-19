@@ -25,7 +25,7 @@ def get_comment():
 		comments=response.json()
 		res=[]
 		for comment in comments:
-			res.append(comment.body)
+			res.append(comment['body'])
 		logging.info('Github comments fetched')
 		return res
 	except Exception as e:
@@ -37,11 +37,12 @@ def get_trackers_git(trackers):
 	for comment in commentlist:
 		try:
 			info=json.loads(comment)
-			trackername=f'{info["ip"]:info["port"]}'
+			
+			trackername=f'{info["ip"]}:{info["port"]}'
 			trackercontent={'ip': info['ip'], 'port': info['port']}
 			if trackername not in trackers:
 				trackers[trackername]=trackercontent
-		except:
-			logging.error(f'Not valid tracker {comment}')
+		except Exception as e:
+			logging.error(f'Not valid tracker {comment} {e}')
 	return trackers
 	
