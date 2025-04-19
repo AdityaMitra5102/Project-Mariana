@@ -22,7 +22,7 @@ def get_response(dest_nac, payload):
 
 def known_hosts():
 	resp=''
-	for nac in routing_table():
+	for nac in routing_table:
 		resp=resp+nac+'.mariana\n'
 	return resp
 
