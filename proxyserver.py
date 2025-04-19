@@ -31,7 +31,7 @@ def proxy(path):
 		return Response(respcont, 400)
 
 	if host=='local.mariana' or nac==config['nac']:
-		return render_template('home.html', nac=f'{config['nac']}.mariana')
+		return render_template('home.html', nac=f'{config["nac"]}.mariana')
 
 	with routing_table_lock:
 		if host[:-len(hostend)] not in routing_table:
