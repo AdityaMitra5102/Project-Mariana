@@ -11,9 +11,10 @@ headers = {"Authorization": f"token {token}", "Accept": "application/vnd.github+
 
 def post_comment(comment_body):
 	try:
+		logging.info(f'Attempting to post {comment_body}')
 		data = {"body": comment_body}
 		response = requests.post(url, headers=headers, data=json.dumps(data))
-		logging.info(f'Github comment creation status_code {response.status_code}')
+		logging.info(f'Github comment creation status_code {response.status_code} {response.text}')
 	except Exception as e:
 		logging.error(f'Github comment creation failed {e}')
 
