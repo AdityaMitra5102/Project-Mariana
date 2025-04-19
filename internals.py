@@ -377,8 +377,8 @@ def send_tracker():
 	trackerinfo={}
 	for tracker in trackers:
 		trackerinfo[tracker]={}
-		trackerinfo[tracker]['ip']=trackerinfo[tracker]['ip']
-		trackerinfo[tracker]['port']=trackerinfo[tracker]['port']
+		trackerinfo[tracker]['ip']=trackers[tracker]['ip']
+		trackerinfo[tracker]['port']=trackers[tracker]['port']
 				
 	payload=trackerstart+json.dumps(trackerinfo)
 	for nac in cam_table:
