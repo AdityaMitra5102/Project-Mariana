@@ -19,7 +19,12 @@ def get_response(dest_nac, payload):
 		time.sleep(1)
 	resp=webpackets[session]
 	return resp
-	
+
+def known_hosts():
+	resp=''
+	for nac in routing_table:
+		resp=resp+nac+'.mariana\n\r <br>'
+	return resp
 
 @app.route('/', defaults={'path': ''}, methods=['GET', 'POST'])
 @app.route('/<path:path>', methods=['GET', 'POST'])
@@ -31,7 +36,10 @@ def proxy(path):
 		return Response(respcont, 400)
 
 	if host=='local.mariana' or nac==config['nac']:
-		return render_template('home.html', nac=f'{config['nac']}.mariana')
+		return render_template('home.html', nac=f'{config["nac"]}.mariana')
+
+	if host=='hosts.mariana':
+		return known_hosts()
 
 	with routing_table_lock:
 		if host[:-len(hostend)] not in routing_table:

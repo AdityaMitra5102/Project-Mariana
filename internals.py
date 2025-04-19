@@ -7,6 +7,7 @@ import os
 import time
 import base64
 import threading
+from gitutils import *
 
 from crypto import *
 from utils import *
@@ -35,7 +36,7 @@ cam_table_lock=threading.Lock()
 routing_table={}
 routing_table_lock=threading.Lock()
 
-trackers=[]
+trackers={}
 trackers_lock=threading.Lock()
 
 known_machines={}
@@ -77,7 +78,7 @@ except:
 	logs.info('Config file written')
 	
 			
-logs.info(f'Binded to port {config['port']}')
+logs.info(f'Binded to port {config["port"]}')
 
 try:
 	fl=open(os.path.join(filepath, knownsys), 'r')
@@ -111,6 +112,8 @@ except:
 selfpubkey=get_pub_key(privkey)
 self_tracker_state=str(uuid.uuid4())
 self_public=False
+
+trackers=get_trackers_git(trackers)
 
 ############################# Layer 2 Transfers #############################
 
@@ -179,9 +182,14 @@ def add_to_tracker(ip, port):
 	if trackerid in trackers:
 		logs.info('Tracker already present. Not adding')
 		return False
+	trackers=get_trackers_git(trackers)
+	if trackerid in trackers:
+		logs.info('Tracker already present. Not adding')
+		return False
 	tracker={'ip': ip, 'port': port}
 	with trackers_lock:
 		trackers[trackerid]=tracker
+		post_comment(json.dumps(tracker))
 	save_tracker_list()
 	send_conn_req(ip, port)
 	return True
@@ -229,12 +237,14 @@ def process_special_packet(packet, ip, port):
 		process_self_discovery(packet, ip, port)
 		
 def process_self_discovery(packet, ip, port):
+	global self_tracker_state
+	global self_public
 	source_nac=uuid_str(packet[:16])
 	flag=packet[16]
 	temp_state=uuid_str(packet[17:])
 	if temp_state==self_tracker_state:
 		logging.info('This system is routable. Promoting to tracker.')
-		add_to_tracker(get_public_ip, config['port'])
+		add_to_tracker(get_public_ip(), config['port'])
 		self_public=True
 		
 def process_conn_req(packet, ip, port):
@@ -316,7 +326,7 @@ def process_incoming_tracker(source_nac, payload):
 	payload=payload[len(trackerstart):].decode()
 	trackerinfo=json.loads(payload)
 	for tracker in trackerinfo:
-		add_to_tracker(tracker['ip'], tracker['port'])
+		add_to_tracker(trackerinfo[tracker]['ip'], trackerinfo[tracker]['port'])
 
 	
 def process_payload(source_nac, payload):
@@ -375,8 +385,8 @@ def send_tracker():
 	trackerinfo={}
 	for tracker in trackers:
 		trackerinfo[tracker]={}
-		trackerinfo[tracker]['ip']=trackerinfo[tracker]['ip']
-		trackerinfo[tracker]['port']=trackerinfo[tracker]['port']
+		trackerinfo[tracker]['ip']=trackers[tracker]['ip']
+		trackerinfo[tracker]['port']=trackers[tracker]['port']
 				
 	payload=trackerstart+json.dumps(trackerinfo)
 	for nac in cam_table:
@@ -399,10 +409,39 @@ def local_node_discovery():
 ############################# Tracker discovery #############################		
 
 def perform_self_discovery():
+	global self_tracker_state
 	pub_ip=get_public_ip()
 	self_tracker_state=str(uuid.uuid4())
 	packet=gen_tracker_discovery(config['nac'], self_tracker_state)
 	sock.sendto(packet, (pub_ip, config['port']))
+
+############################# Cleanup #############################
+
+def cam_table_cleanup():
+	temp=list(cam_table.keys())
+	for nac in temp:
+		if not check_valid_entry(cam_table[nac]['time']):
+			with cam_table_lock:
+				logs.info(f'Removing expired entry from CAM table {nac}')
+				cam_table.pop(nac)
+				if nac in routing_table and not check_valid_entry(routing_table[nac]['time']):
+					with routing_table_lock:
+						logs.info(f'Removing expired entry from Routing table {nac}')
+						routing_table.pop(nac)
+				
+def routing_table_cleanup():
+	temp=list(routing_table.keys())
+	for nac in temp:
+		if not check_valid_entry(routing_table[nac]['time']):
+			with routing_table_lock:
+				logs.info(f'Removing expired entry from Routing table {nac}')
+				routing_table.pop(nac)
+				if nac in cam_table and not check_valid_entry(cam_table[nac]['time']):
+					with cam_table_lock:
+						logs.info(f'Removing expired entry from CAM table {nac}')
+						cam_table.pop(nac)
+				
+				
 
 		
 ############################# Threading loops #############################		
@@ -432,7 +471,7 @@ def send_tracker_loop():
 			send_tracker()
 		except:
 			logs.error('Error occurred while sending tracker information')
-		time.sleep(70)
+		time.sleep(30)
 
 		
 def receive_packet_loop():
@@ -451,11 +490,11 @@ def conn_keepalive_loop():
 	while True:
 		try:
 			for tracker in trackers:
-				tracker_ip=tracker['ip']
-				tracker_port=tracker['port']
+				tracker_ip=trackers[tracker]['ip']
+				tracker_port=trackers[tracker]['port']
 				send_conn_req(tracker_ip, tracker_port)
 		except Exception as e:
-			logs.error("Error occurred while opening tracker {e}")
+			logs.error(f'Error occurred while opening tracker {e}')
 		time.sleep(15)	
 
 def local_node_discovery_loop():
@@ -466,6 +505,11 @@ def local_node_discovery_loop():
 			logs.error('Local node discovery failed')
 		time.sleep(15)
 			
+def cleanup_loop():
+	while True:
+		cam_table_cleanup()
+		routing_table_cleanup()
+		time.sleep(60)
 		
 def init_threads():
 	routing_thread=threading.Thread(target=send_routing_loop)
@@ -474,12 +518,15 @@ def init_threads():
 	keepalive_thread=threading.Thread(target=conn_keepalive_loop)
 	discovery_thread=threading.Thread(target=local_node_discovery_loop)
 	self_discovery_thread=threading.Thread(target=self_discovery_loop)
+	cleanup_thread=threading.Thread(target=cleanup_loop)
 	routing_thread.start()
 	tracker_thread.start()
 	receive_thread.start()
 	keepalive_thread.start()
 	discovery_thread.start()
 	self_discovery_thread.start()
+	cleanup_thread.start()
+	
 		
 if __name__=='__main__':
 	init_threads()
