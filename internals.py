@@ -236,7 +236,7 @@ def process_self_discovery(packet, ip, port):
 	temp_state=uuid_str(packet[17:])
 	if temp_state==self_tracker_state:
 		logging.info('This system is routable. Promoting to tracker.')
-		add_to_tracker(get_public_ip, config['port'])
+		add_to_tracker(get_public_ip(), config['port'])
 		self_public=True
 		
 def process_conn_req(packet, ip, port):
@@ -458,7 +458,7 @@ def conn_keepalive_loop():
 				tracker_port=trackers[tracker]['port']
 				send_conn_req(tracker_ip, tracker_port)
 		except Exception as e:
-			logs.error("Error occurred while opening tracker {e}")
+			logs.error(f'Error occurred while opening tracker {e}')
 		time.sleep(15)	
 
 def local_node_discovery_loop():
