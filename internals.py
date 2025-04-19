@@ -118,6 +118,7 @@ trackers=get_trackers_git(trackers)
 ############################# Layer 2 Transfers #############################
 
 def add_to_cam(nac, ip, port):
+	global cam_table
 	currtime=get_timestamp()
 	if nac==config['nac']:
 		logs.warning('Not adding self NAC to CAM Table.')
@@ -141,6 +142,7 @@ def send_to_host(msg, nac):
 ############################# Layer 3 Transfers #############################
 	
 def add_to_routing(nac, hopcount, next_nac, pubkey):
+	global routing_table
 	if nac==config['nac']:
 		logs.warning('Not adding own NAC to routing table')
 		return
@@ -158,7 +160,6 @@ def add_to_routing(nac, hopcount, next_nac, pubkey):
 		routing_table[nac]['time']=currtime
 	
 def send(msg, nac, retry=0):
-	
 	if retry>3:
 		logs.error("Max retry reached. Dropping packet.")
 	if nac not in routing_table:
@@ -178,6 +179,7 @@ def send(msg, nac, retry=0):
 ############################# Tracker management #############################
 
 def add_to_tracker(ip, port):
+	global trackers
 	trackerid=f'{ip}:{port}'
 	if trackerid in trackers:
 		logs.info('Tracker already present. Not adding')
