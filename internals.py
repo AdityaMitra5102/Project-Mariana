@@ -24,7 +24,7 @@ knownsys='knownsys.json'
 privkeyfile='privatekey.pem'
 
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s') #, filename='pqi.log', filemode='a')
-logs=logging.getLogger('internet')
+logs=logging.getLogger('mariana')
 
 routerstart='routinginfo:'
 trackerstart='trackerinfo:'
@@ -183,6 +183,7 @@ def add_to_tracker(ip, port):
 	with trackers_lock:
 		trackers[trackerid]=tracker
 	save_tracker_list()
+	send_conn_req(ip, port)
 	return True
 	
 def save_tracker_list():
@@ -253,7 +254,7 @@ def process_conn_req(packet, ip, port):
 		
 def process_conn_accept(packet, ip, port):
 	source_nac=uuid_str(packet[:16])
-	logs.info(f'Connection accepted by tracker {source_nac} at {ip}:{port}')
+	logs.info(f'Connection accepted by node {source_nac} at {ip}:{port}')
 	src_pubkey=packet[17:]
 	add_to_cam(source_nac, ip, port)
 	add_to_routing(source_nac, 0, None, src_pubkey)
@@ -343,7 +344,7 @@ def send_conn_reject(nac, ip, port):
 	sock.sendto(packet, (ip, port))
 
 def send_conn_req(ip, port):
-	#logs.info(f'Sending connection request to tracker at {ip}:{port}')
+	#logs.info(f'Sending connection request to node at {ip}:{port}')
 	packet=gen_conn_req(config['nac'], selfpubkey)
 	sock.sendto(packet, (ip, port))
 	

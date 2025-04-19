@@ -61,12 +61,14 @@ userops.user_response=user_response
 
 hostend='.mariana'
 
-def check_mariana_host(host):
+def check_mariana_host(host, selfnac):
 	if not host.endswith(hostend):
 		return False, None
 	nac=host[:-len(hostend)]
 	if nac=='local':
 		return True, None
+	if nac==selfnac:
+		return True, nac
 	try:
 		nacbytes=uuid_bytes(nac)
 		return True, nac

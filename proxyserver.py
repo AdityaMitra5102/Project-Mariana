@@ -25,13 +25,13 @@ def get_response(dest_nac, payload):
 @app.route('/<path:path>', methods=['GET', 'POST'])
 def proxy(path):
 	host=str(request.headers.get('Host')).strip()
-	ismar, nac=check_mariana_host(host)
+	ismar, nac=check_mariana_host(host, config['nac'])
 	if not ismar:
 		respcont='Not in Mariana. Use standard web browser.'.encode()
 		return Response(respcont, 400)
 
-	if host=='local.mariana':
-		return render_template('home.html')
+	if host=='local.mariana' or nac==config['nac']:
+		return render_template('home.html', nac=f'{config['nac']}.mariana')
 
 	with routing_table_lock:
 		if host[:-len(hostend)] not in routing_table:
