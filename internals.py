@@ -232,7 +232,7 @@ def process_self_discovery(packet, ip, port):
 	source_nac=uuid_str(packet[:16])
 	flag=packet[16]
 	temp_state=uuid_str(packet[17:])
-	if tempstate==self_tracker_state:
+	if temp_state==self_tracker_state:
 		logging.info('This system is routable. Promoting to tracker.')
 		add_to_tracker(get_public_ip, config['port'])
 		self_public=True
