@@ -29,7 +29,6 @@ def get_packet_payload(payload):
 def user_response(source_nac, payload):
 	if payload.startswith(header.encode()):
 		session, flag, payload=get_packet_payload(payload)
-		print("RECEIVED", payload)
 		if flag==1:
 			webpackets[session]=payload
 			return None

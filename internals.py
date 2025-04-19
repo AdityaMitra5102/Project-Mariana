@@ -141,7 +141,6 @@ def add_to_routing(nac, hopcount, next_nac, pubkey):
 		routing_table[nac]['time']=currtime
 	
 def send(msg, nac, retry=0):
-	print(f'Internal SEND {msg} to {nac}')
 	
 	if retry>3:
 		logs.error("Max retry reached. Dropping packet.")
@@ -248,7 +247,6 @@ def process_encrypted_payload(sess):
 	for ctr in range(1, packet_buffer[sess]['maxseq']+1):
 		payload_buffer=payload_buffer+packet_buffer[sess][ctr]
 	payload=payload_decrypt(payload_buffer, privkey)
-	print(payload)
 	source_nac=packet_buffer[sess]['source_nac']
 	process_payload(source_nac, payload)
 
@@ -286,7 +284,6 @@ def send_conn_req(ip, port):
 	sock.sendto(packet, (ip, port))
 	
 def send_payload(nac, payload, retry=0):
-	print(f'SEND PAYLOAD FUNC {payload} {nac}')
 	if nac not in routing_table:
 		if retry>=3:
 			logs.error(f'Node {nac} not found. Dropping packet.')

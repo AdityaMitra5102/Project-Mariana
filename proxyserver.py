@@ -13,9 +13,7 @@ init_threads()
 def get_response(dest_nac, payload):
 	session=str(uuid.uuid4())
 	packet=make_payload_packet(session, 0, payload)
-	print(f'SENDING {packet} to {dest_nac}')
 	send_payload(dest_nac, packet)
-	print(f'DONE SENDING {packet} to {dest_nac}')
 	while session not in webpackets:
 		logging.info(f'Waiting for response to session {session}')
 		time.sleep(1)
@@ -27,7 +25,6 @@ def get_response(dest_nac, payload):
 @app.route('/<path:path>', methods=['GET', 'POST'])
 def proxy(path):
 	host=str(request.headers.get('Host')).strip()
-	print(host)
 	ismar, nac=check_mariana_host(host)
 	if not ismar:
 		respcont='Not in Mariana. Use standard web browser.'.encode()
@@ -38,7 +35,7 @@ def proxy(path):
 
 	with routing_table_lock:
 		if host[:-len(hostend)] not in routing_table:
-			print(f'HOST {host} NOT IN ROUTING TABLE {routing_table}.')
+			logging.warning(f'HOST {host} NOT IN ROUTING TABLE {routing_table}.')
 			respcont='Host not in routing table.'.encode()
 			return Response(respcont, 400)
 
@@ -56,8 +53,7 @@ def proxy(path):
 			reqparam['params']=dict(request.args)
 			reqparam['cookies']=dict(request.cookies)
 			reqparamstr=json.dumps(reqparam)
-			print(reqparamstr)
-			
+		
 			resp=get_response(nac, reqparamstr)
 			
 						
