@@ -67,8 +67,6 @@ def check_mariana_host(host, selfnac):
 	nac=host[:-len(hostend)]
 	if nac=='local':
 		return True, None
-	if nac=='hosts':
-		return True, None
 	if nac==selfnac:
 		return True, nac
 	try:
