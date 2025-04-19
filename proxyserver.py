@@ -23,7 +23,7 @@ def get_response(dest_nac, payload):
 def known_hosts():
 	resp=''
 	for nac in routing_table:
-		resp=resp+nac+'.mariana\n'
+		resp=resp+nac+'.mariana\n\r <br>'
 	return resp
 
 @app.route('/', defaults={'path': ''}, methods=['GET', 'POST'])
