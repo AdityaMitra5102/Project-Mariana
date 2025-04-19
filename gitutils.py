@@ -1,10 +1,10 @@
 import requests
 import json
 import logging
-token = "github_pat_11AUZMXGY0frModRiwoAIR_"
-token=token+ "ewKUejTxNcIIKOmxsLLcgXydXGtJPLVwXSyZFSs8SaT3XR675MWK1x3JZCY"
-owner = "CryptaneOnline"
-repo = "Mariana-Trackers"
+token = "github_pat_11AKR33JY0CQqWTwShYDH3_"
+token=token+ "7fTwm3UXHSKjkG8GY8leKID7kStb187xIamaBN3XZcm76PKILKWXtZSzUG4"
+owner = "AdityaMitra5102"
+repo = "Project-Mariana"
 issue_number = 1
 url = f"https://api.github.com/repos/{owner}/{repo}/issues/{issue_number}/comments"
 headers = {"Authorization": f"token {token}", "Accept": "application/vnd.github+json", "X-GitHub-Api-Version": "2022-11-28"}
