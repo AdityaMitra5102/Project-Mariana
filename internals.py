@@ -306,17 +306,26 @@ def send_routing():
 	payload=routerstart+json.dumps(routinginfo)
 	for nac in cam_table:
 		send_payload(nac, payload.encode())
+
+############################# Local node discovery #############################		
+		
+def local_node_discovery():
+	for port in range(1024, 49152):
+		try:
+			send_conn_req('255.255.255.255', port)
+		except:
+			pass
 		
 ############################# Threading loops #############################		
 		
 def send_routing_loop():
 	while True:
-		if True:
+		try:
 			logs.info('Sharing routing information with immediate nodes')
 			send_routing()
-			time.sleep(40)
-		#except:
+		except:
 			logs.error('Error occurred while sending routing information')
+		time.sleep(40)
 		
 def receive_packet_loop():
 	while True:
@@ -339,15 +348,24 @@ def conn_keepalive_loop():
 			logs.error("Error occurred while opening tracker {e}")
 		time.sleep(15)	
 
+def local_node_discovery_loop():
+	while True:
+		try:
+			local_node_discovery()
+		except:
+			logs.error('Local node discovery failed')
+		time.sleep(15)
 			
 		
 def init_threads():
 	routing_thread=threading.Thread(target=send_routing_loop)
 	receive_thread=threading.Thread(target=receive_packet_loop)
 	keepalive_thread=threading.Thread(target=conn_keepalive_loop)
+	discovery_thread=threading.Thread(target=local_node_discovery_loop)
 	routing_thread.start()
 	receive_thread.start()
 	keepalive_thread.start()
+	discovery_thread.start()
 		
 if __name__=='__main__':
 	init_threads()
