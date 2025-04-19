@@ -514,6 +514,7 @@ def cleanup_loop():
 		time.sleep(60)
 		
 def init_threads():
+	save_tracker_list()
 	routing_thread=threading.Thread(target=send_routing_loop)
 	tracker_thread=threading.Thread(target=send_tracker_loop)
 	receive_thread=threading.Thread(target=receive_packet_loop)
@@ -528,7 +529,7 @@ def init_threads():
 	discovery_thread.start()
 	self_discovery_thread.start()
 	cleanup_thread.start()
-	
+		
 		
 if __name__=='__main__':
 	init_threads()
