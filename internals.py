@@ -435,7 +435,7 @@ def send_tracker_loop():
 			send_tracker()
 		except:
 			logs.error('Error occurred while sending tracker information')
-		time.sleep(70)
+		time.sleep(30)
 
 		
 def receive_packet_loop():
