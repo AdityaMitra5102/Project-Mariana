@@ -5,6 +5,7 @@ import json
 import logging
 import os
 import time
+import base64
 import threading
 
 from crypto import *
@@ -255,7 +256,7 @@ def process_incoming_routing(source_nac, payload):
 	payload=payload[len(routerstart):].decode()
 	routinginfo=json.loads(payload)
 	for nac in routinginfo:
-		add_to_routing(nac, routinginfo[nac]['hop_count']+1, source_nac, routinginfo[nac]['pubkey'].encode())
+		add_to_routing(nac, routinginfo[nac]['hop_count']+1, source_nac, base64.b64decode(routinginfo[nac]['pubkey'].encode()))
 	
 def process_payload(source_nac, payload):
 	logs.info(f'Received communication from {source_nac} payload.')
@@ -300,7 +301,7 @@ def send_routing():
 	for nac in routing_table:
 		routinginfo[nac]={}
 		routinginfo[nac]['hop_count']=routing_table[nac]['hop_count']
-		routinginfo[nac]['pubkey']=routing_table[nac]['pubkey'].decode()
+		routinginfo[nac]['pubkey']=base64.b64encode(routing_table[nac]['pubkey']).decode()
 		
 	payload=routerstart+json.dumps(routinginfo)
 	for nac in cam_table:
@@ -310,11 +311,11 @@ def send_routing():
 		
 def send_routing_loop():
 	while True:
-		try:
+		if True:
 			logs.info('Sharing routing information with immediate nodes')
 			send_routing()
 			time.sleep(40)
-		except:
+		#except:
 			logs.error('Error occurred while sending routing information')
 		
 def receive_packet_loop():
