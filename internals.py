@@ -140,7 +140,6 @@ def send_to_host(msg, nac):
 		logs.error('NAC not in CAM Table. Packet dropped')
 	ip=cam_table[nac]['ip']
 	port=cam_table[nac]['port']
-	sock.sendto(b'dummy', (ip, port))
 	sock.sendto(msg, (ip, port))
 	
 ############################# Layer 3 Transfers #############################
@@ -636,7 +635,7 @@ def init_threads():
 	keepalive_thread.start()
 	discovery_thread.start()
 	self_discovery_thread.start()
-	retransmission_thread.start()
+	#retransmission_thread.start()
 	cleanup_thread.start()
 		
 		
