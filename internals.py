@@ -329,9 +329,10 @@ def process_self_packet(packet):
 			packet_buffer[sess]['retry']=0
 			
 			logs.info(f'Receiving for session {sess} from {source_nac}')
-		
-		packet_buffer[sess][seqnum]=payload
-		packet_buffer[sess]['received']=packet_buffer[sess]['received']+1
+
+		if seqnum not in packet_buffer[sess]:
+			packet_buffer[sess][seqnum]=payload
+			packet_buffer[sess]['received']=packet_buffer[sess]['received']+1
 		logs.info(f'Received packet {seqnum} of {maxseq} for session {sess}')
 		
 	if packet_buffer[sess]['received']==packet_buffer[sess]['maxseq']+1:
