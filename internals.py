@@ -161,6 +161,7 @@ def add_to_routing(nac, hopcount, next_nac, pubkey):
 		routing_table[nac]['next_hop']=next_nac
 		routing_table[nac]['pubkey']=pubkey
 		routing_table[nac]['time']=currtime
+	send_routing()
 	
 def send(msg, nac, retry=0):
 	if retry>3:
