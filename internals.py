@@ -321,7 +321,10 @@ def process_incoming_routing(source_nac, payload):
 	payload=payload[len(routerstart):].decode()
 	routinginfo=json.loads(payload)
 	for nac in routinginfo:
-		add_to_routing(nac, routinginfo[nac]['hop_count']+1, source_nac, base64.b64decode(routinginfo[nac]['pubkey'].encode()))
+		if routinginfo[nac]['next_hop'] != config['nac']:
+			add_to_routing(nac, routinginfo[nac]['hop_count']+1, source_nac, base64.b64decode(routinginfo[nac]['pubkey'].encode()))
+		else:
+			logging.info('Cyclic routing entry not added.')
 
 def process_incoming_tracker(source_nac, payload):
 	logs.info(f'Received tracker information from {source_nac}')
@@ -378,6 +381,7 @@ def send_routing():
 		routinginfo[nac]={}
 		routinginfo[nac]['hop_count']=routing_table[nac]['hop_count']
 		routinginfo[nac]['pubkey']=base64.b64encode(routing_table[nac]['pubkey']).decode()
+		routinginfo[nac]['next_hop']=routing_table[nac]['next_hop']
 		
 	payload=routerstart+json.dumps(routinginfo)
 	for nac in cam_table:
