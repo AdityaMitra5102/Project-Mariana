@@ -530,11 +530,11 @@ def find_missing_packets(sess):
 def request_retransmission():
 	temp=list(packet_buffer.keys())
 	for sess in temp:
-		if packet_buffer[sess]['retry']>20:
+		if packet_buffer[sess]['retry']>100:
 			with packet_buffer_lock:
 				packet_buffer.pop(sess)
 				return
-		if not check_valid_entry(packet_buffer[sess]['time'], expiry=10):
+		if not check_valid_entry(packet_buffer[sess]['time'], expiry=5):
 			missing_packs=find_missing_packets(sess)
 			for m in missing_packs:
 				send_retry_req(packet_buffer[sess]['source_nac'], sess, m)
