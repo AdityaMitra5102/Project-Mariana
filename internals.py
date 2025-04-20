@@ -239,10 +239,7 @@ def process_special_packet(packet, ip, port):
 		process_conn_accept(packet, ip, port)
 	if flag==2:
 		process_conn_reject(packet, ip, port)
-	if flag==4:
-		process_retransmission(packet, ip, port)
-	if flag==5:
-		process_full_ack(packet, ip, port)
+
 	if flag==9:
 		process_self_discovery(packet, ip, port)
 		
@@ -310,6 +307,12 @@ def process_conn_reject(packet, ip, port):
 def process_self_packet(packet):
 	source_nac=uuid_str(packet[:16])
 	flag=packet[16]
+	if flag==4:
+		process_retransmission(packet)
+		return
+	if flag==5:
+		process_full_ack(packet)
+		return
 	dest_nac=uuid_str(packet[17:33])
 	seqbytes=packet[33:37]
 	seqnum=int.from_bytes(seqbytes, 'big')
