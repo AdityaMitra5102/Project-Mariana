@@ -1,6 +1,8 @@
 import requests
 import time
 import uuid
+import socket
+import os
 import math
 
 def get_timestamp():
@@ -28,9 +30,6 @@ def segment_payload(payload, maxsize=1400):
 	for i in range(total_packets):
 		fragments.append(payload[maxsize*i:maxsize*(i+1)])
 	return fragments
-	
-import socket
-import os
 
 def list_ip_addresses():
 	iplist=[]

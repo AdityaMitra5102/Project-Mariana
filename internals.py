@@ -44,6 +44,9 @@ known_machines={}
 packet_buffer={}
 packet_buffer_lock=threading.Lock()
 
+sending_buffer={}
+sending_buffer_lock=threading.Lock()
+
 privkey=None
 
 sock=socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -235,6 +238,10 @@ def process_special_packet(packet, ip, port):
 		process_conn_accept(packet, ip, port)
 	if flag==2:
 		process_conn_reject(packet, ip, port)
+	if flag==4:
+		process_retransmission(packet, ip, port)
+	if flag==5:
+		process_full_ack(packet, ip, port)
 	if flag==9:
 		process_self_discovery(packet, ip, port)
 		
@@ -248,6 +255,23 @@ def process_self_discovery(packet, ip, port):
 		logging.info('This system is routable. Promoting to tracker.')
 		add_to_tracker(get_public_ip(), config['port'])
 		self_public=True
+		
+def process_retransmission(packet, ip, port):
+	source_nac=uuid_str(packet[:16])
+	flag=packet[16]
+	dest_nac=uuid_str(packet[17:33])
+	sess=uuid_str(packet[33:37])
+	req=int.from_bytes(packet[37:], 'big')
+	pack=sending_buffer[sess]['packets'][req]
+	send(pack, source_nac)
+	
+def process_full_ack(packet, ip, port):
+	source_nac=uuid_str(packet[:16])
+	flag=packet[16]
+	dest_nac=uuid_str(packet[17:33])
+	sess=uuid_str(packet[33:37])
+	with sending_buffer_lock:
+		sending_buffer.pop(sess)
 		
 def process_conn_req(packet, ip, port):
 	source_nac=uuid_str(packet[:16])
@@ -298,6 +322,9 @@ def process_self_packet(packet):
 			packet_buffer[sess]['source_nac']=source_nac
 			packet_buffer[sess]['maxseq']=maxseq
 			packet_buffer[sess]['received']=0
+			packet_buffer[sess]['time']=get_timestamp()
+			packet_buffer[sess]['rety']=0
+			
 			logs.info(f'Receiving for session {sess} from {source_nac}')
 		
 		packet_buffer[sess][seqnum]=payload
@@ -306,9 +333,12 @@ def process_self_packet(packet):
 		
 	if packet_buffer[sess]['received']==packet_buffer[sess]['maxseq']+1:
 		process_encrypted_payload(sess)
-		
+				
 def process_encrypted_payload(sess):
 	logs.info(f'Received full packet for {sess}')
+	send_packet_ack(packet_buffer[sess]['source_nac'], sess)
+	logs.info(f'Sending ACK for {sess}')
+	
 	payload_buffer=packet_buffer[sess][0]
 	for ctr in range(1, packet_buffer[sess]['maxseq']+1):
 		payload_buffer=payload_buffer+packet_buffer[sess][ctr]
@@ -371,9 +401,21 @@ def send_payload(nac, payload, retry=0):
 		logs.error(f'Node {nac} not known. Wait for routing table updates. Retrying 3 times in 30 secs.')
 		send_payload(nac, payload, retry=retry+1)
 		return
-	packet_frags=gen_payload_seq(config['nac'], nac, payload, routing_table[nac]['pubkey'])
+	packet_frags, sess=gen_payload_seq(config['nac'], nac, payload, routing_table[nac]['pubkey'])
 	for frag in packet_frags:
+		with sending_buffer_lock:
+			sending_buffer[sess]={}
+			sending_buffer[sess]['packets']=packets
+			sending_buffer[sess]['time']=get_timestamp()
 		send(frag, nac)
+		
+def send_packet_ack(nac, session):
+	packet=gen_full_ack(config['nac'], nac, session)
+	send(packet, nac)
+	
+def send_retry_req(nac, sess, pack):
+	packet=gen_retransmission_req(config['nac'], nac, sess, pack)
+	send(packet, nac)
 		
 def send_routing():
 	routinginfo={}
@@ -447,8 +489,58 @@ def routing_table_cleanup():
 						logs.info(f'Removing expired entry from CAM table {nac}')
 						cam_table.pop(nac)
 				
-				
+def sending_buffer_cleanup():
+	temp=list(sending_buffer.keys())
+	for sess in temp:
+		if not check_valid_entry(sending_buffer[sess]['time'], expiry=180):
+			with sending_buffer_lock:
+				sending_buffer.pop(sess)
 
+############################# Retransmission #############################		
+
+def find_missing_packets(sess):
+	maxseq=packet_buffer[sess]['maxseq']
+	missing_packs=[]
+	packetnos=list(packet_buffer[sess].keys())
+	to_remove=['source_nac', 'maxseq', 'received', 'time', 'retry']
+	for r in to_remove:
+		try:
+			packetnos.remove(r)
+		except:
+			pass
+	
+	packetnos=sorted(packetnos)
+	
+	exp=0
+	curr=0
+	size=maxseq+1
+	while exp<size and curr < len(packetnos):
+		if packetnos[curr]==exp:
+			exp+=1
+			curr+=1
+		else:
+			missing_packs.append(exp)
+			exp+=1
+		
+	while exp<size:
+		missing_packs.append(exp)
+		exp+=1
+	return missing_packs 
+
+def request_retransmission():
+	temp=list(packet_buffer.keys())
+	for sess in temp:
+		if packet_buffer[sess]['retry']>5:
+			with packet_buffer_lock:
+				packet_buffer.pop(sess)
+		if not check_valid_entry(packet_buffer[sess]['time'], expiry=5):
+			missing_packs=find_missing_packets(sess)
+			for m in missing_packs:
+				send_retry_req(nac, sess, m)
+			packet_buffer[sess]['retry']+=1
+			packet_buffer[sess]['time']=get_timestamp()			
+				
+			
 		
 ############################# Threading loops #############################		
 		
@@ -510,11 +602,20 @@ def local_node_discovery_loop():
 		except:
 			logs.error('Local node discovery failed')
 		time.sleep(15)
+		
+def retransmission_loop():
+	while True:
+		try:
+			request_retransmission()
+		except Exception as e:
+			logs.error(f'Couldnt request retransmission {e}')
+		time.sleep(3)
 			
 def cleanup_loop():
 	while True:
 		cam_table_cleanup()
 		routing_table_cleanup()
+		sending_buffer_cleanup()
 		time.sleep(60)
 		
 def init_threads():
@@ -524,6 +625,7 @@ def init_threads():
 	receive_thread=threading.Thread(target=receive_packet_loop)
 	keepalive_thread=threading.Thread(target=conn_keepalive_loop)
 	discovery_thread=threading.Thread(target=local_node_discovery_loop)
+	retransmission_thread=threading.Thread(target=retransmission_loop)
 	self_discovery_thread=threading.Thread(target=self_discovery_loop)
 	cleanup_thread=threading.Thread(target=cleanup_loop)
 	routing_thread.start()
@@ -532,6 +634,7 @@ def init_threads():
 	keepalive_thread.start()
 	discovery_thread.start()
 	self_discovery_thread.start()
+	retransmission_thread.start()
 	cleanup_thread.start()
 		
 		
