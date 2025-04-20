@@ -366,7 +366,7 @@ def process_incoming_tracker(source_nac, payload):
 
 	
 def process_payload(source_nac, payload):
-	logs.info(f'Received communication from {source_nac} payload.')
+	logs.info(f'Received communication from {source_nac} payload. {payload}')
 	if payload.startswith(routerstart.encode()):
 		process_incoming_routing(source_nac, payload)
 		return
