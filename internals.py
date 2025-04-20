@@ -260,8 +260,8 @@ def process_retransmission(packet, ip, port):
 	source_nac=uuid_str(packet[:16])
 	flag=packet[16]
 	dest_nac=uuid_str(packet[17:33])
-	sess=uuid_str(packet[33:37])
-	req=int.from_bytes(packet[37:], 'big')
+	sess=uuid_str(packet[33:49])
+	req=int.from_bytes(packet[49:], 'big')
 	pack=sending_buffer[sess]['packets'][req]
 	send(pack, source_nac)
 	
@@ -323,7 +323,7 @@ def process_self_packet(packet):
 			packet_buffer[sess]['maxseq']=maxseq
 			packet_buffer[sess]['received']=0
 			packet_buffer[sess]['time']=get_timestamp()
-			packet_buffer[sess]['rety']=0
+			packet_buffer[sess]['retry']=0
 			
 			logs.info(f'Receiving for session {sess} from {source_nac}')
 		
@@ -405,7 +405,7 @@ def send_payload(nac, payload, retry=0):
 	for frag in packet_frags:
 		with sending_buffer_lock:
 			sending_buffer[sess]={}
-			sending_buffer[sess]['packets']=packets
+			sending_buffer[sess]['packets']=packet_frags
 			sending_buffer[sess]['time']=get_timestamp()
 		send(frag, nac)
 		
@@ -530,13 +530,14 @@ def find_missing_packets(sess):
 def request_retransmission():
 	temp=list(packet_buffer.keys())
 	for sess in temp:
-		if packet_buffer[sess]['retry']>5:
+		if packet_buffer[sess]['retry']>20:
 			with packet_buffer_lock:
 				packet_buffer.pop(sess)
+				return
 		if not check_valid_entry(packet_buffer[sess]['time'], expiry=5):
 			missing_packs=find_missing_packets(sess)
 			for m in missing_packs:
-				send_retry_req(nac, sess, m)
+				send_retry_req(packet_buffer[sess]['source_nac'], sess, m)
 			packet_buffer[sess]['retry']+=1
 			packet_buffer[sess]['time']=get_timestamp()			
 				
