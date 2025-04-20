@@ -254,7 +254,7 @@ def process_self_discovery(packet, ip, port):
 		add_to_tracker(get_public_ip(), config['port'])
 		self_public=True
 		
-def process_retransmission(packet, ip, port):
+def process_retransmission(packet):
 	source_nac=uuid_str(packet[:16])
 	flag=packet[16]
 	dest_nac=uuid_str(packet[17:33])
@@ -264,7 +264,7 @@ def process_retransmission(packet, ip, port):
 		pack=sending_buffer[sess]['packets'][req]
 		send(pack, source_nac)
 	
-def process_full_ack(packet, ip, port):
+def process_full_ack(packet):
 	source_nac=uuid_str(packet[:16])
 	flag=packet[16]
 	dest_nac=uuid_str(packet[17:33])
