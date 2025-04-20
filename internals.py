@@ -402,11 +402,12 @@ def send_payload(nac, payload, retry=0):
 		send_payload(nac, payload, retry=retry+1)
 		return
 	packet_frags, sess=gen_payload_seq(config['nac'], nac, payload, routing_table[nac]['pubkey'])
+	with sending_buffer_lock:
+		sending_buffer[sess]={}
+		sending_buffer[sess]['packets']=packet_frags
+		sending_buffer[sess]['time']=get_timestamp()
+	
 	for frag in packet_frags:
-		with sending_buffer_lock:
-			sending_buffer[sess]={}
-			sending_buffer[sess]['packets']=packet_frags
-			sending_buffer[sess]['time']=get_timestamp()
 		send(frag, nac)
 		
 def send_packet_ack(nac, session):
