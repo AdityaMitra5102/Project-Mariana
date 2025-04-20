@@ -372,7 +372,7 @@ def process_incoming_tracker(source_nac, payload):
 
 	
 def process_payload(source_nac, payload):
-	logs.info(f'Received communication from {source_nac} payload. {payload}')
+	logs.info(f'Received communication from {source_nac} payload.')
 	if payload.startswith(routerstart.encode()):
 		process_incoming_routing(source_nac, payload)
 		return
@@ -413,7 +413,7 @@ def send_payload(nac, payload, retry=0):
 		sending_buffer[sess]={}
 		sending_buffer[sess]['packets']=packet_frags
 		sending_buffer[sess]['time']=get_timestamp()
-	logs.info(f'Sending {payload} to {nac}')
+	logs.info(f'Sending payload to {nac}')
 	send(packet_frags[0], nac)
 	for frag in packet_frags:
 		send(frag, nac)
