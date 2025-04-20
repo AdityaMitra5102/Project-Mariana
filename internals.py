@@ -263,8 +263,9 @@ def process_retransmission(packet, ip, port):
 	dest_nac=uuid_str(packet[17:33])
 	sess=uuid_str(packet[33:49])
 	req=int.from_bytes(packet[49:], 'big')
-	pack=sending_buffer[sess]['packets'][req]
-	send(pack, source_nac)
+	if sess in sending_buffer:
+		pack=sending_buffer[sess]['packets'][req]
+		send(pack, source_nac)
 	
 def process_full_ack(packet, ip, port):
 	source_nac=uuid_str(packet[:16])
@@ -404,10 +405,10 @@ def send_payload(nac, payload, retry=0):
 		send_payload(nac, payload, retry=retry+1)
 		return
 	packet_frags, sess=gen_payload_seq(config['nac'], nac, payload, routing_table[nac]['pubkey'])
-	#with sending_buffer_lock:
-	#	sending_buffer[sess]={}
-	#	sending_buffer[sess]['packets']=packet_frags
-	#	sending_buffer[sess]['time']=get_timestamp()
+	with sending_buffer_lock:
+		sending_buffer[sess]={}
+		sending_buffer[sess]['packets']=packet_frags
+		sending_buffer[sess]['time']=get_timestamp()
 	logs.info(f'Sending {payload} to {nac}')
 	for frag in packet_frags:
 		send(frag, nac)
@@ -638,7 +639,7 @@ def init_threads():
 	keepalive_thread.start()
 	discovery_thread.start()
 	self_discovery_thread.start()
-	#retransmission_thread.start()
+	retransmission_thread.start()
 	cleanup_thread.start()
 		
 		
