@@ -1,0 +1,15 @@
+[Unit]
+Description=Mariana
+After=network.target
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+Restart=always
+RestartSec=1
+User=root
+WorkingDirectory=/home/vm_user/Project-Mariana
+ExecStart=/usr/bin/python3 /home/vm_user/Project-Mariana/proxyserver.py
+
+[Install]
+WantedBy=multi-user.target
