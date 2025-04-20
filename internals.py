@@ -269,9 +269,10 @@ def process_full_ack(packet, ip, port):
 	source_nac=uuid_str(packet[:16])
 	flag=packet[16]
 	dest_nac=uuid_str(packet[17:33])
-	sess=uuid_str(packet[33:37])
+	sess=uuid_str(packet[33:49])
 	with sending_buffer_lock:
-		sending_buffer.pop(sess)
+		if sess in sending_buffer:
+			sending_buffer.pop(sess)
 		
 def process_conn_req(packet, ip, port):
 	source_nac=uuid_str(packet[:16])
