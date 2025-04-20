@@ -24,7 +24,7 @@ def flag_bytes(flag):
 def check_valid_conn(nac, ip, port):
 	return True #Modify this function to blacklist machines
 	
-def segment_payload(payload, maxsize=1400):
+def segment_payload(payload, maxsize=700):
 	total_packets=math.ceil(len(payload)/maxsize)
 	fragments=[]
 	for i in range(total_packets):
