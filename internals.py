@@ -410,6 +410,7 @@ def send_payload(nac, payload, retry=0):
 		sending_buffer[sess]['packets']=packet_frags
 		sending_buffer[sess]['time']=get_timestamp()
 	logs.info(f'Sending {payload} to {nac}')
+	send(packet_frags[0], nac)
 	for frag in packet_frags:
 		send(frag, nac)
 		
