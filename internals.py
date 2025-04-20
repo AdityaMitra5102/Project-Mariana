@@ -212,7 +212,7 @@ def save_tracker_list():
 ############################# Process received packet #############################
 
 def process_packet(packet, ip, port):
-	try:
+	if True:
 		source_nac=uuid_str(packet[:16])
 		flag=packet[16]
 		logs.info(f'Packet from {source_nac} flag {flag}')
@@ -226,8 +226,8 @@ def process_packet(packet, ip, port):
 				send(packet, dest_nac) #Forward to destination
 		else:
 			process_special_packet(packet, ip, port)
-	except:
-		logs.warn('Packet out of format. Ignoring')
+	#except:
+	#	logs.warn('Packet out of format. Ignoring')
 		
 def process_special_packet(packet, ip, port):
 	source_nac=uuid_str(packet[:16])
