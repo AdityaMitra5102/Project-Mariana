@@ -217,7 +217,7 @@ def process_packet(packet, ip, port):
 		source_nac=uuid_str(packet[:16])
 		flag=packet[16]
 		logs.info(f'Packet from {source_nac} flag {flag}')
-		if flag==3: #Payload packet
+		if flag>=3: #Payload packet
 			dest_nac=uuid_str(packet[17:33])
 			if dest_nac == config['nac']: #Packet for me
 				logs.info(f'Received packet for f{dest_nac}. Self processing.')
@@ -225,8 +225,8 @@ def process_packet(packet, ip, port):
 			else:
 				logs.info(f'Received packet for f{dest_nac}. Forwarding')
 				send(packet, dest_nac) #Forward to destination
-		else:
-			process_special_packet(packet, ip, port)
+		
+		process_special_packet(packet, ip, port)
 	#except:
 	#	logs.warn('Packet out of format. Ignoring')
 		
