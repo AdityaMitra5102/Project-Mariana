@@ -60,6 +60,7 @@ def proxy(path):
 	logging.info(f"Proxying request to: {target_url}")
 	headers = {key: value for key, value in request.headers}
 	headers['Access-Control-Allow-Origin'] = "*"
+	
 	try:
 		if True:
 			reqparam={}
@@ -76,6 +77,7 @@ def proxy(path):
 			content=bytes.fromhex(respdict['content'])
 			status_code=respdict['status_code']
 			dummyheaders=respdict['headers']
+			dummyheaders['Host']=host
 
  			
 			response = Response(content, status_code)
