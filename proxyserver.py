@@ -4,10 +4,12 @@ import logging
 import json
 import uuid
 from proxyutils import *
+from flask_cors import CORS
+
 
 from utils import *
 app = Flask(__name__)
-
+CORS(app)
 from internals import *
 init_threads()
 def get_response(dest_nac, payload):
@@ -42,7 +44,8 @@ def proxy(path):
 		return known_hosts()
 		
 	if host=='my.mariana':
-		return f'{config["nac"]}.mariana'
+		resp= Response(f'{config["nac"]}.mariana')
+		return resp
 
 	with routing_table_lock:
 		if host[:-len(hostend)] not in routing_table:
@@ -56,6 +59,7 @@ def proxy(path):
 	target_url=f'http://{target_url}'
 	logging.info(f"Proxying request to: {target_url}")
 	headers = {key: value for key, value in request.headers}
+	headers['Access-Control-Allow-Origin'] = "*"
 	try:
 		if True:
 			reqparam={}
