@@ -9,7 +9,7 @@ header='mariana'
 
 webpackets={}
 
-serverhost='localhost:5000'
+serverhost='localhost'
 
 def make_payload_packet(session, flag, payload):
 	packet=header.encode()
