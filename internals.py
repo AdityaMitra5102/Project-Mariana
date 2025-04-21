@@ -123,9 +123,9 @@ trackers=get_trackers_git(trackers)
 def add_to_cam(nac, ip, port):
 	global cam_table
 	currtime=get_timestamp()
-	#if nac==config['nac']:
-	#	logs.warning('Not adding self NAC to CAM Table.')
-	#	return
+	if nac==config['nac']:
+		logs.warning('Not adding self NAC to CAM Table.')
+		return
 		
 	if nac in cam_table:
 		logs.warning(f'NAC {nac} Already exists in CAM Table. Overwriting.')
@@ -146,9 +146,9 @@ def send_to_host(msg, nac):
 	
 def add_to_routing(nac, hopcount, next_nac, pubkey):
 	global routing_table
-	#if nac==config['nac']:
-	#	logs.warning('Not adding own NAC to routing table')
-	#	return
+	if nac==config['nac']:
+		logs.warning('Not adding own NAC to routing table')
+		return
 	currtime=get_timestamp()
 	if nac in routing_table:
 		logs.warning(f'NAC {nac} Already exists in Routing Table.')
