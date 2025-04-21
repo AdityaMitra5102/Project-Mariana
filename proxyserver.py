@@ -40,6 +40,9 @@ def proxy(path):
 
 	if host=='hosts.mariana':
 		return known_hosts()
+		
+	if host=='my.mariana':
+		return f'{config["nac"]}.mariana'
 
 	with routing_table_lock:
 		if host[:-len(hostend)] not in routing_table:

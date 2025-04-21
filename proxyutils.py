@@ -9,7 +9,7 @@ header='mariana'
 
 webpackets={}
 
-serverhost='localhost'
+serverhost='localhost:5000'
 
 def make_payload_packet(session, flag, payload):
 	packet=header.encode()
@@ -71,6 +71,9 @@ def check_mariana_host(host, selfnac):
 		return True, None
 	if nac==selfnac:
 		return True, nac
+	if nac=='my':
+		return True, None
+		
 	try:
 		nacbytes=uuid_bytes(nac)
 		return True, nac
