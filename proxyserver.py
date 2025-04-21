@@ -23,9 +23,10 @@ def get_response(dest_nac, payload):
 	return resp
 
 def known_hosts():
-	resp=''
+	resp='<HTML><head><title>Nodes</title></head><body><H1>Known nodes</H1><br>'
 	for nac in routing_table:
-		resp=resp+nac+'.mariana\n\r <br>'
+		resp=resp+f'{nac}.mariana <a href="http://{nac}.mariana">Open</a> <br>'
+	resp+='</body></HTML>'
 	return resp
 
 @app.route('/', defaults={'path': ''}, methods=['GET', 'POST'])
@@ -37,7 +38,7 @@ def proxy(path):
 		respcont='Not in Mariana. Use standard web browser.'.encode()
 		return Response(respcont, 400)
 
-	if host=='local.mariana' or nac==config['nac']:
+	if host=='local.mariana':
 		return render_template('home.html', nac=f'{config["nac"]}.mariana')
 
 	if host=='hosts.mariana':
