@@ -8,7 +8,7 @@ from flask_cors import CORS
 
 
 from utils import *
-app = Flask(__name__)
+app = Flask(__name__, static_folder=None)
 CORS(app)
 from internals import *
 init_threads()
