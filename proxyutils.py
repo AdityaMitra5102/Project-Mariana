@@ -29,7 +29,7 @@ def get_packet_payload(payload):
 	session=uuid_str(session)
 	return session, flag, payload
 	
-def user_response(source_nac, payload):
+def user_response(source_nac, payload, send_payload):
 	if payload.startswith(header.encode()):
 		session, flag, payload=get_packet_payload(payload)
 		if flag==1:

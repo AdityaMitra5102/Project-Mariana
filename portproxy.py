@@ -6,7 +6,7 @@ from portutils import *
 
 proxyhost='localhost'
 class PortProxy:
-	def __init__(self, hostport, guestport, nac, mode, servermode, ephemeral, first_payload):
+	def __init__(self, hostport, guestport, nac, mode, servermode, ephemeral, first_payload, send_payload):
 		if not servermode:
 			self.hostport=hostport
 			self.host=int.from_bytes(hostport)
@@ -29,6 +29,8 @@ class PortProxy:
 		self.servermode=servermode
 		self.est=False
 		self.first_payload=first_payload
+		self.mode=mode
+		self.send_payload=send_payload
 		
 	def guest_to_host(self, payload):
 		self.connobj.sendall(payload)
@@ -38,7 +40,7 @@ class PortProxy:
 		if data:
 			payload=make_port_payload(self.mode, self.servermode, self.hostport, self.guestport, data)
 			print('Sending payload')
-			send_payload(self.guestnac, payload)
+			self.send_payload(self.guestnac, payload)
 		else:
 			self.est=False
 		

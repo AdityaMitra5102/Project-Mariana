@@ -54,7 +54,7 @@ def proxy(path):
 		destnac=request.args.get('destnac')
 		if destnac not in routing_table:
 			return 'NAC not found. Not starting proxy'
-		create_proxy_port(listenport, destport, destnac)
+		create_proxy_port(listenport, destport, destnac, send_payload)
 		return 'Starting proxy'
 
 	with routing_table_lock:

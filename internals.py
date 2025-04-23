@@ -380,7 +380,7 @@ def process_payload(source_nac, payload):
 		process_incoming_tracker(source_nac, payload)
 		return
 	try:
-		resp=user_response(source_nac, payload)
+		resp=user_response(source_nac, payload, send_payload)
 		if resp is not None:
 			send_payload(source_nac, resp)
 	except:
