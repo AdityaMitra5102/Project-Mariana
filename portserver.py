@@ -21,6 +21,8 @@ def process_port_payload_from_tunnel(nac, payload):
 	if socketid not in socket_list:
 		port_socket=PortProxy(destport, sourceport, nac, mode, not serverport, 0, data)
 		port_socket.init_port_thread()
+	else:
+		port_socket[socketid].guest_to_host(data)
 		
 def create_proxy_port(listenport, destport, destnac):
 	mode=True
