@@ -383,8 +383,8 @@ def process_payload(source_nac, payload):
 		resp=user_response(source_nac, payload, send_payload)
 		if resp is not None:
 			send_payload(source_nac, resp)
-	except:
-		logs.info('Some error occured while processing output')
+	except Exception as e:
+		logs.info(f'Some error occured while processing output {e} ')
 
 ############################# Send packets #############################
 def send_conn_accept(nac):

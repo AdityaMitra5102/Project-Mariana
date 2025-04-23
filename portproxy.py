@@ -1,10 +1,11 @@
 import socket
 import logging
 import threading
+import random
 
 from portutils import *
 
-proxyhost='localhost'
+proxyhost='127.0.0.1'
 class PortProxy:
 	def __init__(self, hostport, guestport, nac, mode, servermode, ephemeral, first_payload, send_payload):
 		if not servermode:
@@ -16,7 +17,7 @@ class PortProxy:
 
 
 		self.opt=None
-		if mode:
+		if not mode:
 			self.opt=socket.SOCK_STREAM
 		else:
 			self.opt=socket.SOCK_DGRAM
@@ -25,7 +26,8 @@ class PortProxy:
 		self.ephemeral=ephemeral
 		if ephemeral==0:
 			self.ephemeral=random.randint(49152, 65535)
-		self.sock.bind(('0.0.0.0', self.ephemeral))
+		if servermode:
+			self.sock.bind(('0.0.0.0', self.ephemeral))
 		self.servermode=servermode
 		self.est=False
 		self.first_payload=first_payload
@@ -33,13 +35,15 @@ class PortProxy:
 		self.send_payload=send_payload
 		
 	def guest_to_host(self, payload):
+		print(f'Sending to socket port {self.host} data {payload}')
+		print(f'Verifying socket {self.sock}')
 		self.connobj.sendall(payload)
 		
 	def host_to_guest(self):
 		data=self.connobj.recv(1024)
-		if data:
+		if data is not None and data!=b'':
 			payload=make_port_payload(self.mode, self.servermode, self.hostport, self.guestport, data)
-			print('Sending payload')
+			print(f'Sending payload to {self.guestnac} port {self.guestport}')
 			self.send_payload(self.guestnac, payload)
 		else:
 			self.est=False
@@ -48,9 +52,10 @@ class PortProxy:
 		while self.est:
 			try:
 				self.host_to_guest()
-			except:
-				logging.warn('Couldnt read from socket')
+			except Exception as e:
+				logging.warn(f'Couldnt read from socket {e}')
 		logging.info(f'Socket closed')
+		self.sock.close()
 		port_destroyed(self)
 		if self.servermode:
 			init_port_thread()
@@ -59,19 +64,22 @@ class PortProxy:
 		return get_socket_id(self.guestnac, self.guestport)
 		
 	def init_port(self):
+		print(f'SERVER MODE {self.servermode}')
 		if self.servermode:
 			self.sock.listen()
 			conn, addr=self.sock.accept()
 			self.connobj=conn
 			hostip, port=addr
+			print(f'Connection active to {hostip}, {port}')
 			self.host=port
 			self.hostport=uuid_bytes(str(uuid.uuid4()))
 		else:
 			self.sock.connect((proxyhost, self.host))
 			self.connobj=self.sock
+			print(f'Connected {self.connobj}')
 		self.est=True
 		proxy_thread=threading.Thread(target=self.listen_loop)
-		proxy_thread.start()
+		#proxy_thread.start()
 		port_established(self)
 		self.guest_to_host(self.first_payload)
 		self.first_payload=None

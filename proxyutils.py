@@ -58,8 +58,8 @@ def user_response(source_nac, payload, send_payload):
 			packet=make_payload_packet(session, 1, payload)
 			return packet
 			
-	elif payload.startswith(portheader):
-		process_port_payload_from_tunnel(source_nac, payload)
+	elif payload.startswith(portheader.encode()):
+		process_port_payload_from_tunnel(source_nac, payload, send_payload)
 	else:
 		return None
 		
