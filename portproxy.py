@@ -63,20 +63,29 @@ class PortProxy:
 	def get_port_proxy_id(self):
 		return get_socket_id(self.guestnac, self.guestport)
 		
+	def udp_send(self, payload):
+		self.sock.sendto(payload, (proxyhost, self.host))
+		
 	def init_port(self):
 		print(f'SERVER MODE {self.servermode}')
-		if self.servermode:
-			self.sock.listen()
-			conn, addr=self.sock.accept()
-			self.connobj=conn
-			hostip, port=addr
-			print(f'Connection active to {hostip}, {port}')
-			self.host=port
-			self.hostport=uuid_bytes(str(uuid.uuid4()))
+		if self.mode:
+			if self.servermode:
+				self.sock.listen()
+				conn, addr=self.sock.accept()
+				self.connobj=conn
+				hostip, port=addr
+				print(f'Connection active to {hostip}, {port}')
+				self.host=port
+				self.hostport=uuid_bytes(str(uuid.uuid4()))
+			else:
+				self.sock.connect((proxyhost, self.host))
+				self.connobj=self.sock
+				print(f'Connected {self.connobj}')
+				
 		else:
-			self.sock.connect((proxyhost, self.host))
-			self.connobj=self.sock
-			print(f'Connected {self.connobj}')
+			self.connobj.recv=self.sock.recvfrom
+			self.connobj.sendall=self.udp_send
+		
 		self.est=True
 		proxy_thread=threading.Thread(target=self.listen_loop)
 		proxy_thread.start()
