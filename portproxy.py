@@ -27,8 +27,6 @@ class PortProxy:
 			self.opt=socket.SOCK_STREAM
 		else:
 			self.opt=socket.SOCK_DGRAM
-		self.sock=socket.socket(socket.AF_INET, self.opt)
-		self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 		self.ephemeral=ephemeral
 		if ephemeral==0:
 			self.ephemeral=random.randint(49152, 65535)
@@ -74,6 +72,7 @@ class PortProxy:
 		return get_socket_id(self.guestnac, self.guestport)
 		
 	def udp_send(self, payload):
+		print(f'Sending to PORT {self.host}')
 		self.sock.sendto(payload, (proxyhost, self.host))
 		
 	def udp_recv(self, buffer):
@@ -82,9 +81,14 @@ class PortProxy:
 		self.host=port
 		if not self.hostport:
 			self.hostport=uuid_bytes(str(uuid.uuid4()))
+			
+		print(f'Received from PORT {self.host}')
 		return data
 		
 	def init_port(self):
+		self.sock=socket.socket(socket.AF_INET, self.opt)
+		self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+		print(f'SOCKET STATE 1 {self.sock}')
 		print(f'SERVER MODE {self.servermode}')
 		if self.mode:
 			if self.servermode:
@@ -102,20 +106,22 @@ class PortProxy:
 				print(f'Connected {self.connobj}')
 				
 		else:
-			
+			self.sock.bind(('0.0.0.0', self.ephemeral))			
 			self.connobj=ConnectionObject(self.udp_send, self.udp_recv)
 			if self.servermode:
-				self.sock.bind(('0.0.0.0', self.ephemeral))
 				self.hostport=None
-				data=self.udp_recv(1)
+				data=self.udp_recv(1024)
 				payload=make_port_payload(self.mode, self.servermode, self.hostport, self.guestport, data)
 				self.send_payload(self.guestnac, payload)
+				
+		print(f'SOCKET STATE 2 {self.sock}')
 		
 		self.est=True
 		proxy_thread=threading.Thread(target=self.listen_loop)
 		proxy_thread.start()
 		port_established(self)
-		self.guest_to_host(self.first_payload)
+		if self.first_payload and len(self.first_payload)>0:
+			self.guest_to_host(self.first_payload)
 		self.first_payload=None
 		
 	def init_port_thread(self):
