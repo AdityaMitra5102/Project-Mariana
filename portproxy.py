@@ -17,7 +17,7 @@ class PortProxy:
 
 
 		self.opt=None
-		if not mode:
+		if mode:
 			self.opt=socket.SOCK_STREAM
 		else:
 			self.opt=socket.SOCK_DGRAM
@@ -79,7 +79,7 @@ class PortProxy:
 			print(f'Connected {self.connobj}')
 		self.est=True
 		proxy_thread=threading.Thread(target=self.listen_loop)
-		#proxy_thread.start()
+		proxy_thread.start()
 		port_established(self)
 		self.guest_to_host(self.first_payload)
 		self.first_payload=None
