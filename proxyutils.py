@@ -1,4 +1,5 @@
 from utils import *
+from portserver import *
 
 import userops
 import requests
@@ -6,6 +7,8 @@ import uuid
 import json
 
 header='mariana'
+portheader='portproxy:'
+
 
 webpackets={}
 
@@ -54,6 +57,9 @@ def user_response(source_nac, payload):
 			
 			packet=make_payload_packet(session, 1, payload)
 			return packet
+			
+	elif payload.startswith(portheader):
+		process_port_payload_from_tunnel(source_nac, payload)
 	else:
 		return None
 		

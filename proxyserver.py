@@ -47,6 +47,15 @@ def proxy(path):
 	if host=='my.mariana':
 		resp= Response(f'{config["nac"]}.mariana')
 		return resp
+		
+	if host=='createproxy.mariana':
+		listenport=request.args.get('listenport')
+		destport=request.args.get('destport')
+		destnac=request.args.get('destnac')
+		if destnac not in routing_table:
+			return 'NAC not found. Not starting proxy'
+		create_proxy_port(listenport, destport, destnac)
+		return 'Starting proxy'
 
 	with routing_table_lock:
 		if host[:-len(hostend)] not in routing_table:
