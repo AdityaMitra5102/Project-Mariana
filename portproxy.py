@@ -21,7 +21,7 @@ class PortProxy:
 			self.opt=socket.SOCK_STREAM
 		else:
 			self.opt=socket.SOCK_DGRAM
-		self.sock=socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+		self.sock=socket.socket(socket.AF_INET, self.opt)
 		self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 		self.ephemeral=ephemeral
 		if ephemeral==0:
