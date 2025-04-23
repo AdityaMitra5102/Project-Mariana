@@ -1,6 +1,24 @@
 from utils import *
 header='portproxy:'
 
+socket_list={}
+
+def port_established(port):
+	global socket_list
+	socket_list[port.get_port_proxy_id()]=port
+	logging.info('Port established')
+	
+def port_destroyed(port):
+	global socket_list
+	socket_list.pop(port.get_port_proxy_id())
+	logging.info('Port destroyed')
+
+def get_socket_from_list(id):
+	return socket_list[id]
+	
+def check_socket_exists(id):
+	return id in socket_list
+
 def make_proxy_flag(mode, servermode):
 	return (int.from_bytes(bytes([mode]))*2+int.from_bytes(bytes([servermode]))).to_bytes(1)
 	

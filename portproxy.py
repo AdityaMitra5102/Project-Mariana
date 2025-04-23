@@ -37,6 +37,7 @@ class PortProxy:
 		data=self.connobj.recv(1024)
 		if data:
 			payload=make_port_payload(self.mode, self.servermode, self.hostport, self.guestport, data)
+			print('Sending payload')
 			send_payload(self.guestnac, payload)
 		else:
 			self.est=False
