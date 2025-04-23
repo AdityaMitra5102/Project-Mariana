@@ -82,7 +82,8 @@ class PortProxy:
 		data, addr=self.sock.recvfrom(buffer)
 		hostip, port=addr
 		self.host=port
-		self.hostport=uuid_bytes(str(uuid.uuid4()))
+		if not self.hostport:
+			self.hostport=uuid_bytes(str(uuid.uuid4()))
 		return data
 		
 	def init_port(self):
@@ -104,9 +105,11 @@ class PortProxy:
 		else:
 			
 			self.connobj=ConnectionObject(self.udp_send, self.udp_recv)
-			self.hostport=None
-			while not self.hostport:
-				print('Waiting for connection')
+			if self.servermode:
+				self.hostport=None
+				data=self.udp_recv(1)
+				payload=make_port_payload(self.mode, self.servermode, self.hostport, self.guestport, data)
+				self.send_payload(self.guestnac, payload)
 		
 		self.est=True
 		proxy_thread=threading.Thread(target=self.listen_loop)
