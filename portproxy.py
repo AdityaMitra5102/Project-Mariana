@@ -69,7 +69,6 @@ class PortProxy:
 		return get_socket_id(self.guestnac, self.guestport)
 		
 	def udp_send(self, payload):
-		print(f'Sending to PORT {self.host}')
 		self.sock.sendto(payload, (proxyhost, self.host))
 		
 	def udp_recv(self, buffer):
@@ -78,8 +77,6 @@ class PortProxy:
 		self.host=port
 		if not self.hostport:
 			self.hostport=uuid_bytes(str(uuid.uuid4()))
-			
-		print(f'Received from PORT {self.host}')
 		return data
 		
 	def init_port(self):
