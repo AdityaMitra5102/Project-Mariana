@@ -6,6 +6,12 @@ import random
 from portutils import *
 
 proxyhost='127.0.0.1'
+
+class ConnectionObject:
+	def __init__(self, sendobj, recvobj):
+		self.recv=recvobj
+		self.sendall=sendobj
+
 class PortProxy:
 	def __init__(self, hostport, guestport, nac, mode, servermode, ephemeral, first_payload, send_payload):
 		if not servermode:
@@ -41,7 +47,8 @@ class PortProxy:
 		
 	def host_to_guest(self):
 		data=self.connobj.recv(1024)
-		if data is not None and data!=b'':
+		print(f'DATA RECEIVED {data}')
+		if data is not None:
 			payload=make_port_payload(self.mode, self.servermode, self.hostport, self.guestport, data)
 			print(f'Sending payload to {self.guestnac} port {self.guestport}')
 			self.send_payload(self.guestnac, payload)
@@ -54,6 +61,11 @@ class PortProxy:
 				self.host_to_guest()
 			except Exception as e:
 				logging.warn(f'Couldnt read from socket {e}')
+				self.sock.close()
+				port_destroyed(self)
+				if self.servermode:
+					init_port_thread()
+				return
 		logging.info(f'Socket closed')
 		self.sock.close()
 		port_destroyed(self)
@@ -83,8 +95,7 @@ class PortProxy:
 				print(f'Connected {self.connobj}')
 				
 		else:
-			self.connobj.recv=self.sock.recvfrom
-			self.connobj.sendall=self.udp_send
+			self.connobj=ConnectionObject(self.udp_send, self.sock.recvfrom)
 		
 		self.est=True
 		proxy_thread=threading.Thread(target=self.listen_loop)
