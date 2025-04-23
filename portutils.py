@@ -41,7 +41,7 @@ def process_payload(payload):
 	payload=payload[len(header.encode()):]
 	flag=payload[0]
 	servermode=(flag%2)==1
-	mode=(flag/2)==1
+	mode=(flag//2)==1
 	
 	sourceport=payload[1:17]
 	destport=payload[17:33]
