@@ -41,7 +41,7 @@ class PortProxy:
 		self.send_payload=send_payload
 		
 	def guest_to_host(self, payload):
-		print(f'Sending to socket port {self.host} data {payload}')
+		#print(f'Sending to socket port {self.hostport} data {payload}')
 		print(f'Verifying socket {self.sock}')
 		self.connobj.sendall(payload)
 		
@@ -78,6 +78,12 @@ class PortProxy:
 	def udp_send(self, payload):
 		self.sock.sendto(payload, (proxyhost, self.host))
 		
+	def udp_recv(self, buffer):
+		data, addr=self.sock.recvfrom(buffer)
+		hostip, port=addr
+		self.host=port
+		return data
+		
 	def init_port(self):
 		print(f'SERVER MODE {self.servermode}')
 		if self.mode:
@@ -95,7 +101,8 @@ class PortProxy:
 				print(f'Connected {self.connobj}')
 				
 		else:
-			self.connobj=ConnectionObject(self.udp_send, self.sock.recvfrom)
+			
+			self.connobj=ConnectionObject(self.udp_send, self.udp_recv)
 		
 		self.est=True
 		proxy_thread=threading.Thread(target=self.listen_loop)
