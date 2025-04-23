@@ -79,6 +79,8 @@ def check_mariana_host(host, selfnac):
 		return True, nac
 	if nac=='my':
 		return True, None
+	if nac=='createproxy':
+		return True, None
 		
 	try:
 		nacbytes=uuid_bytes(nac)
