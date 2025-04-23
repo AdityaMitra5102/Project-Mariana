@@ -16,18 +16,17 @@ class PortProxy:
 
 
 		self.opt=None
-		if mode=='TCP':
+		if mode:
 			self.opt=socket.SOCK_STREAM
-		if mode=='UDP':
+		else:
 			self.opt=socket.SOCK_DGRAM
 		self.sock=socket.socket(socket.AF_INET, self.opt)
 		self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 		self.ephemeral=ephemeral
 		if ephemeral==0:
 			self.ephemeral=random.randint(49152, 65535)
-		self.sock.bind(('', self.ephemeral))
+		self.sock.bind(('0.0.0.0', self.ephemeral))
 		self.servermode=servermode
-		self.sessionkey=sessionkey
 		self.est=False
 		self.first_payload=first_payload
 		
@@ -59,7 +58,7 @@ class PortProxy:
 	def init_port(self):
 		if self.servermode:
 			self.sock.listen()
-			conn, addr=s.accept()
+			conn, addr=self.sock.accept()
 			self.connobj=conn
 			hostip, port=addr
 			self.host=port
@@ -76,7 +75,5 @@ class PortProxy:
 		
 	def init_port_thread(self):
 		init_port_thread=threading.Thread(target=self.init_port)
-		init_port.start()
-		
-		
+		init_port_thread.start()
 		
