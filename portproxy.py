@@ -82,6 +82,7 @@ class PortProxy:
 		data, addr=self.sock.recvfrom(buffer)
 		hostip, port=addr
 		self.host=port
+		self.hostport=uuid_bytes(str(uuid.uuid4()))
 		return data
 		
 	def init_port(self):
