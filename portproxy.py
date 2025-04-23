@@ -104,6 +104,9 @@ class PortProxy:
 		else:
 			
 			self.connobj=ConnectionObject(self.udp_send, self.udp_recv)
+			self.hostport=None
+			while not self.hostport:
+				print('Waiting for connection')
 		
 		self.est=True
 		proxy_thread=threading.Thread(target=self.listen_loop)
