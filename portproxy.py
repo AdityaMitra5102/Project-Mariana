@@ -32,8 +32,6 @@ class PortProxy:
 		self.ephemeral=ephemeral
 		if ephemeral==0:
 			self.ephemeral=random.randint(49152, 65535)
-		if servermode:
-			self.sock.bind(('0.0.0.0', self.ephemeral))
 		self.servermode=servermode
 		self.est=False
 		self.first_payload=first_payload
@@ -90,6 +88,7 @@ class PortProxy:
 		print(f'SERVER MODE {self.servermode}')
 		if self.mode:
 			if self.servermode:
+				self.sock.bind(('0.0.0.0', self.ephemeral))
 				self.sock.listen()
 				conn, addr=self.sock.accept()
 				self.connobj=conn
@@ -106,6 +105,7 @@ class PortProxy:
 			
 			self.connobj=ConnectionObject(self.udp_send, self.udp_recv)
 			if self.servermode:
+				self.sock.bind(('0.0.0.0', self.ephemeral))
 				self.hostport=None
 				data=self.udp_recv(1)
 				payload=make_port_payload(self.mode, self.servermode, self.hostport, self.guestport, data)
