@@ -37,16 +37,13 @@ class PortProxy:
 		self.send_payload=send_payload
 		
 	def guest_to_host(self, payload):
-		#print(f'Sending to socket port {self.hostport} data {payload}')
-		print(f'Verifying socket {self.sock}')
 		self.connobj.sendall(payload)
 		
 	def host_to_guest(self):
 		data=self.connobj.recv(1024)
-		print(f'DATA RECEIVED {data}')
 		if data is not None:
 			payload=make_port_payload(self.mode, self.servermode, self.hostport, self.guestport, data)
-			print(f'Sending payload to {self.guestnac} port {self.guestport}')
+			logging.info(f'Sending payload to {self.guestnac} port {self.guestport}')
 			self.send_payload(self.guestnac, payload)
 		else:
 			self.est=False
@@ -88,8 +85,6 @@ class PortProxy:
 	def init_port(self):
 		self.sock=socket.socket(socket.AF_INET, self.opt)
 		self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-		print(f'SOCKET STATE 1 {self.sock}')
-		print(f'SERVER MODE {self.servermode}')
 		if self.mode:
 			if self.servermode:
 				self.sock.bind(('0.0.0.0', self.ephemeral))
@@ -97,13 +92,13 @@ class PortProxy:
 				conn, addr=self.sock.accept()
 				self.connobj=conn
 				hostip, port=addr
-				print(f'Connection active to {hostip}, {port}')
+				logging.info(f'Connection active to {hostip}, {port}')
 				self.host=port
 				self.hostport=uuid_bytes(str(uuid.uuid4()))
 			else:
 				self.sock.connect((proxyhost, self.host))
 				self.connobj=self.sock
-				print(f'Connected {self.connobj}')
+				logging.info(f'Connected {self.connobj}')
 				
 		else:
 			self.sock.bind(('0.0.0.0', self.ephemeral))			
@@ -114,7 +109,6 @@ class PortProxy:
 				payload=make_port_payload(self.mode, self.servermode, self.hostport, self.guestport, data)
 				self.send_payload(self.guestnac, payload)
 				
-		print(f'SOCKET STATE 2 {self.sock}')
 		
 		self.est=True
 		proxy_thread=threading.Thread(target=self.listen_loop)
