@@ -46,7 +46,7 @@
                         
                         // Format and append each message
                         messages.forEach(message => {
-                            const formattedMessage = `${message.NAC}>>> ${message.msg}\n`;
+                            const formattedMessage = `${message.NAC}>>> ${message.message}\n`;
                             outputArea.value += formattedMessage;
                         });
                         
@@ -62,7 +62,7 @@
         }
         
         // Set up periodic fetch every second
-        setInterval(fetchMessages, 1000);
+        setInterval(fetchMessages, 5000);
         
         // Handle send button click
         document.getElementById('sendButton').addEventListener('click', function() {
