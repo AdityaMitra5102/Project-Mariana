@@ -8,11 +8,23 @@ import json
 
 header='mariana'
 portheader='portproxy:'
-
+trenchheader='trenchtalk'
 
 webpackets={}
+trenchmsg=[]
 
 serverhost='localhost'
+
+def make_trench_payload(msg):
+	return trenchheader.encode()+msg.encode()
+	
+def get_trench_packet(payload):
+	try:
+		return payload[len(trenchheader):].decode()
+	except Exception as e:
+		logging.info('Error decoding Trench talk message')
+		return 'Error decoding Trench talk message'
+		
 
 def make_payload_packet(session, flag, payload):
 	packet=header.encode()
@@ -60,8 +72,24 @@ def user_response(source_nac, payload, send_payload):
 			
 	elif payload.startswith(portheader.encode()):
 		process_port_payload_from_tunnel(source_nac, payload, send_payload)
+		
+	elif payload.startswith(trenchheader.encode()):
+		msg=get_trench_packet(payload)
+		add_trench_message(source_nac, msg)
+		
 	else:
 		return None
+		
+def add_trench_message(nac, msg):
+	global trenchmsg
+	textmsg={'NAC': nac, 'message': msg}
+	trenchmsg.append(textmsg)
+		
+def get_trench_messages():
+	global trenchmsg
+	temp=trenchmsg
+	trenchmsg=[]
+	return temp
 		
 userops.user_response=user_response
 
@@ -80,6 +108,8 @@ def check_mariana_host(host, selfnac):
 	if nac=='my':
 		return True, None
 	if nac=='createproxy':
+		return True, None
+	if nac=='trenchtalk':
 		return True, None
 		
 	try:

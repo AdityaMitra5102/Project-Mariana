@@ -48,6 +48,20 @@ def proxy(path):
 		resp= Response(f'{config["nac"]}.mariana')
 		return resp
 		
+	if host=='trenchtalk.mariana':
+		if request.method=='GET':
+			if request.path=='/messages':
+				return json.dumps(get_trench_messages())
+			if request.path=='/':
+				return render_template('trenchtalk.html')
+		if request.method=='POST' and request.path=='/send':
+			msg=request.form.get('message')
+			tosend=request.form.get('dest')
+			trench_payload=make_trench_payload(msg)
+			send_payload(tosend, trench_payload)
+			return f'Sent to {tosend}'
+			
+		
 	if host=='createproxy.mariana':
 		listenport=int(request.args.get('listenport'))
 		destport=int(request.args.get('destport'))
