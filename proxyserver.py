@@ -57,9 +57,12 @@ def proxy(path):
 		if request.method=='POST' and request.path=='/send':
 			msg=request.form.get('message')
 			tosend=request.form.get('dest')
+			dest_nac_list = [word for part in tosend.split(',') for word in part.strip().split()]
 			trench_payload=make_trench_payload(msg)
-			send_payload(tosend, trench_payload)
-			return f'Sent to {tosend}'
+			for dest_nac_send in dest_nac_list:
+				if dest_nac_send in routing_table:
+					send_payload(dest_nac_send, trench_payload)
+			return f'Sent to {tosend} if exists in routing table'
 			
 		
 	if host=='createproxy.mariana':
