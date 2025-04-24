@@ -10,6 +10,8 @@ header='mariana'
 portheader='portproxy:'
 trenchheader='trenchtalk'
 
+hostend='.mariana'
+
 webpackets={}
 trenchmsg=[]
 
@@ -82,7 +84,7 @@ def user_response(source_nac, payload, send_payload):
 		
 def add_trench_message(nac, msg):
 	global trenchmsg
-	textmsg={'NAC': nac, 'message': msg}
+	textmsg={'NAC': nac+hostend, 'message': msg}
 	trenchmsg.append(textmsg)
 		
 def get_trench_messages():
@@ -93,7 +95,7 @@ def get_trench_messages():
 		
 userops.user_response=user_response
 
-hostend='.mariana'
+
 
 def check_mariana_host(host, selfnac):
 	if not host.endswith(hostend):

@@ -60,8 +60,9 @@ def proxy(path):
 			dest_nac_list = [word for part in tosend.split(',') for word in part.strip().split()]
 			trench_payload=make_trench_payload(msg)
 			for dest_nac_send in dest_nac_list:
-				if dest_nac_send in routing_table:
-					send_payload(dest_nac_send, trench_payload)
+				dest_nac_check, dest_nac=check_mariana_host(dest_nac_send, conig['nac'])
+				if dest_nac_send and dest_nac in routing_table:
+					send_payload(dest_nac, trench_payload)
 			return f'Sent to {tosend} if exists in routing table'
 			
 		
