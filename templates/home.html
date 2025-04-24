@@ -14,6 +14,53 @@
 
 
   <style id="INLINE_PEN_STYLESHEET_ID">
+
+	     /* Floating button container */
+        .floating-chat-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            z-index: 1000;
+            cursor: pointer;
+            font-family: Arial, sans-serif;
+        }
+
+        /* Button styling */
+        .chat-icon-container {
+            background-color: #4a6ee0;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .chat-icon-container:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Caption styling */
+        .chat-caption {
+            margin-top: 8px;
+            color: #333;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        /* SVG icon styling */
+        .chat-icon {
+            width: 30px;
+            height: 30px;
+            fill: white;
+        }
+	  
     html, body {
 	position: absolute;
 	top: 0px;
@@ -122,6 +169,17 @@ canvas {
 </head>
 
 <body>
+  <div class="floating-chat-btn" onclick="window.open('http://trenchalk.mariana');">
+    <div class="chat-icon-container">
+        <svg class="chat-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H5.17L4 17.17V4h16v12z"/>
+            <path d="M7 9h10v2H7zm0-3h10v2H7zm0 6h7v2H7z"/>
+        </svg>
+    </div>
+    <span class="chat-caption">Trench Talk</span>
+</div>
+
+	
     <div class="overlay-text"><center><h1>Project Mariana</h1><br>The Encrypted Internet. By Cryptane<br>My Mariana: {{nac}}</center>
     
 
