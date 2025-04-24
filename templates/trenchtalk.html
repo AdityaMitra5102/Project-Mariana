@@ -4,10 +4,90 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Trench Talk</title>
+   <style>
+    body {
+        background-color: #000;
+        color: #33ff33;
+        font-family: 'Courier New', Courier, monospace;
+        margin: 0;
+        padding: 0;
+    }
+
+    .container {
+        max-width: 700px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+
+    h1, h2 {
+        color: #33ff33;
+        border-bottom: 1px solid #33ff33;
+        padding-bottom: 5px;
+        margin-top: 20px;
+    }
+
+    textarea {
+        width: 100%;
+        background-color: #000;
+        color: #33ff33;
+        border: 1px solid #33ff33;
+        resize: none;
+        padding: 10px;
+        font-family: 'Courier New', Courier, monospace;
+        box-sizing: border-box;
+        overflow: auto; /* Ensures scrollbar shows up */
+	   white-space: pre-wrap; /* Better line handling */
+    }
+
+    input[type="text"] {
+        width: 100%;
+        padding: 10px;
+        background-color: #000;
+        color: #33ff33;
+        border: 1px solid #33ff33;
+        font-family: 'Courier New', Courier, monospace;
+        margin-bottom: 10px;
+        box-sizing: border-box;
+    }
+
+    button {
+        background-color: #000;
+        color: #33ff33;
+        border: 1px solid #33ff33;
+        padding: 10px 20px;
+        font-family: 'Courier New', Courier, monospace;
+        cursor: pointer;
+        transition: background-color 0.3s;
+    }
+
+    button:hover {
+        background-color: #111;
+    }
+
+    label {
+        display: block;
+        margin-top: 10px;
+        margin-bottom: 5px;
+        font-weight: bold;
+    }
+
+    /* Blinking cursor style */
+    #output::after {
+        content: "_";
+        animation: blink 1s infinite;
+    }
+
+    @keyframes blink {
+        0% { opacity: 1; }
+        50% { opacity: 0; }
+        100% { opacity: 1; }
+    }
     
+</style>
 
 </head>
 <body>
+ <div class="container">
     <h1>Trench Talk</h1>
     
     <div>
@@ -27,9 +107,8 @@
         </div>
         <button id="sendButton">Send</button>
     </div>
-    
+</div>
         <script>
-        // Function to fetch messages
         function fetchMessages() {
             fetch('/messages')
                 .then(response => response.text())
@@ -38,19 +117,16 @@
                         const messages = JSON.parse(data);
                         const outputArea = document.getElementById('output');
                         
-                        // Clear the textarea if it's the first fetch
                         if (!window.hasLoadedMessages) {
                             outputArea.value = '';
                             window.hasLoadedMessages = true;
                         }
                         
-                        // Format and append each message
                         messages.forEach(message => {
-                            const formattedMessage = `${message.NAC}>>> ${message.message}\n`;
+                            const formattedMessage = `${message.NAC} >>> ${message.message}\n\n`;
                             outputArea.value += formattedMessage;
                         });
                         
-                        // Scroll to bottom
                         outputArea.scrollTop = outputArea.scrollHeight;
                     } catch (error) {
                         console.error('Error parsing messages:', error);
@@ -61,20 +137,16 @@
                 });
         }
         
-        // Set up periodic fetch every second
-        setInterval(fetchMessages, 5000);
-        
-        // Handle send button click
+        setInterval(fetchMessages, 3000);
+
         document.getElementById('sendButton').addEventListener('click', function() {
             const destValue = document.getElementById('dest').value;
             const messageValue = document.getElementById('message').value;
             
-            // Create form data
             const formData = new FormData();
             formData.append('dest', destValue);
             formData.append('message', messageValue);
             
-            // Send POST request
             fetch('/send', {
                 method: 'POST',
                 body: formData
@@ -82,7 +154,6 @@
             .then(response => response.text())
             .then(data => {
                 console.log(data);
-                // Clear message input after sending
                 document.getElementById('message').value = '';
             })
             .catch(error => {
@@ -90,7 +161,6 @@
             });
         });
         
-        // Initial fetch on page load
         fetchMessages();
     </script>
 
