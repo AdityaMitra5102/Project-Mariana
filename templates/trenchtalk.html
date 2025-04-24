@@ -123,7 +123,7 @@
                         }
                         
                         messages.forEach(message => {
-                            const formattedMessage = `${message.NAC} >>> ${message.message}\n\n`;
+                            const formattedMessage = `${message.NAC} to Me >>> ${message.message}\n\n`;
                             outputArea.value += formattedMessage;
                         });
                         
@@ -137,7 +137,7 @@
                 });
         }
         
-        setInterval(fetchMessages, 3000);
+        setInterval(fetchMessages, 1000);
 
         document.getElementById('sendButton').addEventListener('click', function() {
             const destValue = document.getElementById('dest').value;
@@ -146,6 +146,10 @@
             const formData = new FormData();
             formData.append('dest', destValue);
             formData.append('message', messageValue);
+            const formattedMessage = `Me to ${destValue} >>> ${messageValue}\n\n`;
+            const outputArea = document.getElementById('output');
+            outputArea.value += formattedMessage;
+            
             
             fetch('/send', {
                 method: 'POST',
