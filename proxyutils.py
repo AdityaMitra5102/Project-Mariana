@@ -1,5 +1,6 @@
 from utils import *
 from portserver import *
+from cargoship import *
 
 import userops
 import requests
@@ -9,6 +10,7 @@ import json
 header='mariana'
 portheader='portproxy:'
 trenchheader='trenchtalk'
+cargoshipheader='cargo'
 
 hostend='.mariana'
 
@@ -78,6 +80,9 @@ def user_response(source_nac, payload, send_payload):
 	elif payload.startswith(trenchheader.encode()):
 		msg=get_trench_packet(payload)
 		add_trench_message(source_nac, msg)
+		
+	elif payload.startswith(cargoshipheader.encode()):
+		handle_cargo_incoming_packet(source_nac, payload, send_payload)
 		
 	else:
 		return None

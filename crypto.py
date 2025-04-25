@@ -3,6 +3,7 @@ from cryptography.hazmat.primitives import serialization, hashes
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 import base64
 import os
+import hashlib
 
 from Kyber import Kyber
 from kyber_py.pyaes import *
@@ -88,3 +89,7 @@ def payload_decrypt(payload_buffer, privkey):
 	aeskeydec=decrypt(aeskey, privkey)
 	decpayload=aes_decrypt(encrpayload, aeskeydec)
 	return decpayload
+	
+def crypto_hash(data):
+	return hashlib.md5(data)
+

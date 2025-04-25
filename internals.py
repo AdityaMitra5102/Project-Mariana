@@ -13,6 +13,7 @@ from crypto import *
 from utils import *
 from userops import *
 from packets import *
+from cargoship import *
 from nodediscoveryutils import *
 
 ############################# INIT SYSTEMS #############################
@@ -620,6 +621,13 @@ def retransmission_loop():
 		except Exception as e:
 			logs.error(f'Couldnt request retransmission {e}')
 		time.sleep(3)
+		
+def cargoship_loop():
+	while True:
+		try:
+			attempt_cargo_send(send_payload)
+		except Exception as e:
+			logs.error(f'Cargoship thread error {e}')
 			
 def cleanup_loop():
 	while True:
@@ -637,6 +645,7 @@ def init_threads():
 	discovery_thread=threading.Thread(target=local_node_discovery_loop)
 	retransmission_thread=threading.Thread(target=retransmission_loop)
 	self_discovery_thread=threading.Thread(target=self_discovery_loop)
+	cargoship_thread=threading.Thread(target=cargoship_loop)
 	cleanup_thread=threading.Thread(target=cleanup_loop)
 	routing_thread.start()
 	tracker_thread.start()
@@ -645,6 +654,7 @@ def init_threads():
 	discovery_thread.start()
 	self_discovery_thread.start()
 	retransmission_thread.start()
+	cargoship_thread.start()
 	cleanup_thread.start()
 		
 		

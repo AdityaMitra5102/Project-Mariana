@@ -4,6 +4,7 @@ import logging
 import json
 import uuid
 from proxyutils import *
+from cargoship import *
 from flask_cors import CORS
 
 
@@ -64,6 +65,28 @@ def proxy(path):
 				if dest_nac_send and dest_nac in routing_table:
 					send_payload(dest_nac, trench_payload)
 			return f'Sent to {tosend} if exists in routing table'
+
+	if host=='cargoship.mariana':
+		if request.method=='GET':
+			if request.path=='/cargostatus':
+				return json.dumps(get_cargo_status())
+			if request.path=='/':
+				return render_template('cargoship.html')
+		if request.method=='POST' and request.path=='/send':
+			tosend=request.form.get('dest')
+			file=request.files['file']
+			dest_nac_list = [word for part in tosend.split(',') for word in part.strip().split()]
+			file_bytes=file.read()
+			filename=file.filename
+			
+			for dest_nac_send in dest_nac_list:
+				dest_nac_check, dest_nac=check_mariana_host(dest_nac_send, config['nac'])
+				if dest_nac_send and dest_nac in routing_table:
+				cargo_send(dest_nac, file_bytes, filename, send_payload)		
+			
+
+			return f'Sent to {tosend} if exists in routing table'
+
 			
 		
 	if host=='createproxy.mariana':
