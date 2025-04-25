@@ -61,7 +61,7 @@ def attempt_cargo_send(send_payload):
 		nac=cargostatus[identifier]['nac']	
 		status=cargostatus[identifier]['status']
 		timestamp=cargostatus[identifier]['time']
-		filehash=cargoship[identifier]['hash']
+		filehash=cargostatus[identifier]['hash']
 		if not check_valid_entry(timestamp, expiry=10):
 			curr=cargostatus[identifier]['current_pack']
 			if status=='Sending':
