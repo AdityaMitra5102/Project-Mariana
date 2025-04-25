@@ -142,7 +142,7 @@ def handle_cargo_incoming_packet(src_nac,payload, send_payload):
 			if crypto_hash(tempdata)==cargostatus[identifier]['hash']:
 				hashstatus='Hash verified.'
 			receivebuf.pop(identifier)
-			cargostatus[identifier]['status']=f'{cargostatus[identifier]['name']} receive complete. {hashstatus}'	
+			cargostatus[identifier]['status']=f'Receive complete. {hashstatus}'	
 			
 			
 		send_payload(src_nac, ackpack)
