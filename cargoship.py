@@ -131,7 +131,10 @@ def handle_cargo_incoming_packet(src_nac,payload, send_payload):
 		cargostatus[identifier]['time']=get_timestamp()			
 		if (seqnum+1)==cargostatus[identifier]['total_packs']:
 			cargostatus[identifier]['status']='Writing.'
-			filepath=os.path.join(savepath, cargostatus[identifier]['name'])
+			tempfilename=cargostatus[identifier]['name']
+			while pathlib.Path(os.path.join(savepath, tempfilename)).is_file():
+				tempfilename='new_'+tempfilename
+			filepath=os.path.join(savepath, tempfilename)
 			fptr=open(filepath, 'wb')
 			tempdata=b''
 			fragtemp=0
