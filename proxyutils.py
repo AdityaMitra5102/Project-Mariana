@@ -118,6 +118,8 @@ def check_mariana_host(host, selfnac):
 		return True, None
 	if nac=='trenchtalk':
 		return True, None
+	if nac=='cargoship':
+		return True, None
 		
 	try:
 		nacbytes=uuid_bytes(nac)

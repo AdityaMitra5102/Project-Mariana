@@ -91,5 +91,5 @@ def payload_decrypt(payload_buffer, privkey):
 	return decpayload
 	
 def crypto_hash(data):
-	return hashlib.md5(data)
+	return hashlib.md5(data).digest()
 

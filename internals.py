@@ -25,7 +25,7 @@ configfile='config.json'
 knownsys='knownsys.json'
 privkeyfile='privatekey.pem'
 
-logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s') #, filename='pqi.log', filemode='a')
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s' , filename='pqi.log', filemode='a')
 logs=logging.getLogger('mariana')
 
 routerstart='routinginfo:'
@@ -628,6 +628,7 @@ def cargoship_loop():
 			attempt_cargo_send(send_payload)
 		except Exception as e:
 			logs.error(f'Cargoship thread error {e}')
+		time.sleep(5)
 			
 def cleanup_loop():
 	while True:

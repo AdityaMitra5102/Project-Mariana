@@ -69,7 +69,9 @@ def proxy(path):
 	if host=='cargoship.mariana':
 		if request.method=='GET':
 			if request.path=='/cargostatus':
-				return json.dumps(get_cargo_status())
+				restemp=get_cargo_status()
+				print(f'Resp {restemp}')
+				return json.dumps(restemp)
 			if request.path=='/':
 				return render_template('cargoship.html')
 		if request.method=='POST' and request.path=='/send':
@@ -78,11 +80,11 @@ def proxy(path):
 			dest_nac_list = [word for part in tosend.split(',') for word in part.strip().split()]
 			file_bytes=file.read()
 			filename=file.filename
-			
+			print('File uploaded {filename} {file_bytes}')
 			for dest_nac_send in dest_nac_list:
 				dest_nac_check, dest_nac=check_mariana_host(dest_nac_send, config['nac'])
 				if dest_nac_send and dest_nac in routing_table:
-				cargo_send(dest_nac, file_bytes, filename, send_payload)		
+					cargo_send(dest_nac, file_bytes, filename, send_payload)		
 			
 
 			return f'Sent to {tosend} if exists in routing table'

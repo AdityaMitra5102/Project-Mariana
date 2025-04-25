@@ -20,7 +20,7 @@ def make_send_data(dest_nac, filedata, filename, send_payload):
 	global sendbuf
 	global cargostatus
 	filehash=crypto_hash(filedata)
-	identifier=filehash+dest_nac
+	identifier=filehash+uuid_bytes(dest_nac)
 	if identifier in sendbuf:
 		return
 	if identifier in cargostatus:
@@ -40,14 +40,15 @@ def make_send_data(dest_nac, filedata, filename, send_payload):
 		pack=(i+1).to_bytes(4)
 		pack+=flag_bytes(0)
 		pack+=filehash
-		pack+=file_frag[i]
+		pack+=file_frags[i]
 		sendbuf[identifier].append(pack)
 		
 	cargostatus[identifier]['total_packs']=len(sendbuf[identifier])
 	cargostatus[identifier]['status']='Sending'
 	
 	metapack=cargoshipheader.encode()+metadata
-	send_payload(dest_nac, metadata)
+	print(f'Sending metadata {metapack}')
+	send_payload(dest_nac, metapack)
 
 def cargo_send(dest_nac, filedata, filename, send_payload):
 	cargo_meta_thread=threading.Thread(target=make_send_data, args=(dest_nac, filedata, filename, send_payload,))
@@ -56,24 +57,33 @@ def cargo_send(dest_nac, filedata, filename, send_payload):
 def attempt_cargo_send(send_payload):
 	global sendbuf
 	for identifier in cargostatus:
+		print(f'Status {cargostatus[identifier]}')
 		nac=cargostatus[identifier]['nac']	
 		status=cargostatus[identifier]['status']
 		timstamp=cargostatus[identifier]['time']
 		if not check_valid_entry(timestamp, expiry=10):
 			curr=cargostatus[identifier]['current_pack']
 			if status=='Sending':
+				print(f'Sending data {cargoshipheader.encode()+sendbuf[identifier][curr]}')
 				send_payload(nac, cargoshipheader.encode()+sendbuf[identifier][curr])
 			if status=='Receiving':
 				ackpack=cargoshipheader.encode()+curr.to_bytes(4)+flag_bytes(1)+filehash
+				print(f'Sending ack {ackpack}')
 				send_payload(nac, ackpack)
 		
 def get_cargo_status():
 	global cargostatus
+	print('Trying to get status')
+
 	currstatus=[]
 	for identifier in cargostatus:
 		currtrans=cargostatus[identifier]
-		completeperc=int(100.0*currenttrans['total_packs']/currenttrans['current_pack'])
-		x={'NAC':currtrans['nac'], 'filename':currtrans['name'], 'percentage': str(completeperc), 'status': currtrans['status'] }
+		completeperc=0
+		if currtrans['current_pack']!=0:
+			completeperc=int(100.0*currtrans['total_packs']/currtrans['current_pack'])
+		
+		x={'NAC':currtrans['nac'], 'filename':currtrans['name'], 'percentage': str(completeperc), 'status': currtrans['status']}
+		print(f'Trying to get status {x}')
 		currstatus.append(x)
 		
 	return currstatus
@@ -88,7 +98,7 @@ def handle_cargo_incoming_packet(src_nac,payload, send_payload):
 	seqnum=int.from_bytes(payload[0:4])
 	flag=payload[4]
 	filehash=payload[5:5+hashlength]
-	identifier=filehash+src_nac
+	identifier=filehash+uuid_bytes(src_nac)
 
 	if flag==0:
 		if seqnum==0:
