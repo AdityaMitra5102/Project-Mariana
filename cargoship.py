@@ -74,7 +74,6 @@ def attempt_cargo_send(send_payload):
 				send_payload(nac, cargoshipheader.encode()+sendbuf[identifier][curr])
 			if status=='Receiving':
 				ackpack=cargoshipheader.encode()+curr.to_bytes(4)+flag_bytes(1)+filehash
-				print(f'Sending ack for seq {curr}')
 				send_payload(nac, ackpack)
 		
 def get_cargo_status():
@@ -85,7 +84,7 @@ def get_cargo_status():
 		currtrans=cargostatus[identifier]
 		completeperc=0
 		if currtrans['current_pack']!=0:
-			completeperc=int(100.0*currtrans['current_pack']/currtrans['total_packs'])
+			completeperc=round(100.0*currtrans['current_pack']/(currtrans['total_packs']-1),2)
 		
 		x={'NAC':currtrans['nac'], 'filename':currtrans['name'], 'percentage': str(completeperc), 'status': currtrans['status']}
 		currstatus.append(x)
@@ -95,7 +94,7 @@ def get_cargo_status():
 def handle_cargo_incoming_packet(src_nac,payload, send_payload):
 	global sendbuf
 	global cargostatus
-	print(f'Got payload')
+	global recvbuf
 	hashlength=len(crypto_hash(b'00'))
 	if not payload.startswith(cargoshipheader.encode()):
 		return
@@ -104,8 +103,6 @@ def handle_cargo_incoming_packet(src_nac,payload, send_payload):
 	flag=payload[4]
 	filehash=payload[5:5+hashlength]
 	identifier=filehash+uuid_bytes(src_nac)
-	#print(f'Seqnum {seqnum} Flag {flag}')
-
 	if flag==0:
 		if seqnum==0:
 			if identifier in cargostatus:
@@ -113,6 +110,8 @@ def handle_cargo_incoming_packet(src_nac,payload, send_payload):
 			total_fragments=int.from_bytes(payload[5+hashlength:9+hashlength])
 			filename=payload[9+hashlength:].decode()
 			cargostatus[identifier]={'nac': src_nac, 'process': 'Download', 'status': 'Receiving', 'total_packs': total_fragments, 'current_pack': 0, 'name': filename, 'hash': filehash, 'time': get_timestamp()}
+			receivebuf[identifier]=[b'']*(total_fragments-1)
+		
 		else:
 			
 			if identifier not in cargostatus:
@@ -120,18 +119,31 @@ def handle_cargo_incoming_packet(src_nac,payload, send_payload):
 			data=payload[5+hashlength:]
 			if seqnum != cargostatus[identifier]['current_pack']+1:
 				return
-			filepath=os.path.join(savepath, cargostatus[identifier]['name'])
-			fptr=open(filepath, 'ab')
-			fptr.write(data)
-			fptr.close()
+			receivebuf[identifier][seqnum-1]=data
+
 			
 		ackpack=cargoshipheader.encode()+seqnum.to_bytes(4)+flag_bytes(1)+filehash
-		print(f'Sending ACK for {seqnum} {filehash}')
 
 		cargostatus[identifier]['current_pack']=seqnum
 		cargostatus[identifier]['time']=get_timestamp()			
 		if (seqnum+1)==cargostatus[identifier]['total_packs']:
-			cargostatus[identifier]['status']='Receive complete'
+			cargostatus[identifier]['status']='Writing.'
+			filepath=os.path.join(savepath, cargostatus[identifier]['name'])
+			fptr=open(filepath, 'wb')
+			tempdata=b''
+			fragtemp=0
+			for frag in receivebuf[identifier]:
+				tempdata+=frag
+				cargostatus[identifier]['status']=f'Writing {fragtemp} of {cargostatus[identifier]['total_packs']}'
+				fragtemp+=1
+			fptr.write(tempdata)
+			fptr.close()
+			hashstatus='Hash mismatch'
+			if crypto_hash(tempdata)==cargostatus[identifier]['hash']:
+				hashstatus='Hash verified.'
+			receivebuf.pop(identifier)
+			cargostatus[identifier]['status']=f'{cargostatus[identifier]['name']} receive complete. {hashstatus}'	
+			
 			
 		send_payload(src_nac, ackpack)
 	else:
@@ -141,8 +153,6 @@ def handle_cargo_incoming_packet(src_nac,payload, send_payload):
 		cargostatus[identifier]['current_pack']=seqnum+1
 		cargostatus[identifier]['time']=get_timestamp()
 		sendbuf[identifier][seqnum]=b''
-		
-		print(f'Will send {seqnum+1}')
 		
 		if cargostatus[identifier]['current_pack']==cargostatus[identifier]['total_packs'] and cargostatus[identifier]['total_packs']>1:
 			cargostatus[identifier]['status']='Sending complete'
