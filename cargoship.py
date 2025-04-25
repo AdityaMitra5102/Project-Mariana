@@ -4,8 +4,11 @@ import pathlib
 import os
 import threading
 
+downdir=(next((d for d in [os.path.join(os.path.expanduser('~'), name) for name in ['Downloads', 'downloads', 'Download', 'download']] if os.path.isdir(d)), os.path.join(os.path.expanduser('~'), 'Downloads')))
 
-savepath='cargoshipdownloads'
+savepath='CargoShip'
+
+savepath=os.path.join(downdir, savepath)
 
 pathlib.Path(savepath).mkdir(parents=True, exist_ok=True)
 
@@ -156,6 +159,7 @@ def handle_cargo_incoming_packet(src_nac,payload, send_payload):
 		
 		if cargostatus[identifier]['current_pack']==cargostatus[identifier]['total_packs'] and cargostatus[identifier]['total_packs']>1:
 			cargostatus[identifier]['status']='Sending complete'
+			cargostatus[identifier]['current_pack']=seqnum
 			sendbuf.pop(identifier)
 			return
 		
