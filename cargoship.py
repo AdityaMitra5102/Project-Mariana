@@ -47,7 +47,6 @@ def make_send_data(dest_nac, filedata, filename, send_payload):
 	cargostatus[identifier]['status']='Sending'
 	
 	metapack=cargoshipheader.encode()+metadata
-	print(f'Sending metadata {metapack}')
 	send_payload(dest_nac, metapack)
 
 def cargo_send(dest_nac, filedata, filename, send_payload):
@@ -57,7 +56,6 @@ def cargo_send(dest_nac, filedata, filename, send_payload):
 def attempt_cargo_send(send_payload):
 	global sendbuf
 	for identifier in cargostatus:
-		print(f'Status {cargostatus[identifier]}')
 		nac=cargostatus[identifier]['nac']	
 		status=cargostatus[identifier]['status']
 		timestamp=cargostatus[identifier]['time']
@@ -73,7 +71,6 @@ def attempt_cargo_send(send_payload):
 		if not check_valid_entry(timestamp, expiry=5):
 			curr=cargostatus[identifier]['current_pack']
 			if status=='Sending':
-				print(f'Sending data for seq {curr}')
 				send_payload(nac, cargoshipheader.encode()+sendbuf[identifier][curr])
 			if status=='Receiving':
 				ackpack=cargoshipheader.encode()+curr.to_bytes(4)+flag_bytes(1)+filehash
@@ -107,7 +104,7 @@ def handle_cargo_incoming_packet(src_nac,payload, send_payload):
 	flag=payload[4]
 	filehash=payload[5:5+hashlength]
 	identifier=filehash+uuid_bytes(src_nac)
-	print(f'Seqnum {seqnum} Flag {flag}')
+	#print(f'Seqnum {seqnum} Flag {flag}')
 
 	if flag==0:
 		if seqnum==0:
@@ -117,6 +114,7 @@ def handle_cargo_incoming_packet(src_nac,payload, send_payload):
 			filename=payload[9+hashlength:].decode()
 			cargostatus[identifier]={'nac': src_nac, 'process': 'Download', 'status': 'Receiving', 'total_packs': total_fragments, 'current_pack': 0, 'name': filename, 'hash': filehash, 'time': get_timestamp()}
 		else:
+			
 			if identifier not in cargostatus:
 				return
 			data=payload[5+hashlength:]
@@ -129,13 +127,13 @@ def handle_cargo_incoming_packet(src_nac,payload, send_payload):
 			
 		ackpack=cargoshipheader.encode()+seqnum.to_bytes(4)+flag_bytes(1)+filehash
 		print(f'Sending ACK for {seqnum} {filehash}')
-		send_payload(src_nac, ackpack)
-		cargostatus[identifier]['current_pack']=seqnum
-		cargostatus[identifier]['time']=get_timestamp()
-			
-		if seqnum+1==cargostatus[identifier]['total_packs']:
-			cargostatus[identifier][status]='Receive complete'
 
+		cargostatus[identifier]['current_pack']=seqnum
+		cargostatus[identifier]['time']=get_timestamp()			
+		if (seqnum+1)==cargostatus[identifier]['total_packs']:
+			cargostatus[identifier]['status']='Receive complete'
+			
+		send_payload(src_nac, ackpack)
 	else:
 		if identifier not in cargostatus:
 			return
@@ -146,8 +144,7 @@ def handle_cargo_incoming_packet(src_nac,payload, send_payload):
 		
 		print(f'Will send {seqnum+1}')
 		
-		if cargostatus[identifier]['current_pack']==cargostatus[identifier]['total_packs']:
-			print('Send complete')
+		if cargostatus[identifier]['current_pack']==cargostatus[identifier]['total_packs'] and cargostatus[identifier]['total_packs']>1:
 			cargostatus[identifier]['status']='Sending complete'
 			sendbuf.pop(identifier)
 			return
