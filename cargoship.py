@@ -30,7 +30,7 @@ def make_send_data(dest_nac, filedata, filename, send_payload):
 	metadata+=flag_bytes(0)
 	metadata+=filehash
 	file_frags=segment_payload(filedata, maxsize=400)
-	metadata+=len(file_frags).to_bytes(4)
+	metadata+=(len(file_frags)+1).to_bytes(4)
 	metadata+=filename.encode()
 	
 	sendbuf[identifier]=[]
@@ -62,7 +62,15 @@ def attempt_cargo_send(send_payload):
 		status=cargostatus[identifier]['status']
 		timestamp=cargostatus[identifier]['time']
 		filehash=cargostatus[identifier]['hash']
-		if not check_valid_entry(timestamp, expiry=10):
+		if not check_valid_entry(timestamp, expiry=7200):
+			if status=='Sending':
+				cargostatus[identifier]['status']='Sending failed'
+				if identifier in sendbuf:
+					sendbuf.pop(identifier)
+			if status=='Receiving':
+				cargostatus[identifier]['status']='Receiving failed'
+
+		if not check_valid_entry(timestamp, expiry=5):
 			curr=cargostatus[identifier]['current_pack']
 			if status=='Sending':
 				print(f'Sending data for seq {curr}')
@@ -80,7 +88,7 @@ def get_cargo_status():
 		currtrans=cargostatus[identifier]
 		completeperc=0
 		if currtrans['current_pack']!=0:
-			completeperc=int(100.0*currtrans['total_packs']/currtrans['current_pack'])
+			completeperc=int(100.0*currtrans['current_pack']/currtrans['total_packs'])
 		
 		x={'NAC':currtrans['nac'], 'filename':currtrans['name'], 'percentage': str(completeperc), 'status': currtrans['status']}
 		currstatus.append(x)
