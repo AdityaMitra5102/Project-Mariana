@@ -70,7 +70,6 @@ def proxy(path):
 		if request.method=='GET':
 			if request.path=='/cargostatus':
 				restemp=get_cargo_status()
-				print(f'Resp {restemp}')
 				return json.dumps(restemp)
 			if request.path=='/':
 				return render_template('cargoship.html')

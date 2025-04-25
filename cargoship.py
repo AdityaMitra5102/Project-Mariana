@@ -73,7 +73,6 @@ def attempt_cargo_send(send_payload):
 		
 def get_cargo_status():
 	global cargostatus
-	print('Trying to get status')
 
 	currstatus=[]
 	for identifier in cargostatus:
@@ -83,7 +82,6 @@ def get_cargo_status():
 			completeperc=int(100.0*currtrans['total_packs']/currtrans['current_pack'])
 		
 		x={'NAC':currtrans['nac'], 'filename':currtrans['name'], 'percentage': str(completeperc), 'status': currtrans['status']}
-		print(f'Trying to get status {x}')
 		currstatus.append(x)
 		
 	return currstatus
@@ -91,6 +89,7 @@ def get_cargo_status():
 def handle_cargo_incoming_packet(src_nac,payload, send_payload):
 	global sendbuf
 	global cargostatus
+	print(f'Got payload')
 	hashlength=len(crypto_hash(b'00'))
 	if not payload.startswith(cargoshipheader.encode()):
 		return
@@ -99,6 +98,7 @@ def handle_cargo_incoming_packet(src_nac,payload, send_payload):
 	flag=payload[4]
 	filehash=payload[5:5+hashlength]
 	identifier=filehash+uuid_bytes(src_nac)
+	print(f'Seqnum {seqnum} Flag {flag}')
 
 	if flag==0:
 		if seqnum==0:
@@ -118,14 +118,15 @@ def handle_cargo_incoming_packet(src_nac,payload, send_payload):
 			fptr.write(data)
 			fptr.close()
 			
-			ackpack=cargoshipheader.encode()+seqnum.to_bytes(4)+flag_bytes(1)+filehash
-			send_payload(src_nac, ackpack)
-			cargostatus[identifier]['current_pack']=seqnum
-			cargostatus[identifier]['time']=get_timestamp()
+		ackpack=cargoshipheader.encode()+seqnum.to_bytes(4)+flag_bytes(1)+filehash
+		print(f'Sending ACK for {seqnum} {filehash}')
+		send_payload(src_nac, ackpack)
+		cargostatus[identifier]['current_pack']=seqnum
+		cargostatus[identifier]['time']=get_timestamp()
 			
-			if seqnum==cargostatus[identifier]['total_packs']-1:
-				cargostatus[identifier]['current_pack']=cargostatus[identifier]['total_packs']
-				cargostatus[identifier][status]='Receive complete'
+		if seqnum==cargostatus[identifier]['total_packs']-1:
+			cargostatus[identifier]['current_pack']=cargostatus[identifier]['total_packs']
+			cargostatus[identifier][status]='Receive complete'
 
 	else:
 		if identifier not in cargostatus:
