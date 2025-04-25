@@ -14,6 +14,40 @@
 
 
   <style id="INLINE_PEN_STYLESHEET_ID">
+.floating-cargo-btn {
+        position: fixed;
+        bottom: 110px;  /* Positioned above the Trench Talk button */
+        right: 30px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        z-index: 1000;
+        cursor: pointer;
+        font-family: Arial, sans-serif;
+    }
+
+    .file-icon-container {
+        background-color: #33a852;  /* Green color */
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        transition: all 0.3s ease;
+    }
+
+    .file-icon-container:hover {
+        transform: scale(1.05);
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+    }
+
+    .file-icon {
+        width: 30px;
+        height: 30px;
+        fill: white;
+    }
 
 	     /* Floating button container */
         .floating-chat-btn {
@@ -179,6 +213,16 @@ canvas {
     <span class="chat-caption">Trench Talk</span>
 </div>
 
+<div class="floating-cargo-btn" onclick="window.open('http://cargoship.mariana');">
+  <div class="file-icon-container">
+    <svg class="file-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+      <path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm4 18H6V4h7v5h5v11z"/>
+      <path d="M8 15.01l1.41 1.41L11 14.84V19h2v-4.16l1.59 1.59L16 15.01 12.01 11z"/>
+  </svg>
+  </div>
+  <span class="chat-caption">Cargo Ship</span>
+</div>
+	
 	
     <div class="overlay-text"><center><h1>Project Mariana</h1><br>The Encrypted Internet. By Cryptane<br>My Mariana: {{nac}}</center>
     
