@@ -60,15 +60,15 @@ def attempt_cargo_send(send_payload):
 		print(f'Status {cargostatus[identifier]}')
 		nac=cargostatus[identifier]['nac']	
 		status=cargostatus[identifier]['status']
-		timstamp=cargostatus[identifier]['time']
+		timestamp=cargostatus[identifier]['time']
 		if not check_valid_entry(timestamp, expiry=10):
 			curr=cargostatus[identifier]['current_pack']
 			if status=='Sending':
-				print(f'Sending data {cargoshipheader.encode()+sendbuf[identifier][curr]}')
+				print(f'Sending data for seq {curr}')
 				send_payload(nac, cargoshipheader.encode()+sendbuf[identifier][curr])
 			if status=='Receiving':
 				ackpack=cargoshipheader.encode()+curr.to_bytes(4)+flag_bytes(1)+filehash
-				print(f'Sending ack {ackpack}')
+				print(f'Sending ack for seq {curr}')
 				send_payload(nac, ackpack)
 		
 def get_cargo_status():
@@ -136,14 +136,19 @@ def handle_cargo_incoming_packet(src_nac,payload, send_payload):
 		cargostatus[identifier]['time']=get_timestamp()
 		sendbuf[identifier][seqnum]=b''
 		
+		print(f'Will send {seqnum+1}')
+		
 		if cargostatus[identifier]['current_pack']==cargostatus[identifier]['total_packs']:
+			print('Send complete')
 			cargostatus[identifier]['status']='Sending complete'
 			cargostatus[identifier]['time']=get_timestamp()
 			sendbuf.pop(identifier)
 			return
 		
+
+		
 		packet=sendbuf[identifier][seqnum+1]
-		dest_nac=cargostatus[identifier][nac]
+		dest_nac=cargostatus[identifier]['nac']
 		packet=cargoshipheader.encode()+packet
 		send_payload(dest_nac, packet)
 		
