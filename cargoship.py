@@ -125,8 +125,7 @@ def handle_cargo_incoming_packet(src_nac,payload, send_payload):
 		cargostatus[identifier]['current_pack']=seqnum
 		cargostatus[identifier]['time']=get_timestamp()
 			
-		if seqnum==cargostatus[identifier]['total_packs']-1:
-			cargostatus[identifier]['current_pack']=cargostatus[identifier]['total_packs']
+		if seqnum+1==cargostatus[identifier]['total_packs']:
 			cargostatus[identifier][status]='Receive complete'
 
 	else:
@@ -142,7 +141,6 @@ def handle_cargo_incoming_packet(src_nac,payload, send_payload):
 		if cargostatus[identifier]['current_pack']==cargostatus[identifier]['total_packs']:
 			print('Send complete')
 			cargostatus[identifier]['status']='Sending complete'
-			cargostatus[identifier]['time']=get_timestamp()
 			sendbuf.pop(identifier)
 			return
 		
