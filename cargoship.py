@@ -86,7 +86,7 @@ def get_cargo_status():
 		if currtrans['current_pack']!=0:
 			completeperc=round(100.0*currtrans['current_pack']/(currtrans['total_packs']-1),2)
 		
-		x={'NAC':currtrans['nac'], 'filename':currtrans['name'], 'percentage': str(completeperc), 'status': currtrans['status']}
+		x={'NAC':currtrans['nac']+'.mariana', 'filename':currtrans['name'], 'percentage': str(completeperc), 'status': currtrans['status']}
 		currstatus.append(x)
 		
 	return currstatus
