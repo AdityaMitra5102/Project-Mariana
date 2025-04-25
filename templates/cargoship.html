@@ -136,11 +136,12 @@
                 });
         }
         
-        setInterval(fetchMessages, 1000);
+        setInterval(fetchMessages, 3000);
 
         document.getElementById('sendButton').addEventListener('click', function() {
             const destValue = document.getElementById('dest').value;
-            const messageValue = document.getElementById('fileInput').value;
+            const messageValue = document.getElementById('fileInput');
+            console.log(messageValue);
             
             const formData = new FormData();
             formData.append('dest', destValue);
