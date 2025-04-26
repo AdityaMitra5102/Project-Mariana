@@ -26,7 +26,7 @@ knownsys='knownsys.json'
 privkeyfile='privatekey.pem'
 phonebookfile='phonebook.json'
 
-logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', filename='pqi.log', filemode='a')
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')#, filename='pqi.log', filemode='a')
 logs=logging.getLogger('mariana')
 
 routerstart='routinginfo:'
