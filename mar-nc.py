@@ -7,10 +7,6 @@ import sys
 def validate_nac(nac):
 	if not nac.endswith(".mariana"):
 		raise argparse.ArgumentTypeError("NAC must end with '.mariana'")
-	try:
-		uuid.UUID(nac.split(".mariana")[0])
-	except ValueError:
-		raise argparse.ArgumentTypeError("NAC prefix must be a valid UUID4 string")
 	return nac
 
 def validate_port(port):
