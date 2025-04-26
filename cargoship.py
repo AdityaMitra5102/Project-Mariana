@@ -3,6 +3,7 @@ from crypto import *
 import pathlib
 import os
 import threading
+import logging
 
 downdir=(next((d for d in [os.path.join(os.path.expanduser('~'), name) for name in ['Downloads', 'downloads', 'Download', 'download']] if os.path.isdir(d)), os.path.join(os.path.expanduser('~'), 'Downloads')))
 
@@ -94,7 +95,15 @@ def get_cargo_status(phone_book_reverse_lookup):
 		
 	return currstatus
 
-def handle_cargo_incoming_packet(src_nac,payload, send_payload):
+executable_list=['exe', 'com', 'bat', 'sh', 'ps1', 'app']
+
+def check_file_executable(filename):
+	for extension in executable_list:
+		if filename.endswith(extension):
+			return True
+	return False
+
+def handle_cargo_incoming_packet(src_nac,payload, send_payload, securityconfig):
 	global sendbuf
 	global cargostatus
 	global recvbuf
@@ -112,6 +121,10 @@ def handle_cargo_incoming_packet(src_nac,payload, send_payload):
 				return
 			total_fragments=int.from_bytes(payload[5+hashlength:9+hashlength])
 			filename=payload[9+hashlength:].decode()
+			if not securityconfig['cargo_ship_allow_exec']:
+				if check_file_executable(filename):
+					logging.info('Executable file not allowed in security config. Dropped')
+					return
 			cargostatus[identifier]={'nac': src_nac, 'process': 'Download', 'status': 'Receiving', 'total_packs': total_fragments, 'current_pack': 0, 'name': filename, 'hash': filehash, 'time': get_timestamp()}
 			receivebuf[identifier]=[b'']*(total_fragments-1)
 		

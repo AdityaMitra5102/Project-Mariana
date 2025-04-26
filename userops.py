@@ -1,5 +1,5 @@
 
-def user_response(source_nac, payload, send_payload, phone_book_reverse_lookup):
+def user_response(source_nac, payload, send_payload, phone_book_reverse_lookup, securityconfig):
 	print(f'{source_nac}>>> {payload.decode()}')
 	return None #No reply
 	

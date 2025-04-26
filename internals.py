@@ -25,12 +25,15 @@ configfile='config.json'
 knownsys='knownsys.json'
 privkeyfile='privatekey.pem'
 phonebookfile='phonebook.json'
+securityconfigfile='security.json'
 
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')#, filename='pqi.log', filemode='a')
 logs=logging.getLogger('mariana')
 
 routerstart='routinginfo:'
 trackerstart='trackerinfo:'
+
+securityconfig={'web_server_allow': True, 'clearnet_exit_proxy': True, 'port_fw_allow':['*'], 'cargo_ship_allow_exec':True}
 
 cam_table={}
 cam_table_lock=threading.Lock()
@@ -85,6 +88,17 @@ except:
 	
 			
 logs.info(f'Binded to port {config["port"]}')
+
+try:
+	fl=open(os.path.join(filepath, securityconfigfile), 'r')
+	securityconfig=json.load(fl)
+	fl.close()
+	logs.info('Security config loaded')
+except:
+	fl=open(os.path.join(filepath, securityconfigfile), 'w')
+	fl.write(json.dumps(securityconfig, indent=4))
+	fl.close()
+	logs.info('Security config not found. Writing defaults')
 
 try:
 	fl=open(os.path.join(filepath, phonebookfile), 'r')
@@ -432,7 +446,7 @@ def process_payload(source_nac, payload):
 		process_incoming_tracker(source_nac, payload)
 		return
 	try:
-		resp=user_response(source_nac, payload, send_payload, phone_book_reverse_lookup)
+		resp=user_response(source_nac, payload, send_payload, phone_book_reverse_lookup, securityconfig)
 		if resp is not None:
 			send_payload(source_nac, resp)
 	except Exception as e:

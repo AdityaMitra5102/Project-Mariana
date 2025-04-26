@@ -3,9 +3,16 @@ from portproxy import *
 import logging
 
 
-def process_port_payload_from_tunnel(nac, payload, send_payload):
+def process_port_payload_from_tunnel(nac, payload, send_payload, securityconfig):
 	global socket_list
 	mode, servermode, sourceport, destport, data=process_payload(payload)
+	try:
+		destportint= int.from_bytes(destport)
+		if not (desportint in securityconfig['port_fw_allow'] or '*' in securityconfig['port_fw_allow']):
+			logging.info('Port blocked. Packet dropped.')
+			return
+	except:
+		pass
 	socketid=get_socket_id(nac, sourceport)
 	if not check_socket_exists(socketid):
 		port_socket=PortProxy(destport, sourceport, nac, mode, not servermode, 0, data, send_payload)

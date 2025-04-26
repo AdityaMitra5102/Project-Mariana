@@ -6,6 +6,7 @@ import userops
 import requests
 import uuid
 import json
+import logging
 
 header='mariana'
 portheader='portproxy:'
@@ -49,19 +50,24 @@ def rewrite_content(content):
 	content_bytes=content.replace(b'https:', b'http:')
 	return content_bytes
 	
-def user_response(source_nac, payload, send_payload, phone_book_reverse_lookup):
+def user_response(source_nac, payload, send_payload, phone_book_reverse_lookup, securityconfig):
 	if payload.startswith(header.encode()):
 		session, flag, payload=get_packet_payload(payload)
 		if flag==1:
 			webpackets[session]=payload
 			return None
 		else:
+			if not securityconfig['web_server_allow']:
+				logging.warning('Web server not allowed. Packet dropped.')
+				return None
 			params=json.loads(payload)
 			url=requests.urllib3.util.parse_url(params['target_url'])
 			tempscheme=url.scheme
 			check_host=url.host
 			tempserverhost=serverhost
 			if not check_host.endswith(hostend):
+				if not securityconfig['clearnet_exit_proxy']:
+					logging.warning('Clearnet exit proxy not allowed. Dropping packet')
 				tempserverhost=check_host
 				try:
 					respx=requests.get(f'https://{tempserverhost}', timeout=3)
@@ -95,7 +101,7 @@ def user_response(source_nac, payload, send_payload, phone_book_reverse_lookup):
 			return packet
 			
 	elif payload.startswith(portheader.encode()):
-		process_port_payload_from_tunnel(source_nac, payload, send_payload)
+		process_port_payload_from_tunnel(source_nac, payload, send_payload, securityconfig)
 		
 	elif payload.startswith(trenchheader.encode()):
 		msg=get_trench_packet(payload)
