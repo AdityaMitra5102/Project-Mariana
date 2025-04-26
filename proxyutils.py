@@ -109,7 +109,7 @@ def user_response(source_nac, payload, send_payload, phone_book_reverse_lookup, 
 		add_trench_message(source_nac, msg, phone_book_reverse_lookup)
 		
 	elif payload.startswith(cargoshipheader.encode()):
-		handle_cargo_incoming_packet(source_nac, payload, send_payload)
+		handle_cargo_incoming_packet(source_nac, payload, send_payload, securityconfig)
 		
 	else:
 		return None
