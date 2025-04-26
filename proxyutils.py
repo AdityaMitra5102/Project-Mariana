@@ -87,7 +87,7 @@ def user_response(source_nac, payload, send_payload, phone_book_reverse_lookup):
 	else:
 		return None
 		
-def add_trench_message(nac, msg):
+def add_trench_message(nac, msg, phone_book_reverse_lookup):
 	global trenchmsg
 	nac=phone_book_reverse_lookup(nac)
 	textmsg={'NAC': nac+hostend, 'message': msg}
