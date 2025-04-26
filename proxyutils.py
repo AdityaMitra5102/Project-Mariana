@@ -54,7 +54,12 @@ def user_response(source_nac, payload, send_payload, phone_book_reverse_lookup):
 		else:
 			params=json.loads(payload)
 			url=requests.urllib3.util.parse_url(params['target_url'])
-			newurl=requests.urllib3.util.Url(scheme=url.scheme, auth=url.auth, host=serverhost, path=url.path, query=url.query, fragment=url.fragment)
+			check_host=url.host
+			tempserverhost=serverhost
+			if not check_host.endswith(hostend):
+				tempserverhost=host
+				
+			newurl=requests.urllib3.util.Url(scheme=url.scheme, auth=url.auth, host=tempserverhost, path=url.path, query=url.query, fragment=url.fragment)
 			target_url=str(newurl)
 			
 			data=bytes.fromhex(params['data'])
@@ -103,7 +108,11 @@ def get_trench_messages():
 		
 userops.user_response=user_response
 
-
+def check_referrer(referer, selfnac, get_contact):
+	url=requests.urllib3.util.parse_url(referer)
+	host=url.host
+	validity, nac= check_mariana_host(host, selfnac, get_contact)
+	return validity, nac
 
 def check_mariana_host(host, selfnac, get_contact):
 	if not host.endswith(hostend):

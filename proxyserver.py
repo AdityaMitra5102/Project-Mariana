@@ -34,10 +34,24 @@ def known_hosts():
 @app.route('/<path:path>', methods=['GET', 'POST'])
 def proxy(path):
 	host=str(request.headers.get('Host')).strip()
+	exit_node_proxy=False
 	ismar, nac=check_mariana_host(host, config['nac'], get_contact)
 	if not ismar:
-		respcont='Not in Mariana. Use standard web browser.'.encode()
-		return Response(respcont, 400)
+		if 'Referer' not in request.headers:
+			respcont='Not in Mariana. Use standard web browser.'.encode()
+			return Response(respcont, 400)
+		referer=request.headers.get('Referer')
+		print(f'Referer {referer}')
+		refvalid, refnac=check_referrer(referer, config['nac'], get_contact)
+		print(f'Refvalid {refvalid}')
+		if not refvalid:
+			respcont='Not in Mariana. Use standard web browser.'.encode()
+			return Response(respcont, 400)
+		respcont=f'Exit node proxy to be implemented via {refnac}'.encode()
+		exit_node_proxy=True
+		nac=refnac
+		#return Response(respcont, 400)
+		
 
 	if host=='local.mariana':
 		return render_template('home.html', nac=f'{config["nac"]}.mariana')
