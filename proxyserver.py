@@ -157,6 +157,18 @@ def proxy(path):
 		create_proxy_port(listenport, destport, destnac, mode, send_payload)
 		return 'Starting proxy'
 
+	if host=='security.mariana':
+		if request.method=='GET':
+			if request.path=='/':
+				return render_template('security.html')
+			if request.path=='/view':
+				return json.dumps(securityconfig)
+		if request.method=='POST':
+			if request.path=='/save':
+				save_securityconfig(request.get_json())
+				return 'Security Configurations saved'
+
+
 	with routing_table_lock:
 		if nac not in routing_table:
 			logging.warning(f'HOST {host} NOT IN ROUTING TABLE {routing_table}.')

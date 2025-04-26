@@ -154,6 +154,8 @@ def check_mariana_host(host, selfnac, get_contact):
 		return True, None
 	if nac=='phonebook':
 		return True, None
+	if nac=='security':
+		return True, None
 	
 	tempnac=get_contact(nac)
 	if tempnac is not None:

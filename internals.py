@@ -27,7 +27,7 @@ privkeyfile='privatekey.pem'
 phonebookfile='phonebook.json'
 securityconfigfile='security.json'
 
-logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')#, filename='pqi.log', filemode='a')
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s') #, filename='pqi.log', filemode='a')
 logs=logging.getLogger('mariana')
 
 routerstart='routinginfo:'
@@ -134,6 +134,16 @@ self_tracker_state=str(uuid.uuid4())
 self_public=False
 
 trackers=get_trackers_git(trackers)
+
+############################# Security Config #############################
+
+def save_securityconfig(updatedconfig):
+	securityconfig=updatedconfig
+	fl=open(os.path.join(filepath, securityconfigfile), 'w')
+	fl.write(json.dumps(securityconfig, indent=4))
+	fl.close()
+	logs.info('Writing security config')
+
 
 
 ############################# Phonebook #############################
