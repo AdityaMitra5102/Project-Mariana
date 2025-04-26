@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mariana NC</title>
+   <style>
+    body {
+        background-color: #000;
+        color: #33ff33;
+        font-family: 'Courier New', Courier, monospace;
+        margin: 0;
+        padding: 0;
+    }
+    .container {
+        max-width: 700px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+    h1, h2 {
+        color: #33ff33;
+        border-bottom: 1px solid #33ff33;
+        padding-bottom: 5px;
+        margin-top: 20px;
+    }
+    textarea {
+        width: 100%;
+        background-color: #000;
+        color: #33ff33;
+        border: 1px solid #33ff33;
+        resize: none;
+        padding: 10px;
+        font-family: 'Courier New', Courier, monospace;
+        box-sizing: border-box;
+        overflow: auto; /* Ensures scrollbar shows up */
+	   white-space: pre-wrap; /* Better line handling */
+    }
+    input[type="text"], input[type="number"], select {
+        width: 100%;
+        padding: 10px;
+        background-color: #000;
+        color: #33ff33;
+        border: 1px solid #33ff33;
+        font-family: 'Courier New', Courier, monospace;
+        margin-bottom: 10px;
+        box-sizing: border-box;
+    }
+    select option {
+        background-color: #000;
+        color: #33ff33;
+    }
+    button {
+        background-color: #000;
+        color: #33ff33;
+        border: 1px solid #33ff33;
+        padding: 10px 20px;
+        font-family: 'Courier New', Courier, monospace;
+        cursor: pointer;
+        transition: background-color 0.3s;
+    }
+    button:hover {
+        background-color: #111;
+    }
+    label {
+        display: block;
+        margin-top: 10px;
+        margin-bottom: 5px;
+        font-weight: bold;
+    }
+    /* Blinking cursor style */
+    #output::after {
+        content: "_";
+        animation: blink 1s infinite;
+    }
+    @keyframes blink {
+        0% { opacity: 1; }
+        50% { opacity: 0; }
+        100% { opacity: 1; }
+    }
+    .form-group {
+        margin-bottom: 15px;
+    }
+    .error-message {
+        color: #ff5555;
+        font-size: 14px;
+        margin-top: 5px;
+        display: none;
+    }
+</style>
+</head>
+<body>
+    <div class="container">
+        <h1>Mariana Netcat ⚙️</h1>
+        
+        <div class="proxy-form">
+            <h2>Network Proxy Configuration</h2>
+            
+            <form id="proxyForm">
+                <div class="form-group">
+                    <label for="sourcePort">Source port:</label>
+                    <input type="number" id="sourcePort" name="sourcePort" min="1" max="65535" required>
+                    <div class="error-message" id="sourcePortError">Please enter a valid port number (1-65535)</div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="destPort">Dest port:</label>
+                    <input type="number" id="destPort" name="destPort" min="1" max="65535" required>
+                    <div class="error-message" id="destPortError">Please enter a valid port number (1-65535)</div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="protocol">Protocol:</label>
+                    <select id="protocol" name="protocol" required>
+                        <option value="TCP">TCP</option>
+                        <option value="UDP">UDP</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="nac">NAC:</label>
+                    <input type="text" id="nac" name="nac" required>
+                    <div class="error-message" id="nacError">NAC must end with '.mariana'</div>
+                </div>
+                
+                <button type="submit">Start proxy</button>
+            </form>
+            
+            <div id="output" style="margin-top: 20px;"></div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('proxyForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Get form values
+            const sourcePort = document.getElementById('sourcePort').value;
+            const destPort = document.getElementById('destPort').value;
+            const protocol = document.getElementById('protocol').value;
+            const nac = document.getElementById('nac').value;
+            
+            // Validate inputs
+            let isValid = true;
+            
+            // Validate source port
+            if (!sourcePort || sourcePort < 1 || sourcePort > 65535) {
+                document.getElementById('sourcePortError').style.display = 'block';
+                isValid = false;
+            } else {
+                document.getElementById('sourcePortError').style.display = 'none';
+            }
+            
+            // Validate dest port
+            if (!destPort || destPort < 1 || destPort > 65535) {
+                document.getElementById('destPortError').style.display = 'block';
+                isValid = false;
+            } else {
+                document.getElementById('destPortError').style.display = 'none';
+            }
+            
+            // Validate NAC ends with '.mariana'
+            if (!nac.endsWith('.mariana')) {
+                document.getElementById('nacError').style.display = 'block';
+                isValid = false;
+            } else {
+                document.getElementById('nacError').style.display = 'none';
+            }
+            
+            // If all valid, make the request
+            if (isValid) {
+                const url = `/?listenport=${sourcePort}&destport=${destPort}&proto=${protocol}&destnac=${nac}`;
+                
+                fetch(url)
+                    .then(response => response.text())
+                    .then(data => {
+                        alert(data);
+                        document.getElementById('output').textContent = `${data}`;
+                    })
+                    .catch(error => {
+                        alert(`Error: ${error.message}`);
+                        document.getElementById('output').textContent = `Error: ${error.message}`;
+                    });
+            }
+        });
+    </script>
+</body>
+</html>
