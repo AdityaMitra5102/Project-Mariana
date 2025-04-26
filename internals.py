@@ -124,11 +124,22 @@ trackers=get_trackers_git(trackers)
 
 ############################# Phonebook #############################
 
+phonebook_rev_cache={}
+
 def get_contact(humanalias):
 	if humanalias in phonebook:
 		return phonebook[humanalias]
 	else:
 		return None
+		
+def phone_book_reverse_lookup(nac):
+	if nac in phonebook_rev_cache:
+		return phonebook_rev_cache[nac]
+	for humanalias in phonebook:
+		if phonebook[humanalias]==nac:
+			phonebook_rev_cache[nac]=humanalias
+			return humanalias
+	return nac
 		
 def save_contact(humanalias, nac):
 	if humanalias in phonebook:
@@ -142,6 +153,9 @@ def save_contact(humanalias, nac):
 def delete_contact(humanalias):
 	if humanalias not in phonebook:
 		return False
+	nac=phonebook[humanalias]
+	if nac in phonebook_rev_cache:
+		phonebook_rev_cache.pop(nac)
 	phonebook.pop(humanalias)
 	logs.info(f'{humanalias} deleted')
 	save_phonebook_file()
@@ -418,7 +432,7 @@ def process_payload(source_nac, payload):
 		process_incoming_tracker(source_nac, payload)
 		return
 	try:
-		resp=user_response(source_nac, payload, send_payload)
+		resp=user_response(source_nac, payload, send_payload, phone_book_reverse_lookup)
 		if resp is not None:
 			send_payload(source_nac, resp)
 	except Exception as e:

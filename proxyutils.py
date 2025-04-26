@@ -45,7 +45,7 @@ def get_packet_payload(payload):
 	session=uuid_str(session)
 	return session, flag, payload
 	
-def user_response(source_nac, payload, send_payload):
+def user_response(source_nac, payload, send_payload, phone_book_reverse_lookup):
 	if payload.startswith(header.encode()):
 		session, flag, payload=get_packet_payload(payload)
 		if flag==1:
@@ -79,7 +79,7 @@ def user_response(source_nac, payload, send_payload):
 		
 	elif payload.startswith(trenchheader.encode()):
 		msg=get_trench_packet(payload)
-		add_trench_message(source_nac, msg)
+		add_trench_message(source_nac, msg, phone_book_reverse_lookup)
 		
 	elif payload.startswith(cargoshipheader.encode()):
 		handle_cargo_incoming_packet(source_nac, payload, send_payload)
@@ -89,6 +89,7 @@ def user_response(source_nac, payload, send_payload):
 		
 def add_trench_message(nac, msg):
 	global trenchmsg
+	nac=phone_book_reverse_lookup(nac)
 	textmsg={'NAC': nac+hostend, 'message': msg}
 	trenchmsg.append(textmsg)
 		

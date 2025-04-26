@@ -111,7 +111,7 @@ def proxy(path):
 	if host=='cargoship.mariana':
 		if request.method=='GET':
 			if request.path=='/cargostatus':
-				restemp=get_cargo_status()
+				restemp=get_cargo_status(phone_book_reverse_lookup)
 				return json.dumps(restemp)
 			if request.path=='/':
 				return render_template('cargoship.html')

@@ -79,7 +79,7 @@ def attempt_cargo_send(send_payload):
 				ackpack=cargoshipheader.encode()+curr.to_bytes(4)+flag_bytes(1)+filehash
 				send_payload(nac, ackpack)
 		
-def get_cargo_status():
+def get_cargo_status(phone_book_reverse_lookup):
 	global cargostatus
 
 	currstatus=[]
@@ -89,7 +89,7 @@ def get_cargo_status():
 		if currtrans['current_pack']!=0:
 			completeperc=round(100.0*currtrans['current_pack']/(currtrans['total_packs']-1),2)
 		
-		x={'NAC':currtrans['nac']+'.mariana', 'filename':currtrans['name'], 'percentage': str(completeperc), 'status': currtrans['status']}
+		x={'NAC':phone_book_reverse_lookup(currtrans['nac'])+'.mariana', 'filename':currtrans['name'], 'percentage': str(completeperc), 'status': currtrans['status']}
 		currstatus.append(x)
 		
 	return currstatus
