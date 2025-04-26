@@ -57,7 +57,7 @@ def user_response(source_nac, payload, send_payload, phone_book_reverse_lookup):
 			check_host=url.host
 			tempserverhost=serverhost
 			if not check_host.endswith(hostend):
-				tempserverhost=host
+				tempserverhost=check_host
 				
 			newurl=requests.urllib3.util.Url(scheme=url.scheme, auth=url.auth, host=tempserverhost, path=url.path, query=url.query, fragment=url.fragment)
 			target_url=str(newurl)

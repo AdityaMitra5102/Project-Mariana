@@ -182,7 +182,7 @@ def proxy(path):
 			reqparam['data']=request.get_data(cache=False).hex()
 			reqparamstr=json.dumps(reqparam)
 
-
+			print(f'Calling {target_url} via {nac}')
 			resp=get_response(nac, reqparamstr)
 			respdict=json.loads(resp)
 			status_code=respdict['status_code']
