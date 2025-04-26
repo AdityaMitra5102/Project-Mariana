@@ -7,8 +7,9 @@ import os
 import time
 import base64
 import threading
-from gitutils import *
+import pathlib
 
+from gitutils import *
 from crypto import *
 from utils import *
 from userops import *
@@ -18,7 +19,9 @@ from nodediscoveryutils import *
 
 ############################# INIT SYSTEMS #############################
 
-filepath=os.getcwd()
+filepath = os.path.join(os.getenv('APPDATA') if os.name == 'nt' else os.path.expanduser('~/.config'), 'Mariana')
+
+pathlib.Path(filepath).mkdir(parents=True, exist_ok=True)
 
 trackerfile='trackers.json'
 configfile='config.json'
