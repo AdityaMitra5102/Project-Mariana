@@ -170,8 +170,9 @@ def proxy(path):
 	target_url=f'http://{target_url}'
 	logging.info(f"Proxying request to: {target_url}")
 	headers = dict(request.headers) #{key: value for key, value in request.headers}
-	headers['Access-Control-Allow-Origin'] = "*"
-	headers['mariana-host']= f'{config['nac']}.mariana'
+	if not exit_node_proxy:
+		headers['Access-Control-Allow-Origin'] = "*"
+		headers['mariana-host']= f'{config['nac']}.mariana'
 	
 	try:
 		if True:
@@ -190,8 +191,10 @@ def proxy(path):
 			dummyheaders=respdict['headers']
 			dummyheaders['Host']=host
 			dummyheaders['Access-Control-Allow-Origin'] = "*"
-			if 'html' in dummyheaders['Content-Type']:
-				content=rewrite_content(content)
+			#if 'html' in dummyheaders['Content-Type']:
+			content=rewrite_content(content)
+			if exit_node_proxy:
+				print(f'Resp {status_code} {content}')
 			response = Response(content, status_code)
 			response.headers=dummyheaders
 			return response
