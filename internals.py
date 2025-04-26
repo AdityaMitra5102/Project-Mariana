@@ -24,6 +24,7 @@ trackerfile='trackers.json'
 configfile='config.json'
 knownsys='knownsys.json'
 privkeyfile='privatekey.pem'
+phonebookfile='phonebook.json'
 
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', filename='pqi.log', filemode='a')
 logs=logging.getLogger('mariana')
@@ -40,13 +41,14 @@ routing_table_lock=threading.Lock()
 trackers={}
 trackers_lock=threading.Lock()
 
-known_machines={}
-
 packet_buffer={}
 packet_buffer_lock=threading.Lock()
 
 sending_buffer={}
 sending_buffer_lock=threading.Lock()
+
+phonebook={}
+
 
 privkey=None
 
@@ -85,12 +87,12 @@ except:
 logs.info(f'Binded to port {config["port"]}')
 
 try:
-	fl=open(os.path.join(filepath, knownsys), 'r')
-	known_machines=json.load(fl)
+	fl=open(os.path.join(filepath, phonebookfile), 'r')
+	phonebook=json.load(fl)
 	fl.close()
-	logs.info('Known machines list loaded')
+	logs.info('Phonebook loaded')
 except:
-	logs.info('Known machines list not found. Client will learn new machines.')
+	logs.info('Phonebook not found.')
 	
 try:
 	fl=open(os.path.join(filepath, trackerfile), 'r')
@@ -118,6 +120,41 @@ self_tracker_state=str(uuid.uuid4())
 self_public=False
 
 trackers=get_trackers_git(trackers)
+
+
+############################# Phonebook #############################
+
+def get_contact(humanalias):
+	if humanalias in phonebook:
+		return phonebook[humanalias]
+	else:
+		return None
+		
+def save_contact(humanalias, nac):
+	if humanalias in phonebook:
+		logs.error(f'{humanalias} already exists in phonebook. Not saved')
+		return False
+	phonebook[humanalias]=nac
+	logs.info(f'{humanalias} saved')
+	save_phonebook_file()
+	return True
+	
+def delete_contact(humanalias):
+	if humanalias not in phonebook:
+		return False
+	phonebook.pop(humanalias)
+	logs.info(f'{humanalias} deleted')
+	save_phonebook_file()
+	return True
+	
+def save_phonebook_file():
+	fl=open(os.path.join(filepath, phonebookfile), 'w')
+	fl.write(json.dumps(phonebook))
+	fl.close()
+	logs.info('Phonebook saved')	
+
+def get_whole_phonebook():
+	return phonebook
 
 ############################# Layer 2 Transfers #############################
 

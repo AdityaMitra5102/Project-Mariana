@@ -102,7 +102,7 @@ userops.user_response=user_response
 
 
 
-def check_mariana_host(host, selfnac):
+def check_mariana_host(host, selfnac, get_contact):
 	if not host.endswith(hostend):
 		return False, None
 	nac=host[:-len(hostend)]
@@ -120,6 +120,12 @@ def check_mariana_host(host, selfnac):
 		return True, None
 	if nac=='cargoship':
 		return True, None
+	if nac=='phonebook':
+		return True, None
+	
+	tempnac=get_contact(nac)
+	if tempnac is not None:
+		return True, tempnac	
 		
 	try:
 		nacbytes=uuid_bytes(nac)

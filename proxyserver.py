@@ -34,7 +34,7 @@ def known_hosts():
 @app.route('/<path:path>', methods=['GET', 'POST'])
 def proxy(path):
 	host=str(request.headers.get('Host')).strip()
-	ismar, nac=check_mariana_host(host, config['nac'])
+	ismar, nac=check_mariana_host(host, config['nac'], get_contact)
 	if not ismar:
 		respcont='Not in Mariana. Use standard web browser.'.encode()
 		return Response(respcont, 400)
@@ -49,6 +49,48 @@ def proxy(path):
 		resp= Response(f'{config["nac"]}.mariana')
 		return resp
 		
+	if host=='phonebook.mariana':
+		if request.method=='GET':
+			if request.path=='/':
+				return render_template('phonebook.html')
+			if request.path=='/phonebook':
+				temp_phonebook= get_whole_phonebook()
+				temp_active_phonebook={}
+				for contact in temp_phonebook:
+					temp_active_phonebook[f'{contact}.mariana']=f'{temp_phonebook[contact]}.mariana'
+				return json.dumps(temp_active_phonebook)
+			if request.path=='/activenodes':
+				temp_active=[]
+				for tempnac in routing_table:
+					temp_active.append(f'{tempnac}.mariana')
+				return json.dumps(temp_active)
+		if request.method=='POST':
+			if request.path=='/save':
+				halias=request.form.get('alias')
+				if not halias.endswith('.mariana'):
+					return 'Invalid alias.'
+				halias=halias[:-len('.mariana')]
+				dest_nac=request.form.get('contact')
+				nac_valid, nac_code=check_mariana_host(dest_nac, config['nac'], get_contact)
+				print('Saving {halias} {nac_code}')
+				if not nac_valid:
+					return 'Invalid NAC.'
+				if save_contact(halias, nac_code):
+					return 'Contact saved'
+				else:
+					return 'Contact exists. Not saved'
+			if request.path=='/delete':
+				halias=request.form.get('alias')
+				if not halias.endswith('.mariana'):
+					return 'Invalid alias.'
+				halias=halias[:-len('.mariana')]
+				if delete_contact(halias):
+					return 'Deleted'				
+				else:
+					return 'Delete failed'
+				
+			
+		
 	if host=='trenchtalk.mariana':
 		if request.method=='GET':
 			if request.path=='/messages':
@@ -61,7 +103,7 @@ def proxy(path):
 			dest_nac_list = [word for part in tosend.split(',') for word in part.strip().split()]
 			trench_payload=make_trench_payload(msg)
 			for dest_nac_send in dest_nac_list:
-				dest_nac_check, dest_nac=check_mariana_host(dest_nac_send, config['nac'])
+				dest_nac_check, dest_nac=check_mariana_host(dest_nac_send, config['nac'], get_contact)
 				if dest_nac_send and dest_nac in routing_table:
 					send_payload(dest_nac, trench_payload)
 			return f'Sent to {tosend} if exists in routing table'
@@ -81,7 +123,7 @@ def proxy(path):
 			filename=file.filename
 			print('File uploaded {filename} {file_bytes}')
 			for dest_nac_send in dest_nac_list:
-				dest_nac_check, dest_nac=check_mariana_host(dest_nac_send, config['nac'])
+				dest_nac_check, dest_nac=check_mariana_host(dest_nac_send, config['nac'], get_contact)
 				if dest_nac_send and dest_nac in routing_table:
 					cargo_send(dest_nac, file_bytes, filename, send_payload)		
 			
@@ -96,13 +138,16 @@ def proxy(path):
 		destnac=request.args.get('destnac')
 		proto=request.args.get('proto', 'TCP')
 		mode=proto=='TCP'
+		nac_valid, destnac=check_mariana_host(dest_nac, config['nac'], get_contact)
+		if not nac_valid:
+			return 'Invalid NAC'
 		if destnac not in routing_table:
 			return 'NAC not found. Not starting proxy'
 		create_proxy_port(listenport, destport, destnac, mode, send_payload)
 		return 'Starting proxy'
 
 	with routing_table_lock:
-		if host[:-len(hostend)] not in routing_table:
+		if nac not in routing_table:
 			logging.warning(f'HOST {host} NOT IN ROUTING TABLE {routing_table}.')
 			respcont='Host not in routing table.'.encode()
 			return Response(respcont, 400)

@@ -34,7 +34,7 @@ def main():
 
 	args = parser.parse_args()
 
-	nac_uuid = args.nac.split(".mariana")[0]
+	nac_uuid = args.nac
 	url = f"http://localhost:8000?listenport={args.source_port}&destport={args.dest_port}&proto={args.protocol}&destnac={nac_uuid}"
 	headers = {"Host": "createproxy.mariana"}
 
