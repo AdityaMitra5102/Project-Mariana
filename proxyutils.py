@@ -68,6 +68,7 @@ def user_response(source_nac, payload, send_payload, phone_book_reverse_lookup, 
 			if not check_host.endswith(hostend):
 				if not securityconfig['clearnet_exit_proxy']:
 					logging.warning('Clearnet exit proxy not allowed. Dropping packet')
+					return
 				tempserverhost=check_host
 				try:
 					respx=requests.get(f'https://{tempserverhost}', timeout=3)
