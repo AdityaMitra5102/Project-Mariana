@@ -147,7 +147,7 @@ def proxy(path):
 		destnac=request.args.get('destnac')
 		proto=request.args.get('proto', 'TCP')
 		mode=proto=='TCP'
-		nac_valid, destnac=check_mariana_host(dest_nac, config['nac'], get_contact)
+		nac_valid, destnac=check_mariana_host(destnac, config['nac'], get_contact)
 		if not nac_valid:
 			return 'Invalid NAC'
 		if destnac not in routing_table:
