@@ -7,13 +7,48 @@
   <title>Project Mariana Home</title>
 
   <meta name="robots" content="noindex">
-">
 
   
   
 
 
   <style id="INLINE_PEN_STYLESHEET_ID">
+
+.floating-security-btn {
+        position: fixed;
+        top: 30px;  /* Positioned at the top right corner */
+        right: 30px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        z-index: 1000;
+        cursor: pointer;
+        font-family: Arial, sans-serif;
+    }
+
+    .gear-icon-container {
+        background-color: #9b59b6;  /* Purple color */
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        transition: all 0.3s ease;
+    }
+
+    .gear-icon-container:hover {
+        transform: scale(1.05);
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+    }
+
+    .gear-icon {
+        width: 30px;
+        height: 30px;
+        fill: white;
+    }
+
     .floating-mariana-btn {
         position: fixed;
         bottom: 190px;  /* Positioned above the other two buttons */
@@ -143,6 +178,8 @@
 	height: 100%;
 	width: 100%;
 	background-color: #000;
+
+
 }
 
 canvas {
@@ -154,9 +191,12 @@ canvas {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    color: white;
     
-    font-family: Arial, sans-serif;
+    color: #33ff33;
+  font-family: 'Courier New', Courier, monospace;
+  margin: 0;
+  padding: 0;
+
   }
 
   
@@ -238,6 +278,15 @@ canvas {
 </head>
 
 <body>
+  <div class="floating-security-btn" onclick="window.open('http://security.mariana');">
+    <div class="gear-icon-container">
+        <svg class="gear-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/>
+        </svg>
+    </div>
+    <span class="chat-caption">Security Settings</span>
+</div>
+
   <div class="floating-chat-btn" onclick="window.open('http://trenchtalk.mariana');">
     <div class="chat-icon-container">
         <svg class="chat-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
@@ -281,7 +330,7 @@ canvas {
                 </i>
             </button>
         </div>
-	<center><a href="http://phonebook.mariana" target="_blank">Go to phonebook</a></center>
+	<center><a href="http://phonebook.mariana" target="_blank" class="overlay-text">Go to phonebook</a></center>
 
 
     
