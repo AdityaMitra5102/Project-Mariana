@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Security Configuration</title>
+   <style>
+    body {
+        background-color: #000;
+        color: #33ff33;
+        font-family: 'Courier New', Courier, monospace;
+        margin: 0;
+        padding: 0;
+    }
+    .container {
+        max-width: 700px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+    h1, h2 {
+        color: #33ff33;
+        border-bottom: 1px solid #33ff33;
+        padding-bottom: 5px;
+        margin-top: 20px;
+    }
+    textarea {
+        width: 100%;
+        background-color: #000;
+        color: #33ff33;
+        border: 1px solid #33ff33;
+        resize: none;
+        padding: 10px;
+        font-family: 'Courier New', Courier, monospace;
+        box-sizing: border-box;
+        overflow: auto; /* Ensures scrollbar shows up */
+	   white-space: pre-wrap; /* Better line handling */
+    }
+    input[type="text"] {
+        width: 100%;
+        padding: 10px;
+        background-color: #000;
+        color: #33ff33;
+        border: 1px solid #33ff33;
+        font-family: 'Courier New', Courier, monospace;
+        margin-bottom: 10px;
+        box-sizing: border-box;
+    }
+    input[type="number"] {
+        width: 100px;
+        padding: 10px;
+        background-color: #000;
+        color: #33ff33;
+        border: 1px solid #33ff33;
+        font-family: 'Courier New', Courier, monospace;
+        margin-bottom: 10px;
+        box-sizing: border-box;
+    }
+    input[type="checkbox"] {
+        appearance: none;
+        width: 20px;
+        height: 20px;
+        background-color: #000;
+        border: 1px solid #33ff33;
+        display: inline-block;
+        vertical-align: middle;
+        cursor: pointer;
+        position: relative;
+    }
+    input[type="checkbox"]:checked::after {
+        content: "✓";
+        color: #33ff33;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 16px;
+    }
+    button {
+        background-color: #000;
+        color: #33ff33;
+        border: 1px solid #33ff33;
+        padding: 10px 20px;
+        font-family: 'Courier New', Courier, monospace;
+        cursor: pointer;
+        transition: background-color 0.3s;
+    }
+    button:hover {
+        background-color: #111;
+    }
+    label {
+        display: block;
+        margin-top: 10px;
+        margin-bottom: 5px;
+        font-weight: bold;
+    }
+    /* Blinking cursor style */
+    #output::after {
+        content: "_";
+        animation: blink 1s infinite;
+    }
+    @keyframes blink {
+        0% { opacity: 1; }
+        50% { opacity: 0; }
+        100% { opacity: 1; }
+    }
+    .form-group {
+        margin-bottom: 20px;
+    }
+    .port-input-group {
+        display: flex;
+        align-items: center;
+        margin-bottom: 10px;
+    }
+    .port-input-group button {
+        margin-left: 10px;
+        padding: 5px 10px;
+    }
+    .status-message {
+        margin-top: 20px;
+        padding: 10px;
+        border: 1px solid #33ff33;
+    }
+    .ports-container {
+        margin-top: 10px;
+    }
+    .wildcard-option {
+        margin-top: 10px;
+        display: flex;
+        align-items: center;
+    }
+    .wildcard-option label {
+        display: inline;
+        margin-left: 10px;
+    }
+    .small-button {
+        padding: 2px 8px;
+        margin-left: 10px;
+    }
+</style>
+</head>
+<body>
+    <div class="container">
+        <h1>Security Configuration</h1>
+        
+        <div id="loading">Loading configuration...</div>
+        
+        <form id="securityConfigForm" style="display: none;">
+            <div class="form-group">
+                <label>
+                    <input type="checkbox" id="webServerAllow"> Web Server Allow
+                </label>
+            </div>
+            
+            <div class="form-group">
+                <label>
+                    <input type="checkbox" id="clearnetExitProxy"> Clearnet Exit Proxy
+                </label>
+            </div>
+            
+            <div class="form-group">
+                <label>Port Firewall Allow List:</label>
+                
+                <div class="wildcard-option">
+                    <input type="checkbox" id="wildcardOption">
+                    <label for="wildcardOption">Allow all ports (*)</label>
+                </div>
+                
+                <div id="portsContainer" class="ports-container">
+                    <!-- Port inputs will be added here -->
+                </div>
+                
+                <button type="button" id="addPortBtn">+ Add Port</button>
+            </div>
+            
+            <div class="form-group">
+                <label>
+                    <input type="checkbox" id="cargoShipAllowExec"> Allow Executable Files from Cargo Ship
+                </label>
+            </div>
+            
+            <button type="submit" id="saveBtn">Save Configuration</button>
+        </form>
+        
+        <div id="output" class="status-message" style="display: none;"></div>
+    </div>
+
+    <script>
+        // DOM Elements
+        const form = document.getElementById('securityConfigForm');
+        const webServerAllowInput = document.getElementById('webServerAllow');
+        const clearnetExitProxyInput = document.getElementById('clearnetExitProxy');
+        const wildcardOptionInput = document.getElementById('wildcardOption');
+        const portsContainer = document.getElementById('portsContainer');
+        const addPortBtn = document.getElementById('addPortBtn');
+        const cargoShipAllowExecInput = document.getElementById('cargoShipAllowExec');
+        const output = document.getElementById('output');
+        const loading = document.getElementById('loading');
+        
+        // Function to add a new port input
+        function addPortInput(value = '') {
+            const portGroup = document.createElement('div');
+            portGroup.className = 'port-input-group';
+            
+            const portInput = document.createElement('input');
+            portInput.type = 'number';
+            portInput.className = 'port-input';
+            portInput.placeholder = 'Port';
+            portInput.min = '1';
+            portInput.max = '65535';
+            portInput.value = value;
+            
+            const removeBtn = document.createElement('button');
+            removeBtn.type = 'button';
+            removeBtn.className = 'small-button';
+            removeBtn.textContent = '✕';
+            removeBtn.onclick = function() {
+                portsContainer.removeChild(portGroup);
+            };
+            
+            portGroup.appendChild(portInput);
+            portGroup.appendChild(removeBtn);
+            portsContainer.appendChild(portGroup);
+        }
+        
+        // Function to toggle port inputs based on wildcard selection
+        function togglePortInputs() {
+            if (wildcardOptionInput.checked) {
+                portsContainer.style.display = 'none';
+                addPortBtn.style.display = 'none';
+            } else {
+                portsContainer.style.display = 'block';
+                addPortBtn.style.display = 'inline-block';
+            }
+        }
+        
+        // Add port button event listener
+        addPortBtn.addEventListener('click', () => {
+            addPortInput();
+        });
+        
+        // Wildcard checkbox event listener
+        wildcardOptionInput.addEventListener('change', togglePortInputs);
+        
+        // Function to collect form data into JSON object
+        function getFormData() {
+            const portInputs = document.querySelectorAll('.port-input');
+            let portFwAllow;
+            
+            if (wildcardOptionInput.checked) {
+                portFwAllow = ['*'];
+            } else {
+                portFwAllow = Array.from(portInputs).map(input => input.value ? parseInt(input.value, 10) : null).filter(val => val !== null);
+            }
+            
+            return {
+                web_server_allow: webServerAllowInput.checked,
+                clearnet_exit_proxy: clearnetExitProxyInput.checked,
+                port_fw_allow: portFwAllow,
+                cargo_ship_allow_exec: cargoShipAllowExecInput.checked
+            };
+        }
+        
+        // Function to populate form with data
+        function populateForm(data) {
+            webServerAllowInput.checked = data.web_server_allow;
+            clearnetExitProxyInput.checked = data.clearnet_exit_proxy;
+            cargoShipAllowExecInput.checked = data.cargo_ship_allow_exec;
+            
+            // Handle port firewall allow list
+            portsContainer.innerHTML = '';
+            
+            if (data.port_fw_allow.includes('*')) {
+                wildcardOptionInput.checked = true;
+            } else {
+                wildcardOptionInput.checked = false;
+                data.port_fw_allow.forEach(port => {
+                    addPortInput(port);
+                });
+            }
+            
+            togglePortInputs();
+        }
+        
+        // Form submission event listener
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            try {
+                const configData = getFormData();
+                output.textContent = 'Saving configuration...';
+                output.style.display = 'block';
+                
+                const response = await fetch('/save', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(configData)
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`Error: ${response.status} ${response.statusText}`);
+                }
+                
+                const result = await response.text();
+                output.textContent = `${result}`;
+            } catch (error) {
+                output.textContent = `Error saving configuration: ${error.message}`;
+            }
+        });
+        
+        // Fetch existing configuration on page load
+        async function fetchConfiguration() {
+            try {
+                const response = await fetch('/view');
+                
+                if (!response.ok) {
+                    throw new Error(`Error: ${response.status} ${response.statusText}`);
+                }
+                
+                const responseText = await response.text();
+                const configData = JSON.parse(responseText);
+                populateForm(configData);
+                
+                loading.style.display = 'none';
+                form.style.display = 'block';
+            } catch (error) {
+                loading.textContent = `Error loading configuration: ${error.message}`;
+            }
+        }
+        
+        // Initialize the page
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchConfiguration();
+        });
+    </script>
+</body>
+</html>
