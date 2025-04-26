@@ -45,7 +45,7 @@ def get_packet_payload(payload):
 	session=uuid_str(session)
 	return session, flag, payload
 	
-def	rewrite_content(content):
+def rewrite_content(content):
 	content_bytes=content.replace(b'https:', b'http:')
 	return content_bytes
 	
@@ -64,7 +64,7 @@ def user_response(source_nac, payload, send_payload, phone_book_reverse_lookup):
 			if not check_host.endswith(hostend):
 				tempserverhost=check_host
 				try:
-					respx=requests.get(f'https://tempserverhost', timeout=3)
+					respx=requests.get(f'https://{tempserverhost}', timeout=3)
 					tempscheme='https'
 				except:
 					tempscheme='http'
