@@ -142,6 +142,8 @@ def proxy(path):
 			
 		
 	if host=='createproxy.mariana':
+		if 'destnac' not in request.args:
+			return render_template('marnc.html')
 		listenport=int(request.args.get('listenport'))
 		destport=int(request.args.get('destport'))
 		destnac=request.args.get('destnac')
