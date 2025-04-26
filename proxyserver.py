@@ -157,27 +157,29 @@ def proxy(path):
 		target_url = f"{target_url}/{path}"
 	target_url=f'http://{target_url}'
 	logging.info(f"Proxying request to: {target_url}")
-	headers = {key: value for key, value in request.headers}
+	headers = dict(request.headers) #{key: value for key, value in request.headers}
 	headers['Access-Control-Allow-Origin'] = "*"
+	headers['mariana-host']= f'{config['nac']}.mariana'
 	
 	try:
 		if True:
 			reqparam={}
+			reqparam['method']=request.method
 			reqparam['target_url']=target_url
 			reqparam['headers']=headers
-			reqparam['params']=dict(request.args)
-			reqparam['cookies']=dict(request.cookies)
+			reqparam['data']=request.get_data().hex()
 			reqparamstr=json.dumps(reqparam)
-		
+
+
+
 			resp=get_response(nac, reqparamstr)
 			
 						
 			respdict=json.loads(resp)
 			content=bytes.fromhex(respdict['content'])
-			status_code=respdict['status_code']
 			dummyheaders=respdict['headers']
 			dummyheaders['Host']=host
-
+			dummyheaders['Access-Control-Allow-Origin'] = "*"
  			
 			response = Response(content, status_code)
 			response.headers=dummyheaders

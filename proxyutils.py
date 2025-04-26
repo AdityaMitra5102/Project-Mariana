@@ -56,7 +56,11 @@ def user_response(source_nac, payload, send_payload, phone_book_reverse_lookup):
 			url=requests.urllib3.util.parse_url(params['target_url'])
 			newurl=requests.urllib3.util.Url(scheme=url.scheme, auth=url.auth, host=serverhost, path=url.path, query=url.query, fragment=url.fragment)
 			target_url=str(newurl)
-			resp=requests.get(newurl, headers=params['headers'], params=params['params'], cookies=params['cookies'])
+			
+			data=bytes.from_hex(params['data'])
+			
+			
+			resp=requests.request(method=params['method'], url=newurl, headers=params['headers'], data=data)
 			dummyheaders={}
 			
 			for key, value in resp.headers.items():
