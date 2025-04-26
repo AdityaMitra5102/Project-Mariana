@@ -171,11 +171,12 @@ def proxy(path):
 
 			resp=get_response(nac, reqparamstr)
 			respdict=json.loads(resp)
+			status_code=respdict['status_code']
 			content=bytes.fromhex(respdict['content'])
 			dummyheaders=respdict['headers']
 			dummyheaders['Host']=host
 			dummyheaders['Access-Control-Allow-Origin'] = "*"
-			response = Response(content)
+			response = Response(content, status_code)
 			response.headers=dummyheaders
 			return response
 			
