@@ -245,6 +245,7 @@ def add_to_routing(nac, hopcount, next_nac, pubkey):
 def send(msg, nac, retry=0):
 	if retry>3:
 		logs.error("Max retry reached. Dropping packet.")
+		return
 	if nac not in routing_table:
 		logs.warning(f'Node {nac} not found in Routing table. Packet will be dropped after 3 retries after 30 seconds each. Retry {retry}')
 		time.sleep(30)
