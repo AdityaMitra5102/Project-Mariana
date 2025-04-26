@@ -41,16 +41,13 @@ def proxy(path):
 			respcont='Not in Mariana. Use standard web browser.'.encode()
 			return Response(respcont, 400)
 		referer=request.headers.get('Referer')
-		print(f'Referer {referer}')
 		refvalid, refnac=check_referrer(referer, config['nac'], get_contact)
-		print(f'Refvalid {refvalid}')
 		if not refvalid:
 			respcont='Not in Mariana. Use standard web browser.'.encode()
 			return Response(respcont, 400)
-		respcont=f'Exit node proxy to be implemented via {refnac}'.encode()
 		exit_node_proxy=True
 		nac=refnac
-		#return Response(respcont, 400)
+
 		
 
 	if host=='local.mariana':
@@ -182,8 +179,6 @@ def proxy(path):
 			reqparam['headers']=headers
 			reqparam['data']=request.get_data(cache=False).hex()
 			reqparamstr=json.dumps(reqparam)
-
-			print(f'Calling {target_url} via {nac}')
 			resp=get_response(nac, reqparamstr)
 			respdict=json.loads(resp)
 			status_code=respdict['status_code']
@@ -191,10 +186,8 @@ def proxy(path):
 			dummyheaders=respdict['headers']
 			dummyheaders['Host']=host
 			dummyheaders['Access-Control-Allow-Origin'] = "*"
-			#if 'html' in dummyheaders['Content-Type']:
-			content=rewrite_content(content)
-			if exit_node_proxy:
-				print(f'Resp {status_code} {content}')
+			if 'html' in dummyheaders['Content-Type']:
+				content=rewrite_content(content)
 			response = Response(content, status_code)
 			response.headers=dummyheaders
 			return response
