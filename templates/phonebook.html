@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mariana phonebook</title>
+    <style>
+       
+    body {
+    background-color: black;
+    color: #00ff00;
+    font-family: monospace;
+    margin: 0;
+    padding: 0;
+}
+
+h1, h2 {
+    color: #00ff00;
+    margin-left: 10px;
+}
+
+#search-section {
+    padding: 10px;
+    border-bottom: 1px solid #00ff00;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+input[type="text"] {
+    background-color: black;
+    color: #00ff00;
+    border: 1px solid #00ff00;
+    padding: 5px;
+    width: 300px;
+}
+
+button {
+    background-color: black;
+    color: #00ff00;
+    border: 1px solid #00ff00;
+    padding: 5px 10px;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #003300;
+}
+
+#contacts-section, #nodes-section {
+    padding: 10px;
+    flex: 1;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    color: #00ff00;
+}
+
+th, td {
+    border: 1px solid #00ff00;
+    padding: 5px;
+    text-align: left;
+}
+
+#main-container {
+    display: flex;
+    height: calc(100vh - 120px); /* adjust for header/search height */
+    padding: 10px;
+    gap: 20px;
+}
+
+#contacts-section {
+    border-right: 1px solid #00ff00;
+}
+
+    </style>
+</head>
+<body>
+    <h1>Phonebook 📒</h1>
+
+    <div id="search-section">
+        <input type="text" id="search-input" placeholder="Search contacts or nodes...">
+        <button onclick="search()">Search</button>
+        <button onclick="clearSearch()">Clear</button>
+    </div>
+  <div id="main-container">
+    <div id="contacts-section">
+        <h2>Contacts</h2>
+        <table id="contacts-table" border="1">
+            <thead>
+                <tr>
+                    <th>Alias</th>
+                    <th>ID</th>
+                    <th>Status</th>
+                    <th>Copy</th>
+                    <th>Open</th>
+                    <th>Delete</th>
+                </tr>
+            </thead>
+            <tbody id="contacts-body">
+                <!-- Contacts will be populated here -->
+            </tbody>
+        </table>
+    </div>
+
+    <div id="nodes-section">
+        <h2>Online Nodes not in Contacts</h2>
+        <table id="nodes-table" border="1">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Copy</th>
+                    <th>Open</th>
+                    <th>Save</th>
+                </tr>
+            </thead>
+            <tbody id="nodes-body">
+                <!-- Online nodes will be populated here -->
+            </tbody>
+        </table>
+    </div>
+</div>
+    <!-- Hidden textarea for clipboard operations -->
+    <textarea id="clipboard-temp" style="position: absolute; left: -9999px;"></textarea>
+
+    <script>
+        // Global variables to store data
+        let contactsData = {};
+        let activeNodes = [];
+        let searchTerm = '';
+        let refreshInterval;
+
+        // Function to copy text to clipboard (HTTP compatible)
+        function copyToClipboard(text) {
+            const tempTextArea = document.getElementById('clipboard-temp');
+            tempTextArea.value = text;
+            tempTextArea.select();
+            
+            try {
+                const successful = document.execCommand('copy');
+                if (successful) {
+                    alert('Copied to clipboard!');
+                } else {
+                    alert('Failed to copy text');
+                }
+            } catch (err) {
+                console.error('Error copying text: ', err);
+                alert('Failed to copy text');
+            }
+            
+            // Deselect the text
+            tempTextArea.blur();
+            
+            // Clear selection if any
+            window.getSelection().removeAllRanges();
+        }
+
+        // Function to fetch data from backend
+        async function fetchData() {
+            try {
+                // Fetch contacts data
+                const contactsResponse = await fetch('/phonebook');
+                const contactsText = await contactsResponse.text();
+                contactsData = JSON.parse(contactsText);
+                
+                // Fetch active nodes
+                const nodesResponse = await fetch('/activenodes');
+                const nodesText = await nodesResponse.text();
+                activeNodes = JSON.parse(nodesText);
+                
+                return true;
+            } catch (error) {
+                console.error('Error fetching data:', error);
+                return false;
+            }
+        }
+
+        // Function to highlight search term in text
+        function highlightText(text, term) {
+            if (!term || term === '') {
+                return text;
+            }
+            
+            // Escape special characters in the search term for use in a regular expression
+            const escapedTerm = term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            
+            // Create a regular expression for case-insensitive matching
+            const regex = new RegExp(`(${escapedTerm})`, 'gi');
+            
+            // Replace matches with highlighted version
+            return text.replace(regex, '<span style="background-color: yellow; font-weight: bold;">$1</span>');
+        }
+
+        // Function to populate tables based on current data and search term
+        function populateTables() {
+            // Create arrays for easier comparison
+            const contactIds = Object.values(contactsData);
+            
+            // Populate contacts table
+            const contactsBody = document.getElementById('contacts-body');
+            contactsBody.innerHTML = '';
+            
+            for (const [alias, id] of Object.entries(contactsData)) {
+                // Apply search filter
+                if (searchTerm && !alias.toLowerCase().includes(searchTerm.toLowerCase()) && 
+                    !id.toLowerCase().includes(searchTerm.toLowerCase())) {
+                    continue;
+                }
+                
+                const isOnline = activeNodes.includes(id);
+                const status = isOnline ? 'Online' : 'Offline';
+                
+                // Highlight matching text if there's a search term
+                const highlightedAlias = highlightText(alias, searchTerm);
+                const highlightedId = highlightText(id, searchTerm);
+                
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${highlightedAlias}</td>
+                    <td>${highlightedId}</td>
+                    <td>${status}</td>
+                    <td><button onclick="copyToClipboard('${alias}')">Copy</button></td>
+                    <td><button onclick="window.open('http://${alias}')" ${!isOnline ? 'disabled' : ''}>Open</button></td>
+                    <td><button onclick="deleteContact('${alias}')">Delete</button></td>
+                `;
+                contactsBody.appendChild(row);
+            }
+            
+            // Populate online nodes table (only showing nodes not in contacts)
+            const nodesBody = document.getElementById('nodes-body');
+            nodesBody.innerHTML = '';
+            
+            for (const nodeId of activeNodes) {
+                // Apply search filter
+                if (searchTerm && !nodeId.toLowerCase().includes(searchTerm.toLowerCase())) {
+                    continue;
+                }
+                
+                // Skip if this node is already in contacts
+                if (contactIds.includes(nodeId)) continue;
+                
+                // Highlight matching text if there's a search term
+                const highlightedNodeId = highlightText(nodeId, searchTerm);
+                
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${highlightedNodeId}</td>
+                    <td><button onclick="copyToClipboard('${nodeId}')">Copy</button></td>
+                    <td><button onclick="window.open('http://${nodeId}')">Open</button></td>
+                    <td><button onclick="saveNode('${nodeId}')">Save</button></td>
+                `;
+                nodesBody.appendChild(row);
+            }
+        }
+
+        // Function to load data and populate tables
+        async function loadData() {
+            const success = await fetchData();
+            if (success) {
+                populateTables();
+            } else {
+                alert('Error loading data. Please check console for details.');
+            }
+        }
+        
+        // Function to handle search
+        function search() {
+            searchTerm = document.getElementById('search-input').value.trim();
+            populateTables();
+        }
+        
+        // Function to clear search
+        function clearSearch() {
+            document.getElementById('search-input').value = '';
+            searchTerm = '';
+            populateTables();
+        }
+        
+        // Function to delete a contact
+        async function deleteContact(alias) {
+            const confirmation = prompt(`Are you sure you want to delete ${alias}? Type 'yes' to confirm.`);
+            if (confirmation && confirmation.toLowerCase() === 'yes') {
+                try {
+                    const formData = new FormData();
+                    formData.append('alias', alias);
+                    
+                    const response = await fetch('/delete', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    
+                    const result = await response.text();
+                    alert(result);
+                    
+                    // Reload data
+                    loadData();
+                } catch (error) {
+                    console.error('Error deleting contact:', error);
+                    alert('Error deleting contact. Please check console for details.');
+                }
+            }
+        }
+        
+        // Function to save a node as a contact
+        async function saveNode(nodeId) {
+            let alias = prompt('Enter a name for this contact:');
+            
+            if (alias) {
+                // Add '.mariana' suffix if not already present
+                if (!alias.endsWith('.mariana')) {
+                    alias = alias + '.mariana';
+                }
+                
+                try {
+                    const formData = new FormData();
+                    formData.append('alias', alias);
+                    formData.append('contact', nodeId);
+                    
+                    const response = await fetch('/save', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    
+                    const result = await response.text();
+                    alert(result);
+                    
+                    // Reload data
+                    loadData();
+                } catch (error) {
+                    console.error('Error saving node:', error);
+                    alert('Error saving node. Please check console for details.');
+                }
+            }
+        }
+        
+        // Function to set up auto-refresh
+        function setupAutoRefresh() {
+            refreshInterval = setInterval(async () => {
+                const success = await fetchData();
+                if (success) {
+                    populateTables();
+                    console.log('Data refreshed at ' + new Date().toLocaleTimeString());
+                } else {
+                    console.error('Failed to refresh data');
+                }
+            }, 40000); // Refresh every 40 seconds
+        }
+        
+        // Load data when page loads and setup auto-refresh
+        window.onload = () => {
+            loadData();
+            setupAutoRefresh();
+            
+            // Add event listener for Enter key in search input
+            document.getElementById('search-input').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    search();
+                }
+            });
+        };
+    </script>
+</body>
+</html>
