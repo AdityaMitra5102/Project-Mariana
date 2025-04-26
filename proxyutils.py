@@ -45,6 +45,10 @@ def get_packet_payload(payload):
 	session=uuid_str(session)
 	return session, flag, payload
 	
+def	rewrite_content(content):
+	content_bytes=content.replace(b'https:', b'http:')
+	return content_bytes
+	
 def user_response(source_nac, payload, send_payload, phone_book_reverse_lookup):
 	if payload.startswith(header.encode()):
 		session, flag, payload=get_packet_payload(payload)
