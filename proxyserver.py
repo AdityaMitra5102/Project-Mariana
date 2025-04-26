@@ -178,9 +178,9 @@ def proxy(path):
 	target_url = host
 	if path:
 		target_url = f"{target_url}/{path}"
-	target_url=f'http://{target_url}'
+	target_url=f'http://{target_url}?'
 	logging.info(f"Proxying request to: {target_url}")
-	headers = dict(request.headers) #{key: value for key, value in request.headers}
+	headers = dict(request.headers) 
 	if not exit_node_proxy:
 		headers['Access-Control-Allow-Origin'] = "*"
 		headers['mariana-host']= f'{config['nac']}.mariana'
@@ -191,6 +191,7 @@ def proxy(path):
 			reqparam['method']=request.method
 			reqparam['target_url']=target_url
 			reqparam['headers']=headers
+			reqparam['args']=dict(request.args)
 			reqparam['data']=request.get_data(cache=False).hex()
 			reqparamstr=json.dumps(reqparam)
 			resp=get_response(nac, reqparamstr)
