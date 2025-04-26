@@ -57,10 +57,9 @@ def user_response(source_nac, payload, send_payload, phone_book_reverse_lookup):
 			newurl=requests.urllib3.util.Url(scheme=url.scheme, auth=url.auth, host=serverhost, path=url.path, query=url.query, fragment=url.fragment)
 			target_url=str(newurl)
 			
-			data=bytes.from_hex(params['data'])
+			data=bytes.fromhex(params['data'])
 			
-			
-			resp=requests.request(method=params['method'], url=newurl, headers=params['headers'], data=data)
+			resp=requests.request(method=params['method'].lower(), url=newurl, headers=params['headers'], data=data)
 			dummyheaders={}
 			
 			for key, value in resp.headers.items():
@@ -73,7 +72,6 @@ def user_response(source_nac, payload, send_payload, phone_book_reverse_lookup):
 			respdict['status_code']=resp.status_code
 			respdict['headers']=dummyheaders
 			payload=json.dumps(respdict)
-			
 			
 			packet=make_payload_packet(session, 1, payload)
 			return packet

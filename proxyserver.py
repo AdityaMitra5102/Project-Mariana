@@ -72,7 +72,6 @@ def proxy(path):
 				halias=halias[:-len('.mariana')]
 				dest_nac=request.form.get('contact')
 				nac_valid, nac_code=check_mariana_host(dest_nac, config['nac'], get_contact)
-				print('Saving {halias} {nac_code}')
 				if not nac_valid:
 					return 'Invalid NAC.'
 				if save_contact(halias, nac_code):
@@ -121,7 +120,6 @@ def proxy(path):
 			dest_nac_list = [word for part in tosend.split(',') for word in part.strip().split()]
 			file_bytes=file.read()
 			filename=file.filename
-			print('File uploaded {filename} {file_bytes}')
 			for dest_nac_send in dest_nac_list:
 				dest_nac_check, dest_nac=check_mariana_host(dest_nac_send, config['nac'], get_contact)
 				if dest_nac_send and dest_nac in routing_table:
@@ -167,21 +165,17 @@ def proxy(path):
 			reqparam['method']=request.method
 			reqparam['target_url']=target_url
 			reqparam['headers']=headers
-			reqparam['data']=request.get_data().hex()
+			reqparam['data']=request.get_data(cache=False).hex()
 			reqparamstr=json.dumps(reqparam)
 
 
-
 			resp=get_response(nac, reqparamstr)
-			
-						
 			respdict=json.loads(resp)
 			content=bytes.fromhex(respdict['content'])
 			dummyheaders=respdict['headers']
 			dummyheaders['Host']=host
 			dummyheaders['Access-Control-Allow-Origin'] = "*"
- 			
-			response = Response(content, status_code)
+			response = Response(content)
 			response.headers=dummyheaders
 			return response
 			
