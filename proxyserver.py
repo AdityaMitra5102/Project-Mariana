@@ -21,6 +21,7 @@ def get_response(dest_nac, payload):
 		logging.info(f'Waiting for response to session {session}')
 		time.sleep(1)
 	resp=webpackets[session]
+	webpackets.pop(session)
 	return resp
 
 def known_hosts():
