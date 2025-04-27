@@ -4,6 +4,7 @@ from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 import base64
 import os
 import hashlib
+import binascii
 
 from Kyber import Kyber
 from kyber_py.pyaes import *
@@ -93,3 +94,8 @@ def payload_decrypt(payload_buffer, privkey):
 def crypto_hash(data):
 	return hashlib.md5(data).digest()
 
+def crc32(data):
+	return binascii.crc32(data).to_bytes(4)
+	
+	
+	

@@ -197,6 +197,21 @@ def save_phonebook_file():
 def get_whole_phonebook():
 	return phonebook
 
+############################# Layer 1 Transfers #############################
+
+def l1sendto(data, addr):
+	data=data+crc32(data)
+	sock.sendto(data, addr)
+
+def l1recvfrom(n):
+	data, addr=sock.recvfrom(n)
+	crc=data[-4:]
+	data=data[:-4]
+	if crc32(data)==crc:
+		return data, addr
+	logs.info(f'CRC Mismatch, packet dropped from {addr}')
+	return None, None
+
 ############################# Layer 2 Transfers #############################
 
 def add_to_cam(nac, ip, port):
@@ -219,7 +234,7 @@ def send_to_host(msg, nac):
 		logs.error('NAC not in CAM Table. Packet dropped')
 	ip=cam_table[nac]['ip']
 	port=cam_table[nac]['port']
-	sock.sendto(msg, (ip, port))
+	l1sendto(msg, (ip, port))
 	
 ############################# Layer 3 Transfers #############################
 	
@@ -473,12 +488,12 @@ def send_conn_accept(nac):
 	
 def send_conn_reject(nac, ip, port):
 	packet=get_conn_reject(config['nac'])
-	sock.sendto(packet, (ip, port))
+	l1sendto(packet, (ip, port))
 
 def send_conn_req(ip, port):
 	#logs.info(f'Sending connection request to node at {ip}:{port}')
 	packet=gen_conn_req(config['nac'], selfpubkey)
-	sock.sendto(packet, (ip, port))
+	l1sendto(packet, (ip, port))
 	
 def send_payload(nac, payload, retry=0):
 	if nac not in routing_table:
@@ -550,7 +565,7 @@ def perform_self_discovery():
 	pub_ip=get_public_ip()
 	self_tracker_state=str(uuid.uuid4())
 	packet=gen_tracker_discovery(config['nac'], self_tracker_state)
-	sock.sendto(packet, (pub_ip, config['port']))
+	l1sendto(packet, (pub_ip, config['port']))
 
 ############################# Cleanup #############################
 
@@ -665,7 +680,9 @@ def send_tracker_loop():
 def receive_packet_loop():
 	while True:
 		try:
-			data, addr=sock.recvfrom(1500)
+			data, addr=l1recvfrom(1500)
+			if data is None:
+				continue
 			src_ip, src_port=addr
 			logs.info(f'Received packet from {src_ip}:{src_port}')
 			#process_packet(data, src_ip, src_port)
