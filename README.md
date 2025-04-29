@@ -1,4 +1,7 @@
 # Project Mariana’s Qubit
+
+![poster](poster.jpg)
+
 Mariana’s Qubit is a next-generation, anonymous routing protocol, designed to build a fully functional and quantum-resilient network stack. While for a layman, it is similar to Tor, it is quite different at the fundamental and protocol level. Project Mariana’s Qubit builds an entire network stack, analogous to the OSI model to securely route traffic anonymously via relays and proxies. It is truly decentralized, unlike Tor which maintains a centralized relay list for bootstrapping. 
 
 The system offers dynamic network topologies where nodes attempt to form a mesh network. For nodes on private subnets without internet connectivity, it attempts to perform local node discovery and forms a network with other nodes in the same subnet. If one of the machines in the private subnet is connected to the internet, probably via a second network interface, it automatically relays traffic from its subnet peers, making them reachable from anywhere on the Mariana Network without involving any manual setup.
