@@ -71,6 +71,14 @@ def proxy(path):
 				for contact in temp_phonebook:
 					temp_active_phonebook[f'{contact}.mariana']=f'{temp_phonebook[contact]}.mariana'
 				return json.dumps(temp_active_phonebook)
+				
+			if request.path=='/pubkeyverif':
+				temp_phonebook= get_contacts_verif()
+				temp_active_phonebook={}
+				for contact in temp_phonebook:
+					temp_active_phonebook[f'{contact}.mariana']=temp_phonebook[contact]
+				return json.dumps(temp_active_phonebook)
+
 			if request.path=='/activenodes':
 				temp_active=[]
 				for tempnac in routing_table:
@@ -99,8 +107,15 @@ def proxy(path):
 					return 'Deleted'				
 				else:
 					return 'Delete failed'
-				
-			
+			if request.path=='/reverify':
+				halias=request.form.get('alias')
+				if not halias.endswith('.mariana'):
+					return 'Invalid alias.'
+				halias=halias[:-len('.mariana')]
+				if update_contact_pub(halias):
+					return 'Contact reverified'
+				else:
+					return 'Contact reverification failed'
 		
 	if host=='trenchtalk.mariana':
 		if request.method=='GET':

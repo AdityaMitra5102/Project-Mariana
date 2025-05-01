@@ -28,6 +28,7 @@ configfile='config.json'
 knownsys='knownsys.json'
 privkeyfile='privatekey.pem'
 phonebookfile='phonebook.json'
+phonebooksecurityfile='phonebooksec.json'
 securityconfigfile='security.json'
 
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s') #, filename='pqi.log', filemode='a')
@@ -57,7 +58,7 @@ sending_buffer={}
 sending_buffer_lock=threading.Lock()
 
 phonebook={}
-
+phonebookpub={}
 
 privkey=None
 
@@ -115,6 +116,17 @@ except:
 	logs.info('Phonebook not found.')
 	
 try:
+	fl=open(os.path.join(filepath, phonebooksecurityfile), 'r')
+	temp_pb=json.load(fl)
+	fl.close()
+	for nac in temp_pb:
+		phonebookpub[nac]=bytes.fromhex(temp_pb[nac])
+	logs.info('Phonebook public keys loaded')
+except:
+	logs.info('Phonebook public key file not found')
+
+	
+try:
 	fl=open(os.path.join(filepath, trackerfile), 'r')
 	trackers=json.load(fl)
 	fl.close()
@@ -155,6 +167,11 @@ def save_securityconfig(updatedconfig):
 ############################# Phonebook #############################
 
 phonebook_rev_cache={}
+pubkey_match_cache={}
+
+def is_nac_saved(nac):
+	rev_nac=phone_book_reverse_lookup(nac)
+	return nac!=rev_nac
 
 def get_contact(humanalias):
 	if humanalias in phonebook:
@@ -176,8 +193,19 @@ def save_contact(humanalias, nac):
 		logs.error(f'{humanalias} already exists in phonebook. Not saved')
 		return False
 	phonebook[humanalias]=nac
+	phonebookpub[humanalias]=routing_table[nac]['pubkey']
 	logs.info(f'{humanalias} saved')
 	save_phonebook_file()
+	write_phonebook_pub()
+	return True
+	
+def update_contact_pub(humanalias):
+	if humanalias not in phonebook:
+		return False
+	nac=get_contact(humanalias)
+	delete_contact(humanalias)
+	
+	save_contact(humanalias, nac)
 	return True
 	
 def delete_contact(humanalias):
@@ -187,8 +215,10 @@ def delete_contact(humanalias):
 	if nac in phonebook_rev_cache:
 		phonebook_rev_cache.pop(nac)
 	phonebook.pop(humanalias)
+	phonebookpub.pop(humanalias)
 	logs.info(f'{humanalias} deleted')
 	save_phonebook_file()
+	write_phonebook_pub()
 	return True
 	
 def save_phonebook_file():
@@ -199,6 +229,27 @@ def save_phonebook_file():
 
 def get_whole_phonebook():
 	return phonebook
+	
+	
+def write_phonebook_pub():
+	temp={}
+	for name in phonebookpub:
+		temp[name]=phonebookpub[name].hex()
+	fl=open(os.path.join(filepath, phonebooksecurityfile), 'w')
+	fl.write(json.dumps(temp))
+	fl.close()
+	
+def check_contacts_pubkey_match(humanalias):
+	nac=get_contact(humanalias)
+	pubkey_match_cache[nac]=phonebookpub[humanalias]==routing_table[nac]['pubkey']
+	return pubkey_match_cache[nac]
+	
+def get_contacts_verif():
+	temp={}
+	for humanalias in phonebook:
+		temp[humanalias]=check_contacts_pubkey_match(humanalias)
+		
+	return temp
 
 ############################# Layer 1 Transfers #############################
 
@@ -535,6 +586,9 @@ def process_payload(source_nac, payload):
 		process_incoming_tracker(source_nac, payload)
 		return
 	try:
+		if not check_no_mitm(source_nac):
+			logs.info(f'Possible MITM. Packet from {source_nac} dropped.')
+			return
 		resp=user_response(source_nac, payload, send_payload, phone_book_reverse_lookup, securityconfig)
 		if resp is not None:
 			send_payload(source_nac, resp)
@@ -542,6 +596,16 @@ def process_payload(source_nac, payload):
 		logs.info(f'Some error occured while processing output {e} ')
 
 ############################# Send packets #############################
+
+def check_no_mitm(nac):
+	if is_nac_saved(nac):
+		humanalias=phone_book_reverse_lookup(nac)
+		if not check_contacts_pubkey_match(humanalias):
+			return False
+		return True
+	return True
+
+
 def send_conn_accept(nac):
 	packet=gen_conn_accept(config['nac'], selfpubkey)
 	ip=unverified_neighbors_table[nac]['ip']
@@ -557,13 +621,18 @@ def send_conn_req(ip, port):
 	packet=gen_conn_req(config['nac'], selfpubkey)
 	l1sendto(packet, (ip, port))
 	
-def send_payload(nac, payload, retry=0):
+def send_payload(nac, payload, retry=0, core_data=False):
+	if not core_data:
+		if not check_no_mitm(nac):
+			logs.info(f'Possible MITM to {nac}. Packet not sent.')
+			return
+			
 	if nac not in routing_table:
 		if retry>=3:
 			logs.error(f'Node {nac} not found. Dropping packet.')
 			return
 		logs.error(f'Node {nac} not known. Wait for routing table updates. Retrying 3 times in 30 secs.')
-		send_payload(nac, payload, retry=retry+1)
+		send_payload(nac, payload, retry=retry+1, core_data=core_data)
 		return
 	packet_frags, sess=gen_payload_seq(config['nac'], nac, payload, routing_table[nac]['pubkey'])
 	with sending_buffer_lock:
@@ -593,7 +662,7 @@ def send_routing():
 		
 	payload=routerstart+json.dumps(routinginfo)
 	for nac in cam_table:
-		send_payload(nac, payload.encode())
+		send_payload(nac, payload.encode(), core_data=True)
 
 def send_tracker():
 	trackerinfo={}
@@ -604,7 +673,7 @@ def send_tracker():
 				
 	payload=trackerstart+json.dumps(trackerinfo)
 	for nac in cam_table:
-		send_payload(nac, payload.encode())
+		send_payload(nac, payload.encode(), core_data=True)
 
 
 ############################# Local node discovery #############################		
