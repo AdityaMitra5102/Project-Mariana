@@ -38,6 +38,9 @@ trackerstart='trackerinfo:'
 
 securityconfig={'web_server_allow': True, 'clearnet_exit_proxy': True, 'port_fw_allow':['*'], 'cargo_ship_allow_exec':True}
 
+unverified_neighbors_table={}
+unverified_neighbors_table_lock=threading.Lock()
+
 cam_table={}
 cam_table_lock=threading.Lock()
 
@@ -212,7 +215,46 @@ def l1recvfrom(n):
 	logs.info(f'CRC Mismatch, packet dropped from {addr}')
 	return None, None
 
+############################# Neighbor verification #############################
+
+def add_to_unverified_neighbor(nac, ip, port, pubkey):
+	with unverified_neighbors_table_lock:
+		logs.info(f'Adding unverified neighbor {nac}. Verifying.')
+		if nac not in unverified_neighbors_table:
+			unverified_neighbors_table[nac]={}
+		unverified_neighbors_table[nac]['ip']=ip
+		unverified_neighbors_table[nac]['port']=port
+		unverified_neighbors_table[nac]['pubkey']=pubkey
+		shared_secret, ciphertext=encaps(pubkey)
+		unverified_neighbors_table[nac]['challenge']=shared_secret
+		unverified_neighbors_table[nac]['time']=get_timestamp()
+		packet=gen_verif_init(config['nac'], ciphertext)
+		l1sendto(packet, (ip, port))
+		
+def verify_neighbor(nac, secret):
+	if nac not in unverified_neighbors_table:
+		return
+	if secret==unverified_neighbors_table[nac]['challenge']:
+			logs.info(f'Verified neighbor {nac}.')
+			with unverified_neighbors_table_lock:
+				add_neighbor(nac, unverified_neighbors_table[nac]['ip'],unverified_neighbors_table[nac]['port'],unverified_neighbors_table[nac]['pubkey'])
+				unverified_neighbors_table.pop(nac)	
+		
+def verify_self_as_neighbor(nac, ciphertext):
+	if nac not in unverified_neighbors_table:
+		return
+	logs.info(f'Verifying myself to {nac}')
+	resp=decaps(privkey, ciphertext)
+	packet=gen_verif_complete(config['nac'], resp)
+	l1sendto(packet, (unverified_neighbors_table[nac]['ip'], unverified_neighbors_table[nac]['port']))
+			
+		
+
 ############################# Layer 2 Transfers #############################
+
+def add_neighbor(nac, ip, port, pubkey):
+	add_to_cam(nac,ip, port)
+	add_to_routing(nac, 0, None, pubkey)
 
 def add_to_cam(nac, ip, port):
 	global cam_table
@@ -312,7 +354,7 @@ def process_packet(packet, ip, port):
 		source_nac=uuid_str(packet[:16])
 		flag=packet[16]
 		logs.info(f'Packet from {source_nac} flag {flag}')
-		if flag>=3 and flag!=9: #Payload packet
+		if flag>=3 and flag<7: #Payload packet
 			dest_nac=uuid_str(packet[17:33])
 			if dest_nac == config['nac']: #Packet for me
 				logs.info(f'Received packet for f{dest_nac}. Self processing.')
@@ -334,7 +376,10 @@ def process_special_packet(packet, ip, port):
 		process_conn_accept(packet, ip, port)
 	if flag==2:
 		process_conn_reject(packet, ip, port)
-
+	if flag==7:
+		process_verif_init(packet, ip, port)
+	if flag==8:
+		process_verif_complete(packet, ip, port)
 	if flag==9:
 		process_self_discovery(packet, ip, port)
 		
@@ -367,6 +412,23 @@ def process_full_ack(packet):
 	with sending_buffer_lock:
 		if sess in sending_buffer:
 			sending_buffer.pop(sess)
+			
+def process_verif_init(packet, ip, port):
+	source_nac=uuid_str(packet[:16])
+	if source_nac==config['nac']:
+		return
+	flag=packet[16]
+	ciphertext=packet[17:]
+	verify_self_as_neighbor(source_nac, ciphertext)
+	
+def process_verif_complete(packet, ip, port):
+	source_nac=uuid_str(packet[:16])
+	if source_nac==config['nac']:
+		return
+	flag=packet[16]
+	secret=packet[17:]
+	verify_neighbor(source_nac, secret)
+	
 		
 def process_conn_req(packet, ip, port):
 	source_nac=uuid_str(packet[:16])
@@ -379,17 +441,15 @@ def process_conn_req(packet, ip, port):
 		return
 	logs.info(f'Connection inititated from {source_nac} {ip}:{port}. Accepting.')
 	src_pubkey=packet[17:]
-	add_to_cam(source_nac, ip, port)
-	add_to_routing(source_nac, 0, None, src_pubkey)
+	add_to_unverified_neighbor(source_nac, ip, port, src_pubkey)
 	send_conn_accept(source_nac)
 		
 def process_conn_accept(packet, ip, port):
 	source_nac=uuid_str(packet[:16])
 	logs.info(f'Connection accepted by node {source_nac} at {ip}:{port}')
 	src_pubkey=packet[17:]
-	add_to_cam(source_nac, ip, port)
-	add_to_routing(source_nac, 0, None, src_pubkey)
-	
+	add_to_unverified_neighbor(source_nac, ip, port, src_pubkey)
+		
 def process_conn_reject(packet, ip, port):
 	source_nac=uuid_str(packet[:16])
 	if source_nac in cam_table and cam_table[source_nac]['ip']==ip and cam_table[source_nac]['port']==port:
@@ -569,6 +629,14 @@ def perform_self_discovery():
 
 ############################# Cleanup #############################
 
+def unverified_neighbors_table_cleanup():
+	temp=list(unverified_neighbors_table.keys())
+	for nac in temp:
+		if not check_valid_entry(unverified_neighbors_table[nac]['time']):
+			with unverified_neighbors_table_lock:
+				logs.info(f'Removing expired entry from Unverif neighbor table {nac}')
+				unverified_neighbors_table.pop(nac)
+
 def cam_table_cleanup():
 	temp=list(cam_table.keys())
 	for nac in temp:
@@ -728,6 +796,7 @@ def cargoship_loop():
 			
 def cleanup_loop():
 	while True:
+		unverified_neighbors_table_cleanup()
 		cam_table_cleanup()
 		routing_table_cleanup()
 		sending_buffer_cleanup()

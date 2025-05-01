@@ -17,6 +17,19 @@ def gen_conn_req(src_nac, pubkey):
 	packet+=flag_bytes(0)
 	packet+=pubkey
 	return packet
+	
+def gen_verif_init(src_nac, ciphertext):
+	packet=uuid_bytes(src_nac)
+	packet+=flag_bytes(7)
+	packet+=ciphertext
+	return packet
+	
+def gen_verif_complete(src_nac, resp):
+	packet=uuid_bytes(src_nac)
+	packet+=flag_bytes(8)
+	packet+=resp
+	return packet
+	
 
 def gen_payload_seq(src_nac, dest_nac, payload, dest_pubkey):
 	packet=uuid_bytes(src_nac)

@@ -19,3 +19,4 @@ def get_baddr():
 				baddr.append(brd)
 				
 	return [bcast for bcast in baddr if bcast]
+	

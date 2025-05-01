@@ -20,7 +20,7 @@ class Kyber:
 			self.encrypt(os.urandom(32))
 		
 	def keygen(self):
-		pk, sk= self.algorithm._cpapke_keygen()
+		pk, sk= self.algorithm.keygen()
 		self.pk=pk
 		self.sk=sk
 		self.encrypt(os.urandom(32))
@@ -32,6 +32,12 @@ class Kyber:
 		data=bytes(msg1)
 		arr=[data[i:i + block] for i in range(0, len(data), block)]
 		return arr
+		
+	def encaps(self):
+		return self.algorithm.encaps(self.pk)
+	
+	def decaps(self, ct):
+		return self.algorithm.decaps(self.sk, ct)
 		
 	def unpad(self, msg):
 		ptr=len(msg)-1
@@ -55,7 +61,7 @@ class Kyber:
 		arr=self.partition(cipher, self.outputblock)
 		res=bytearray()
 		for x in arr:
-			out=self.algorithm._cpapke_dec(self.sk, x)
+			out=self.algorithm._cpapke_dec(self.sk[0:768], x)
 			res.extend(out)
 		return self.unpad(bytes(res))
 		
@@ -66,15 +72,19 @@ class Kyber:
 		return base64.urlsafe_b64encode(self.get_pk()).decode()
 		
 	def get_sk(self):
-		sklen=len(self.sk).to_bytes(3,'big')
-		total=sklen+self.sk+self.pk
-		return total
+		return self.sk
+		#sklen=len(self.sk).to_bytes(3,'big')
+		#total=sklen+self.sk+self.pk
+		#return total
 		
 	def from_sk(self, sk):
-		sklenbytes=sk[0:3]
-		sklen=int.from_bytes(sklenbytes)
-		self.sk=sk[3:3+sklen]
-		self.pk=sk[3+sklen:]
+		self.sk=sk
+		self.pk=sk[768:768+800]
+		
+		#sklenbytes=sk[0:3]
+		#sklen=int.from_bytes(sklenbytes)
+		#self.sk=sk[3:3+sklen]
+		#self.pk=sk[3+sklen:]
 		self.encrypt(os.urandom(32))
 		
 	def from_pk(self, pk):

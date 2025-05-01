@@ -9,9 +9,6 @@ import binascii
 from Kyber import Kyber
 from kyber_py.pyaes import *
 
-
-
-
 def generate_keypair():
 	cr=Kyber()
 	cr.keygen()
@@ -51,6 +48,16 @@ def decrypt(msg, priv):
 	#privkey = serialization.load_pem_private_key(privkeybytes, password=None)
 	#decrypted = privkey.decrypt(msg, padding.OAEP(mgf=padding.MGF1(algorithm=hashes.SHA256()), algorithm=hashes.SHA256(), label=None))
 	#return decrypted
+
+def encaps(pub):
+	cr=Kyber()
+	cr.from_pk(pub)
+	return cr.encaps()
+	
+def decaps(pvt, ct):
+	cr=Kyber()
+	cr.from_sk(pvt)
+	return cr.decaps(ct)
 
 def aes_keygen():
 	key = AESGCM.generate_key(bit_length=256)
