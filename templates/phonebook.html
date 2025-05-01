@@ -95,6 +95,7 @@ th, td {
                     <th>Name</th>
                     <th>NAC</th>
                     <th>Status</th>
+                    <th>Verification</th>
                     <th>Copy</th>
                     <th>Open</th>
                     <th>Delete</th>
@@ -130,6 +131,7 @@ th, td {
         // Global variables to store data
         let contactsData = {};
         let activeNodes = [];
+        let verificationData = {};
         let searchTerm = '';
         let refreshInterval;
 
@@ -170,6 +172,11 @@ th, td {
                 const nodesResponse = await fetch('/activenodes');
                 const nodesText = await nodesResponse.text();
                 activeNodes = JSON.parse(nodesText);
+                
+                // Fetch verification data
+                const verificationResponse = await fetch('/pubkeyverif');
+                const verificationText = await verificationResponse.text();
+                verificationData = JSON.parse(verificationText);
                 
                 return true;
             } catch (error) {
@@ -213,6 +220,14 @@ th, td {
                 const isOnline = activeNodes.includes(id);
                 const status = isOnline ? '🟢 Online' : '🔴 Offline';
                 
+                // Get verification status
+                const isVerified = verificationData[alias] === true;
+                const isMismatch = verificationData[alias] === false || verificationData[alias] === undefined;
+                const verificationStatus = isVerified ? '✅ Matched' : '⚠️ Mismatch';
+                const verificationCell = isVerified ? 
+                    `<td>${verificationStatus}</td>` : 
+                    `<td>${verificationStatus} <button onclick="reverifyContact('${alias}')">Reverify</button></td>`;
+                
                 // Highlight matching text if there's a search term
                 const highlightedAlias = highlightText(alias, searchTerm);
                 const highlightedId = highlightText(id, searchTerm);
@@ -222,6 +237,7 @@ th, td {
                     <td>${highlightedAlias}</td>
                     <td>${highlightedId}</td>
                     <td>${status}</td>
+                    ${verificationCell}
                     <td><button onclick="copyToClipboard('${alias}')">Copy</button></td>
                     <td><button onclick="window.open('http://${alias}')" ${!isOnline ? 'disabled' : ''}>Open</button></td>
                     <td><button onclick="deleteContact('${alias}')">Delete</button></td>
@@ -300,6 +316,31 @@ th, td {
                 } catch (error) {
                     console.error('Error deleting contact:', error);
                     alert('Error deleting contact. Please check console for details.');
+                }
+            }
+        }
+        
+        // Function to reverify a contact's public key
+        async function reverifyContact(alias) {
+            const confirmation = prompt(`Are you sure you want to reverify ${alias}? Type 'yes' to confirm.`);
+            if (confirmation && confirmation.toLowerCase() === 'yes') {
+                try {
+                    const formData = new FormData();
+                    formData.append('alias', alias);
+                    
+                    const response = await fetch('/reverify', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    
+                    const result = await response.text();
+                    alert(result);
+                    
+                    // Reload data
+                    loadData();
+                } catch (error) {
+                    console.error('Error reverifying contact:', error);
+                    alert('Error reverifying contact. Please check console for details.');
                 }
             }
         }
