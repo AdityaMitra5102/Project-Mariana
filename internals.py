@@ -544,7 +544,9 @@ def process_payload(source_nac, payload):
 ############################# Send packets #############################
 def send_conn_accept(nac):
 	packet=gen_conn_accept(config['nac'], selfpubkey)
-	send_to_host(packet, nac)
+	ip=unverified_neighbors_table[nac]['ip']
+	port=unverified_neighbors_table[nac]['port']
+	l1sendto(packet, (ip, port))
 	
 def send_conn_reject(nac, ip, port):
 	packet=get_conn_reject(config['nac'])
