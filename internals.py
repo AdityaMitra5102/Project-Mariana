@@ -37,7 +37,7 @@ logs=logging.getLogger('mariana')
 routerstart='routinginfo:'
 trackerstart='trackerinfo:'
 
-securityconfig={'web_server_allow': True, 'clearnet_exit_proxy': True, 'port_fw_allow':['*'], 'cargo_ship_allow_exec':True}
+securityconfig={'web_server_allow': True, 'clearnet_exit_proxy': True, 'port_fw_allow':['*'], 'cargo_ship_allow_exec':True, 'allow_mismatch_contact':False}
 
 unverified_neighbors_table={}
 unverified_neighbors_table_lock=threading.Lock()
@@ -156,6 +156,7 @@ trackers=get_trackers_git(trackers)
 ############################# Security Config #############################
 
 def save_securityconfig(updatedconfig):
+	global securityconfig
 	securityconfig=updatedconfig
 	fl=open(os.path.join(filepath, securityconfigfile), 'w')
 	fl.write(json.dumps(securityconfig, indent=4))
@@ -241,6 +242,8 @@ def write_phonebook_pub():
 	
 def check_contacts_pubkey_match(humanalias):
 	nac=get_contact(humanalias)
+	if nac not in routing_table:
+		return True
 	pubkey_match_cache[nac]=phonebookpub[humanalias]==routing_table[nac]['pubkey']
 	return pubkey_match_cache[nac]
 	
@@ -598,6 +601,10 @@ def process_payload(source_nac, payload):
 ############################# Send packets #############################
 
 def check_no_mitm(nac):
+	print(f'Using security config {securityconfig}')
+	if securityconfig['allow_mismatch_contact']:
+		logs.info('Checking MITM bypassed by security policy.')
+		return True
 	if is_nac_saved(nac):
 		humanalias=phone_book_reverse_lookup(nac)
 		if not check_contacts_pubkey_match(humanalias):
