@@ -158,6 +158,12 @@
             </div>
             
             <div class="form-group">
+                <label>
+                    <input type="checkbox" id="allowMismatchContact"> Allow Unverified Contact
+                </label>
+            </div>
+            
+            <div class="form-group">
                 <label>Port Firewall Allow List:</label>
                 
                 <div class="wildcard-option">
@@ -189,6 +195,7 @@
         const form = document.getElementById('securityConfigForm');
         const webServerAllowInput = document.getElementById('webServerAllow');
         const clearnetExitProxyInput = document.getElementById('clearnetExitProxy');
+        const allowMismatchContactInput = document.getElementById('allowMismatchContact');
         const wildcardOptionInput = document.getElementById('wildcardOption');
         const portsContainer = document.getElementById('portsContainer');
         const addPortBtn = document.getElementById('addPortBtn');
@@ -255,6 +262,7 @@
             return {
                 web_server_allow: webServerAllowInput.checked,
                 clearnet_exit_proxy: clearnetExitProxyInput.checked,
+                allow_mismatch_contact: allowMismatchContactInput.checked,
                 port_fw_allow: portFwAllow,
                 cargo_ship_allow_exec: cargoShipAllowExecInput.checked
             };
@@ -264,6 +272,7 @@
         function populateForm(data) {
             webServerAllowInput.checked = data.web_server_allow;
             clearnetExitProxyInput.checked = data.clearnet_exit_proxy;
+            allowMismatchContactInput.checked = data.allow_mismatch_contact || false;
             cargoShipAllowExecInput.checked = data.cargo_ship_allow_exec;
             
             // Handle port firewall allow list
