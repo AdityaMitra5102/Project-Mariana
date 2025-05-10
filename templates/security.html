@@ -145,6 +145,12 @@
         <div id="loading">Loading configuration...</div>
         
         <form id="securityConfigForm" style="display: none;">
+            <!-- Added Description Field -->
+            <div class="form-group">
+                <label for="desc">Description:</label>
+                <input type="text" id="desc" name="desc" placeholder="Enter short configuration description">
+            </div>
+            
             <div class="form-group">
                 <label>
                     <input type="checkbox" id="webServerAllow"> Web Server Allow
@@ -193,6 +199,7 @@
     <script>
         // DOM Elements
         const form = document.getElementById('securityConfigForm');
+        const descInput = document.getElementById('desc');
         const webServerAllowInput = document.getElementById('webServerAllow');
         const clearnetExitProxyInput = document.getElementById('clearnetExitProxy');
         const allowMismatchContactInput = document.getElementById('allowMismatchContact');
@@ -260,6 +267,7 @@
             }
             
             return {
+                desc: descInput.value,
                 web_server_allow: webServerAllowInput.checked,
                 clearnet_exit_proxy: clearnetExitProxyInput.checked,
                 allow_mismatch_contact: allowMismatchContactInput.checked,
@@ -270,6 +278,7 @@
         
         // Function to populate form with data
         function populateForm(data) {
+            descInput.value = data.desc || '';
             webServerAllowInput.checked = data.web_server_allow;
             clearnetExitProxyInput.checked = data.clearnet_exit_proxy;
             allowMismatchContactInput.checked = data.allow_mismatch_contact || false;
