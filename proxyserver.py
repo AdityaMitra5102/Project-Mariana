@@ -89,7 +89,7 @@ def proxy(path):
 				temp_active={}
 				for tempnac in routing_table:
 					temp_active[f'{tempnac}.mariana']={}
-					temp_active[f'{tempnac}.mariana']['desc']=routing_table[curr_temp_nac]['desc'].decode('utf-8', 'ignore')
+					temp_active[f'{tempnac}.mariana']['desc']=routing_table[tempnac]['desc'].decode('utf-8', 'ignore')
 				return json.dumps(temp_active)
 				
 		if request.method=='POST':
