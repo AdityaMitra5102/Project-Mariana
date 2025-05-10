@@ -37,7 +37,7 @@ logs=logging.getLogger('mariana')
 routerstart='routinginfo:'
 trackerstart='trackerinfo:'
 
-securityconfig={'web_server_allow': True, 'clearnet_exit_proxy': True, 'port_fw_allow':['*'], 'cargo_ship_allow_exec':True, 'allow_mismatch_contact':False}
+securityconfig={'web_server_allow': True, 'clearnet_exit_proxy': True, 'port_fw_allow':['*'], 'cargo_ship_allow_exec':True, 'allow_mismatch_contact':False, 'desc': 'Mariana Node'}
 
 unverified_neighbors_table={}
 unverified_neighbors_table_lock=threading.Lock()
@@ -271,7 +271,7 @@ def l1recvfrom(n):
 
 ############################# Neighbor verification #############################
 
-def add_to_unverified_neighbor(nac, ip, port, pubkey):
+def add_to_unverified_neighbor(nac, ip, port, pubkey, desc):
 	with unverified_neighbors_table_lock:
 		logs.info(f'Adding unverified neighbor {nac}. Verifying.')
 		if nac not in unverified_neighbors_table:
@@ -282,6 +282,7 @@ def add_to_unverified_neighbor(nac, ip, port, pubkey):
 		shared_secret, ciphertext=encaps(pubkey)
 		unverified_neighbors_table[nac]['challenge']=shared_secret
 		unverified_neighbors_table[nac]['time']=get_timestamp()
+		unverified_neighbors_table[nac]['desc']=desc
 		packet=gen_verif_init(config['nac'], ciphertext)
 		l1sendto(packet, (ip, port))
 		
@@ -291,7 +292,7 @@ def verify_neighbor(nac, secret):
 	if secret==unverified_neighbors_table[nac]['challenge']:
 			logs.info(f'Verified neighbor {nac}.')
 			with unverified_neighbors_table_lock:
-				add_neighbor(nac, unverified_neighbors_table[nac]['ip'],unverified_neighbors_table[nac]['port'],unverified_neighbors_table[nac]['pubkey'])
+				add_neighbor(nac, unverified_neighbors_table[nac]['ip'],unverified_neighbors_table[nac]['port'],unverified_neighbors_table[nac]['pubkey'], unverified_neighbors_table[nac]['desc'])
 				unverified_neighbors_table.pop(nac)	
 		
 def verify_self_as_neighbor(nac, ciphertext):
@@ -306,7 +307,7 @@ def verify_self_as_neighbor(nac, ciphertext):
 
 ############################# Layer 2 Transfers #############################
 
-def add_neighbor(nac, ip, port, pubkey):
+def add_neighbor(nac, ip, port, pubkey, desc):
 	add_to_cam(nac,ip, port)
 	add_to_routing(nac, 0, None, pubkey)
 
@@ -334,7 +335,7 @@ def send_to_host(msg, nac):
 	
 ############################# Layer 3 Transfers #############################
 	
-def add_to_routing(nac, hopcount, next_nac, pubkey):
+def add_to_routing(nac, hopcount, next_nac, pubkey, desc):
 	global routing_table
 	if nac==config['nac']:
 		logs.warning('Not adding own NAC to routing table')
@@ -351,6 +352,7 @@ def add_to_routing(nac, hopcount, next_nac, pubkey):
 		routing_table[nac]['next_hop']=next_nac
 		routing_table[nac]['pubkey']=pubkey
 		routing_table[nac]['time']=currtime
+		routing_table[nac]['desc']=desc
 	send_routing()
 	
 def send(msg, nac, retry=0):
@@ -494,15 +496,17 @@ def process_conn_req(packet, ip, port):
 		send_conn_reject(nac, ip, port)
 		return
 	logs.info(f'Connection inititated from {source_nac} {ip}:{port}. Accepting.')
-	src_pubkey=packet[17:]
-	add_to_unverified_neighbor(source_nac, ip, port, src_pubkey)
+	src_pubkey=packet[17:816]
+	src_desc=packet[816:]
+	add_to_unverified_neighbor(source_nac, ip, port, src_pubkey, src_desc)
 	send_conn_accept(source_nac)
 		
 def process_conn_accept(packet, ip, port):
 	source_nac=uuid_str(packet[:16])
 	logs.info(f'Connection accepted by node {source_nac} at {ip}:{port}')
-	src_pubkey=packet[17:]
-	add_to_unverified_neighbor(source_nac, ip, port, src_pubkey)
+	src_pubkey=packet[17:816]
+	src_desc=packet[817:]
+	add_to_unverified_neighbor(source_nac, ip, port, src_pubkey, src_desc)
 		
 def process_conn_reject(packet, ip, port):
 	source_nac=uuid_str(packet[:16])
@@ -568,7 +572,7 @@ def process_incoming_routing(source_nac, payload):
 	routinginfo=json.loads(payload)
 	for nac in routinginfo:
 		if routinginfo[nac]['next_hop'] != config['nac']:
-			add_to_routing(nac, routinginfo[nac]['hop_count']+1, source_nac, base64.b64decode(routinginfo[nac]['pubkey'].encode()))
+			add_to_routing(nac, routinginfo[nac]['hop_count']+1, source_nac, base64.b64decode(routinginfo[nac]['pubkey'].encode()), base64.b64decode(routinginfo[nac]['desc'].encode()))
 		else:
 			logging.info('Cyclic routing entry not added.')
 
@@ -614,7 +618,7 @@ def check_no_mitm(nac):
 
 
 def send_conn_accept(nac):
-	packet=gen_conn_accept(config['nac'], selfpubkey)
+	packet=gen_conn_accept(config['nac'], selfpubkey, securityconfig['desc'])
 	ip=unverified_neighbors_table[nac]['ip']
 	port=unverified_neighbors_table[nac]['port']
 	l1sendto(packet, (ip, port))
@@ -625,7 +629,7 @@ def send_conn_reject(nac, ip, port):
 
 def send_conn_req(ip, port):
 	#logs.info(f'Sending connection request to node at {ip}:{port}')
-	packet=gen_conn_req(config['nac'], selfpubkey)
+	packet=gen_conn_req(config['nac'], selfpubkey, securityconfig['desc'])
 	l1sendto(packet, (ip, port))
 	
 def send_payload(nac, payload, retry=0, core_data=False):
@@ -666,6 +670,7 @@ def send_routing():
 		routinginfo[nac]['hop_count']=routing_table[nac]['hop_count']
 		routinginfo[nac]['pubkey']=base64.b64encode(routing_table[nac]['pubkey']).decode()
 		routinginfo[nac]['next_hop']=routing_table[nac]['next_hop']
+		routinginfo[nac]['desc']=base64.b64encode(routing_table[nac]['desc']).decode()
 		
 	payload=routerstart+json.dumps(routinginfo)
 	for nac in cam_table:
@@ -839,13 +844,13 @@ def receive_packet_loop():
 		
 def conn_keepalive_loop():
 	while True:
-		try:
+		if True:
 			for tracker in trackers:
 				tracker_ip=trackers[tracker]['ip']
 				tracker_port=trackers[tracker]['port']
 				send_conn_req(tracker_ip, tracker_port)
-		except Exception as e:
-			logs.error(f'Error occurred while opening tracker {e}')
+		#except Exception as e:
+		#	logs.error(f'Error occurred while opening tracker {e}')
 		time.sleep(15)	
 
 def local_node_discovery_loop():

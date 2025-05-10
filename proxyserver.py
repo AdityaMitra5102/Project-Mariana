@@ -69,7 +69,13 @@ def proxy(path):
 				temp_phonebook= get_whole_phonebook()
 				temp_active_phonebook={}
 				for contact in temp_phonebook:
-					temp_active_phonebook[f'{contact}.mariana']=f'{temp_phonebook[contact]}.mariana'
+					curr_temp_nac=temp_phonebook[contact]
+					temp_active_phonebook[f'{contact}.mariana']={}
+					temp_active_phonebook[f'{contact}.mariana']['nac']=f'{temp_phonebook[contact]}.mariana'
+					if curr_temp_nac in routing_table:
+						temp_active_phonebook[f'{contact}.mariana']['desc']=routing_table[curr_temp_nac]['desc'].decode('utf-8', 'ignore')
+					else:
+						temp_active_phonebook[f'{contact}.mariana']['desc']='Node offline'
 				return json.dumps(temp_active_phonebook)
 				
 			if request.path=='/pubkeyverif':
@@ -80,10 +86,12 @@ def proxy(path):
 				return json.dumps(temp_active_phonebook)
 
 			if request.path=='/activenodes':
-				temp_active=[]
+				temp_active={}
 				for tempnac in routing_table:
-					temp_active.append(f'{tempnac}.mariana')
+					temp_active[f'{tempnac}.mariana']={}
+					temp_active[f'{tempnac}.mariana']['desc']=routing_table[curr_temp_nac]['desc'].decode('utf-8', 'ignore')
 				return json.dumps(temp_active)
+				
 		if request.method=='POST':
 			if request.path=='/save':
 				halias=request.form.get('alias')

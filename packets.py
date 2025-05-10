@@ -1,10 +1,11 @@
 from utils import *
 from crypto import *
 
-def gen_conn_accept(src_nac, pubkey):
+def gen_conn_accept(src_nac, pubkey, desc):
 	packet=uuid_bytes(src_nac)
 	packet+=flag_bytes(1)
 	packet+=pubkey
+	packet+=desc.encode()
 	return packet
 	
 def gen_conn_reject(src_nac):
@@ -12,10 +13,11 @@ def gen_conn_reject(src_nac):
 	packet+=flag_bytes(2)
 	return packet
 
-def gen_conn_req(src_nac, pubkey):
+def gen_conn_req(src_nac, pubkey, desc):
 	packet=uuid_bytes(src_nac)
 	packet+=flag_bytes(0)
 	packet+=pubkey
+	packet+=desc.encode()
 	return packet
 	
 def gen_verif_init(src_nac, ciphertext):
