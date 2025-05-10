@@ -293,7 +293,6 @@ def verify_neighbor(nac, secret):
 			logs.info(f'Verified neighbor {nac}.')
 			with unverified_neighbors_table_lock:
 				add_neighbor(nac, unverified_neighbors_table[nac]['ip'],unverified_neighbors_table[nac]['port'],unverified_neighbors_table[nac]['pubkey'], unverified_neighbors_table[nac]['desc'])
-				unverified_neighbors_table.pop(nac)	
 		
 def verify_self_as_neighbor(nac, ciphertext):
 	if nac not in unverified_neighbors_table:
@@ -860,7 +859,7 @@ def local_node_discovery_loop():
 			local_node_discovery()
 		except:
 			logs.error('Local node discovery failed')
-		time.sleep(15)
+		time.sleep(5)
 		
 def retransmission_loop():
 	while True:
