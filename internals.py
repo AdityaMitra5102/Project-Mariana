@@ -859,7 +859,7 @@ def local_node_discovery_loop():
 			local_node_discovery()
 		except:
 			logs.error('Local node discovery failed')
-		time.sleep(5)
+		time.sleep(15)
 		
 def retransmission_loop():
 	while True:
