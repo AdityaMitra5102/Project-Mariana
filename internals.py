@@ -309,7 +309,7 @@ def verify_self_as_neighbor(nac, ciphertext):
 
 def add_neighbor(nac, ip, port, pubkey, desc):
 	add_to_cam(nac,ip, port)
-	add_to_routing(nac, 0, None, pubkey)
+	add_to_routing(nac, 0, None, pubkey, desc)
 
 def add_to_cam(nac, ip, port):
 	global cam_table
