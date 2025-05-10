@@ -605,7 +605,6 @@ def process_payload(source_nac, payload):
 ############################# Send packets #############################
 
 def check_no_mitm(nac):
-	print(f'Using security config {securityconfig}')
 	if securityconfig['allow_mismatch_contact']:
 		logs.info('Checking MITM bypassed by security policy.')
 		return True
