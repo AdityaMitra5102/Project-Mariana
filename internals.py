@@ -496,15 +496,15 @@ def process_conn_req(packet, ip, port):
 		send_conn_reject(nac, ip, port)
 		return
 	logs.info(f'Connection inititated from {source_nac} {ip}:{port}. Accepting.')
-	src_pubkey=packet[17:816]
-	src_desc=packet[816:]
+	src_pubkey=packet[17:817]
+	src_desc=packet[817:]
 	add_to_unverified_neighbor(source_nac, ip, port, src_pubkey, src_desc)
 	send_conn_accept(source_nac)
 		
 def process_conn_accept(packet, ip, port):
 	source_nac=uuid_str(packet[:16])
 	logs.info(f'Connection accepted by node {source_nac} at {ip}:{port}')
-	src_pubkey=packet[17:816]
+	src_pubkey=packet[17:817]
 	src_desc=packet[817:]
 	add_to_unverified_neighbor(source_nac, ip, port, src_pubkey, src_desc)
 		
@@ -844,13 +844,13 @@ def receive_packet_loop():
 		
 def conn_keepalive_loop():
 	while True:
-		if True:
+		try:
 			for tracker in trackers:
 				tracker_ip=trackers[tracker]['ip']
 				tracker_port=trackers[tracker]['port']
 				send_conn_req(tracker_ip, tracker_port)
-		#except Exception as e:
-		#	logs.error(f'Error occurred while opening tracker {e}')
+		except Exception as e:
+			logs.error(f'Error occurred while opening tracker {e}')
 		time.sleep(15)	
 
 def local_node_discovery_loop():
