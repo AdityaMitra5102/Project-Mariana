@@ -2,6 +2,7 @@ import socket
 import logging
 import threading
 import random
+from crypto import *
 
 from portutils import *
 
@@ -36,17 +37,26 @@ class PortProxy:
 		self.mode=mode
 		self.send_payload=send_payload
 		
+		self.currsend=0
 		self.sendptr=255
 		self.recvptr=255		
-		self.sbuf=[]
+		self.sbuf={}
 		self.port_lock=threading.Lock()
+		
+		self.dummybuf={}
 		
 	def guest_to_host(self, seqnum, payload):
 		print(f'Received from mariana {seqnum}')
 		if seqnum==(self.recvptr+1) % 256:
+		
+			hash=crypto_hash(payload)
+			if hash in self.dummybuf:
+				return
+		
 			self.connobj.sendall(payload)
 			with self.port_lock:
 				self.recvptr=(self.recvptr+1) % 256
+			self.dummybuf[hash]=hash
 			self.send_ack()
 		
 	def host_to_guest(self):
@@ -55,8 +65,8 @@ class PortProxy:
 			with self.port_lock:
 				self.sendptr=(self.sendptr+1) % 256
 				payload=make_port_payload(self.mode, self.servermode, self.hostport, self.guestport, self.sendptr, True, data)
-				logging.info(f'Sending payload to {self.guestnac} port {self.guestport}')
-				self.sbuf.append({'data':payload, 'time': get_timestamp()})
+				print(f'Adding {self.sendptr} to queue')
+				self.sbuf[self.sendptr]={'data':payload, 'time': get_timestamp()}
 			self.send_curr_payload()
 		else:
 			self.est=False
@@ -102,18 +112,19 @@ class PortProxy:
 			self.send_payload(self.guestnac, payload)
 			
 	def process_ack(self, seqnum):
-		mode, servermode, sourceport, destport, currseqnum, payloadpack, data=process_payload(self.sbuf[0]['data'])
+		if len(self.sbuf)==0:
+			return
 		print(f'Receive port act {currseqnum}')
-		if seqnum==currseqnum:
-			self.sbuf.pop(0)
-			send_curr_payload()
+		if seqnum==self.currsend:
+			with self.port_lock:
+				self.currsend+=1
+				
 			
 	def send_curr_payload(self):
 		if self.est and self.sbuf is not None and len(self.sbuf)>0:
 			mode, servermode, sourceport, destport, currseqnum, payloadpack, data=process_payload(self.sbuf[0]['data'])
 			print(f'Sending port {currseqnum}')
-			self.send_payload(self.guestnac, self.sbuf[0]['data'])
-			
+			self.send_payload(self.guestnac, self.sbuf[self.currsend]['data'])
 			self.print_state()
 			
 	def retry_loop(self):
