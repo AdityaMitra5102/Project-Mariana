@@ -50,7 +50,7 @@ def process_payload(payload):
 	payloadpack=(flag//4)==1
 	sourceport=payload[1:17]
 	destport=payload[17:33]
-	seqnum=payload[33:37]
+	seqnum=int.from_bytes(payload[33:37])
 	data=payload[37:]
 	
 	return mode, servermode, sourceport, destport, seqnum, payloadpack, data
