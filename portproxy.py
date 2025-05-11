@@ -42,6 +42,7 @@ class PortProxy:
 		self.port_lock=threading.Lock()
 		
 	def guest_to_host(self, seqnum, payload):
+		print(f'Received from mariana {seqnum} {payload}')
 		if seqnum==(self.recvptr+1) % 256:
 			self.connobj.sendall(payload)
 			self.recvptr=(self.recvptr+1) % 256
@@ -77,7 +78,7 @@ class PortProxy:
 			self.init_port_thread()
 		
 	def print_state(self):
-		print(f'Send ptr {self.sendptr}\n recv ptr {self.recvptr} \n sbuf {self.sbuf}')
+		print(f'Send ptr {self.sendptr}\n recv ptr {self.recvptr} ')
 		
 	def get_port_proxy_id(self):
 		return get_socket_id(self.guestnac, self.guestport)
@@ -95,21 +96,24 @@ class PortProxy:
 		
 	def send_ack(self):
 		if self.est:
+			print(f'Sending port ack {self.recvptr}')
 			payload=make_port_payload(self.mode, self.servermode, self.hostport, self.guestport, self.recvptr, False, b'')
 			self.send_payload(self.guestnac, payload)
 			
 	def process_ack(self, seqnum):
 		mode, servermode, sourceport, destport, currseqnum, payloadpack, data=process_payload(self.sbuf[0]['data'])
-
+		print(f'Receive port act {currseqnum}')
 		if seqnum==currseqnum:
 			self.sbuf.pop(0)
 			send_curr_payload()
 			
 	def send_curr_payload(self):
 		if self.est and self.sbuf is not None and len(self.sbuf)>0:
+			mode, servermode, sourceport, destport, currseqnum, payloadpack, data=process_payload(self.sbuf[0]['data'])
+			print('Sending port {currseqnum}')
 			self.send_payload(self.guestnac, self.sbuf[0]['data'])
 			
-		self.print_state()
+			self.print_state()
 			
 	def retry_loop(self):
 		while self.est:
@@ -120,7 +124,7 @@ class PortProxy:
 					
 			except Exception as e:
 				logging.info(f'Error in port retry loop proxy {e}')
-			time.sleep(0.8)
+			time.sleep(0.7)
 			
 	def cleanup_loop(self):
 		while self.est:
