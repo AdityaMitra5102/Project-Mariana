@@ -45,7 +45,7 @@ class PortProxy:
 		print(f'Received from mariana {seqnum}')
 		if seqnum==(self.recvptr+1) % 256:
 			self.connobj.sendall(payload)
-			with currsock.port_lock:
+			with self.port_lock:
 				self.recvptr=(self.recvptr+1) % 256
 			self.send_ack()
 		
