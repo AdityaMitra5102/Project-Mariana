@@ -118,14 +118,14 @@ class PortProxy:
 					self.print_state()
 			except Exception as e:
 				logging.info(f'Error in port retry loop proxy {e}')
-			time.sleep(0.5)
+			time.sleep(2)
 			
 	def cleanup_loop(self):
 		while self.est:
 			try:
 				if len(self.sbuf)>0:
 					lastsend=self.sbuf[0]['time']
-					if not check_valid_entry(lastsend, expiry=5):
+					if not check_valid_entry(lastsend, expiry=10):
 						self.sbuf=[]
 						self.est=False
 						port_destroyed(self)
