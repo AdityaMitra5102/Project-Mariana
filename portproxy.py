@@ -66,22 +66,25 @@ class PortProxy:
 				self.sendptr=(self.sendptr+1) % 256
 				payload=make_port_payload(self.mode, self.servermode, self.hostport, self.guestport, self.sendptr, True, data)
 				print(f'Adding {self.sendptr} to queue')
-				self.sbuf[self.sendptr]={'data':payload, 'time': get_timestamp()}
+				self.sbuf[self.sendptr]={}
+				self.sbuf[self.sendptr]['data']=payload
+				self.sbuf[self.sendptr]['time']=get_timestamp()
+
 			self.send_curr_payload()
 		else:
 			self.est=False
 		
 	def listen_loop(self):
 		while self.est:
-			try:
+			if True:
 				self.host_to_guest()
-			except Exception as e:
-				print(f'Couldnt read from socket {e}')
-				self.sock.close()
-				port_destroyed(self)
-				if self.servermode:
-					self.init_port_thread()
-				return
+			#except Exception as e:
+			#	print(f'Couldnt read from socket {e}')
+			#	self.sock.close()
+			#	port_destroyed(self)
+			#	if self.servermode:
+			#		self.init_port_thread()
+			#	return
 		logging.info(f'Socket closed')
 		self.sock.close()
 		port_destroyed(self)
@@ -122,8 +125,7 @@ class PortProxy:
 			
 	def send_curr_payload(self):
 		if self.est and self.sbuf is not None and len(self.sbuf)>0:
-			mode, servermode, sourceport, destport, currseqnum, payloadpack, data=process_payload(self.sbuf[0]['data'])
-			print(f'Sending port {currseqnum}')
+			print(f'Sending port {self.currsend}')
 			self.send_payload(self.guestnac, self.sbuf[self.currsend]['data'])
 			self.print_state()
 			
@@ -144,7 +146,7 @@ class PortProxy:
 				if len(self.sbuf)>0:
 					lastsend=self.sbuf[0]['time']
 					if not check_valid_entry(lastsend, expiry=10):
-						self.sbuf=[]
+						self.sbuf={}
 						self.est=False
 			except Exception as e:
 				logs.error(f'Error in port proxy cleanup {e}')
