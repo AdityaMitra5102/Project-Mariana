@@ -53,6 +53,8 @@ class PortProxy:
 			payload=make_port_payload(self.mode, self.servermode, self.hostport, self.guestport, self.sendptr, True, data)
 			logging.info(f'Sending payload to {self.guestnac} port {self.guestport}')
 			self.sbuf.append({'data':payload, 'time': get_timestamp()})
+			with self.port_lock:
+				self.send_curr_payload()
 		else:
 			self.est=False
 		
@@ -106,8 +108,8 @@ class PortProxy:
 		while self.est:
 			try:
 				with self.port_lock:
-					send_ack()
-					send_curr_payload()
+					self.send_ack()
+					self.send_curr_payload()
 			except Exception as e:
 				logging.info(f'Error in port retry loop proxy {e}')
 			time.sleep(0.5)
