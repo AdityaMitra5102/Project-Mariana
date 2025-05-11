@@ -147,6 +147,11 @@ class PortProxy:
 			for x in self.dummybuf:
 				if not check_valid_entry(self.dummybuf[x]['time']):
 					self.dummybuf.pop(x)
+					
+			for x in self.sbuf:
+				if not check_valid_entry(self.sbuf[x]['time']):
+					self.sbuf.pop(x)
+
 		
 	def init_port(self):
 		self.sock=socket.socket(socket.AF_INET, self.opt)
@@ -185,8 +190,8 @@ class PortProxy:
 		self.first_payload=None
 		proxy_retry_thread=threading.Thread(target=self.retry_loop)
 		proxy_retry_thread.start()
-		#proxy_cleanup_thread=threading.Thread(target=self.cleanup_loop)
-		#proxy_cleanup_thread.start()
+		proxy_cleanup_thread=threading.Thread(target=self.cleanup_loop)
+		proxy_cleanup_thread.start()
 		
 	def init_port_thread(self):
 		init_port_thread=threading.Thread(target=self.init_port)
