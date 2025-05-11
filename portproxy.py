@@ -110,12 +110,12 @@ class PortProxy:
 		
 	def send_ack(self):
 		if self.est:
-			print(f'Sending port ack {self.recvptr}')
+			logging.info(f'Sending port ack {self.recvptr}')
 			payload=make_port_payload(self.mode, self.servermode, self.hostport, self.guestport, self.recvptr, False, b'')
 			self.send_payload(self.guestnac, payload)
 			
 	def process_ack(self, seqnum):
-		print(f'Receive port act {seqnum}')
+		logging.info(f'Receive port act {seqnum}')
 		if len(self.sbuf)==0:
 			logging.info(f'Buf len {len(self.sbuf)}')
 			return
