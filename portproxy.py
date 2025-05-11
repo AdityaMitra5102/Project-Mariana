@@ -192,8 +192,8 @@ class PortProxy:
 		self.first_payload=None
 		proxy_retry_thread=threading.Thread(target=self.retry_loop)
 		proxy_retry_thread.start()
-		proxy_cleanup_thread=threading.Thread(target=self.cleanup_loop)
-		proxy_cleanup_thread.start()
+		#proxy_cleanup_thread=threading.Thread(target=self.cleanup_loop)
+		#proxy_cleanup_thread.start()
 		
 	def init_port_thread(self):
 		init_port_thread=threading.Thread(target=self.init_port)
