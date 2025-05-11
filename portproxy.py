@@ -74,7 +74,7 @@ class PortProxy:
 		self.sock.close()
 		port_destroyed(self)
 		if self.servermode:
-			init_port_thread()
+			self.init_port_thread()
 		
 	def print_state(self):
 		print(f'Send ptr {self.sendptr}\n recv ptr {self.recvptr} \n sbuf {self.sbuf}')
