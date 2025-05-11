@@ -50,6 +50,7 @@ class PortProxy:
 	def host_to_guest(self):
 		data=self.connobj.recv(1024)
 		if data is not None:
+			self.sendptr=(self.sendptr+1)%256
 			payload=make_port_payload(self.mode, self.servermode, self.hostport, self.guestport, self.sendptr, True, data)
 			logging.info(f'Sending payload to {self.guestnac} port {self.guestport}')
 			self.sbuf.append({'data':payload, 'time': get_timestamp()})
@@ -75,6 +76,9 @@ class PortProxy:
 		if self.servermode:
 			init_port_thread()
 		
+	def print_state(self):
+		print(f'Send ptr {self.sendptr}\n recv ptr {self.recvptr} \n sbuf {self.sbuf}')
+		
 	def get_port_proxy_id(self):
 		return get_socket_id(self.guestnac, self.guestport)
 		
@@ -97,7 +101,6 @@ class PortProxy:
 	def process_ack(self, seqnum):
 		if seqnum==self.sendptr:
 			self.sbuf.pop(0)
-			self.sendptr=(self.sendptr+1)%256
 			send_curr_payload()
 			
 	def send_curr_payload(self):
@@ -110,6 +113,7 @@ class PortProxy:
 				with self.port_lock:
 					self.send_ack()
 					self.send_curr_payload()
+					self.print_state()
 			except Exception as e:
 				logging.info(f'Error in port retry loop proxy {e}')
 			time.sleep(0.5)
