@@ -23,11 +23,8 @@ def process_port_payload_from_tunnel(nac, payload, send_payload, securityconfig)
 			print(f'Received data {seqnum}')
 			currsock.guest_to_host(seqnum, data)
 		else:
-			try:
-				print(f'Received ack {seqnum}')
-				currsock.process_ack(seqnum)
-				
-		
+			print(f'Received ack {seqnum}')
+			currsock.process_ack(seqnum)
 		
 def create_proxy_port(listenport, destport, destnac, mode, send_payload):
 	serverport=True
