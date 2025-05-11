@@ -42,19 +42,19 @@ class PortProxy:
 		self.port_lock=threading.Lock()
 		
 	def guest_to_host(self, seqnum, payload):
-		if seqnum==(self.recvptr+1)%256:
+		if seqnum==(self.recvptr+1) % 256:
 			self.connobj.sendall(payload)
-			self.recvptr=(self.recvptr+1)%256
+			self.recvptr=(self.recvptr+1) % 256
 			self.send_ack()
 		
 	def host_to_guest(self):
 		data=self.connobj.recv(1024)
 		if data is not None:
-			self.sendptr=(self.sendptr+1)%256
-			payload=make_port_payload(self.mode, self.servermode, self.hostport, self.guestport, self.sendptr, True, data)
-			logging.info(f'Sending payload to {self.guestnac} port {self.guestport}')
-			self.sbuf.append({'data':payload, 'time': get_timestamp()})
 			with self.port_lock:
+				self.sendptr=(self.sendptr+1) % 256
+				payload=make_port_payload(self.mode, self.servermode, self.hostport, self.guestport, self.sendptr, True, data)
+				logging.info(f'Sending payload to {self.guestnac} port {self.guestport}')
+				self.sbuf.append({'data':payload, 'time': get_timestamp()})
 				self.send_curr_payload()
 		else:
 			self.est=False
@@ -109,13 +109,15 @@ class PortProxy:
 		if self.est and self.sbuf is not None and len(self.sbuf)>0:
 			self.send_payload(self.guestnac, self.sbuf[0]['data'])
 			
+		self.print_state()
+			
 	def retry_loop(self):
 		while self.est:
 			try:
 				with self.port_lock:
 					self.send_ack()
 					self.send_curr_payload()
-					self.print_state()
+					
 			except Exception as e:
 				logging.info(f'Error in port retry loop proxy {e}')
 			time.sleep(0.8)
