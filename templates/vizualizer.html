@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background: #000;
+        }
+
+        .node {
+            position: absolute;
+            background: radial-gradient(circle at 30% 30%, #00ffff, #0066ff);
+            border-radius: 100%;
+            box-shadow: 0 0 20px #00ffff;
+            cursor: pointer;
+            transition: all 0.1s;
+            text-align: center;
+            color: white;
+            font-family: Arial;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 80px;
+            height: 80px;
+        }
+
+        #connections {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        .connection {
+            stroke: #00ffff88;
+            stroke-width: 1px;
+        }
+
+        #info {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: rgba(0,0,0,0.7);
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div id="nodes"></div>
+    <svg id="connections"></svg>
+    <div id="info"></div>
+
+    <script>
+        const ROUTING_TABLE = {{json_data |to_js_object | safe}};
+        const CENTER_NODE = '{{mynac}}';
+        var NODES={};
+
+        let rotateX = -0.5, rotateY = 0.5, zoomFactor = 1;
+        let maxHop = 0;
+        let baseDistance = 0;
+        let dragging = false;
+        let lastX, lastY;
+        const FOV = 1000;
+        const nodeElements = {};
+        const connectionElements = [];
+
+        function calculatePositions() {
+            NODES = { [CENTER_NODE]: { x: 0, y: 0, z: 0, hop_count: -1, description: '{{mydesc}}' } };
+            // Calculate window diagonal
+            const diag = Math.sqrt(window.innerWidth**2 + window.innerHeight**2);
+            baseDistance = diag * 0.75 * 0.15; // 75% of diagonal as base distance
+            
+            // Find maximum hop count
+            maxHop = Math.max(...Object.values(ROUTING_TABLE)
+                .filter(n => n.hop_count > 0)
+                .map(n => n.hop_count));
+            console.log(maxHop);
+            // Generate positions for each node
+            Object.entries(ROUTING_TABLE).forEach(([id, node]) => {
+                if (id === CENTER_NODE) return;
+                
+                const hop = node.hop_count+1;
+                const distance = hop === -2 ? baseDistance * (2/maxHop) : 
+                               baseDistance * (hop / maxHop);
+                
+                // Random spherical coordinates
+                const theta = Math.random() * Math.PI * 2;
+                const phi = Math.random() * Math.PI;
+                
+                NODES[id] = {
+                    x: distance * Math.sin(phi) * Math.cos(theta),
+                    y: distance * Math.sin(phi) * Math.sin(theta),
+                    z: distance * Math.cos(phi),
+                    ...node
+                };
+            });
+        }
+
+        function initNodes() {
+            
+            const container = document.getElementById('nodes');
+            // Add center node
+            const centerEl = document.createElement('div');
+            centerEl.className = 'node';
+            centerEl.textContent = CENTER_NODE;
+            centerEl.dataset.id = CENTER_NODE;
+            centerEl.addEventListener('click', showInfo);
+            nodeElements[CENTER_NODE] = centerEl;
+            container.appendChild(centerEl);
+
+            // Add other nodes
+            Object.entries(ROUTING_TABLE).forEach(([id]) => {
+                const el = document.createElement('div');
+                el.className = 'node';
+                el.textContent = id;
+                el.dataset.id = id;
+                el.addEventListener('click', showInfo);
+                nodeElements[id] = el;
+                container.appendChild(el);
+            });
+        }
+
+        function project(x, y, z) {
+            // Apply rotation matrices
+            const cosX = Math.cos(rotateX);
+            const sinX = Math.sin(rotateX);
+            const cosY = Math.cos(rotateY);
+            const sinY = Math.sin(rotateY);
+
+            // Rotate around X axis
+            let y1 = y * cosX - z * sinX;
+            let z1 = y * sinX + z * cosX;
+
+            // Rotate around Y axis
+            let x1 = x * cosY + z1 * sinY;
+            let z2 = -x * sinY + z1 * cosY;
+
+            // Apply perspective with zoom
+            const depth = z2 + FOV;
+            const scale = FOV / depth;
+            
+            return {
+                x: (x1 * scale * zoomFactor) + window.innerWidth/2,
+                y: (y1 * scale * zoomFactor) + window.innerHeight/2,
+                depth: depth
+            };
+        }
+
+        function updateNodes() {
+            Object.entries(NODES).forEach(([id, node]) => {
+                const el = nodeElements[id];
+                const pos = project(node.x, node.y, node.z);
+                
+                el.style.left = `${pos.x}px`;
+                el.style.top = `${pos.y}px`;
+                el.style.transform = `translate(-50%, -50%)`;
+                el.style.zIndex = Math.floor(pos.depth);
+            });
+        }
+
+        function updateConnections() {
+            const svg = document.getElementById('connections');
+            svg.innerHTML = '';
+            
+            Object.entries(ROUTING_TABLE).forEach(([id, node]) => {
+                if (node.hop_count == -2 || !node.next_hop) return;
+                
+                const start = NODES[node.next_hop];
+                const end = NODES[id];
+                const p1 = project(start.x, start.y, start.z);
+                const p2 = project(end.x, end.y, end.z);
+                
+                const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                line.setAttribute('class', 'connection');
+                line.setAttribute('stroke-dasharray', node.hop_count === 0 ? 'none' : '5,5');
+                line.setAttribute('x1', p1.x);
+                line.setAttribute('y1', p1.y);
+                line.setAttribute('x2', p2.x);
+                line.setAttribute('y2', p2.y);
+                svg.appendChild(line);
+            });
+        }
+
+        function animate() {
+            updateNodes();
+            updateConnections();
+            requestAnimationFrame(animate);
+        }
+
+        function showInfo(e) {
+            const info = document.getElementById('info');
+            const id = e.target.dataset.id;
+            info.textContent = NODES[id].description;
+            info.style.display = 'block';
+            setTimeout(() => info.style.display = 'none', 2000);
+        }
+
+        // Event handlers
+        document.addEventListener('mousedown', e => {
+            dragging = true;
+            lastX = e.clientX;
+            lastY = e.clientY;
+        });
+
+        document.addEventListener('mousemove', e => {
+            if (!dragging) return;
+            rotateY += (e.clientX - lastX) * 0.005;
+            rotateX += (e.clientY - lastY) * 0.005;
+            lastX = e.clientX;
+            lastY = e.clientY;
+        });
+
+        document.addEventListener('mouseup', () => dragging = false);
+        document.addEventListener('wheel', e => {
+            zoomFactor *= Math.pow(1.1, -Math.sign(e.deltaY));
+            zoomFactor = Math.min(5, Math.max(0.2, zoomFactor));
+            e.preventDefault();
+        }, { passive: false });
+
+        window.addEventListener('resize', () => {
+            calculatePositions();
+        });
+
+        // Initialization
+        calculatePositions();
+        initNodes();
+        animate();
+    </script>
+</body>
+</html>
