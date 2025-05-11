@@ -115,7 +115,7 @@ class PortProxy:
 			self.send_payload(self.guestnac, payload)
 			
 	def process_ack(self, seqnum):
-		print(f'Receive port act {currseqnum}')
+		print(f'Receive port act {seqnum}')
 		if len(self.sbuf)==0:
 			print(f'Buf len {len(self.sbuf)}')
 			return
