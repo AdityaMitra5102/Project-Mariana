@@ -19,11 +19,10 @@ def process_port_payload_from_tunnel(nac, payload, send_payload, securityconfig)
 		port_socket.init_port_thread()
 	else:
 		currsock=get_socket_from_list(socketid)
-		with currsock.port_lock:
-			if payloadpack:
-				currsock.guest_to_host(seqnum, data)
-			else:
-				currsock.process_ack(seqnum)
+		if payloadpack:
+			currsock.guest_to_host(seqnum, data)
+		else:
+			currsock.process_ack(seqnum)
 		
 		
 def create_proxy_port(listenport, destport, destnac, mode, send_payload):

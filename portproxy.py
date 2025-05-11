@@ -45,7 +45,8 @@ class PortProxy:
 		print(f'Received from mariana {seqnum}')
 		if seqnum==(self.recvptr+1) % 256:
 			self.connobj.sendall(payload)
-			self.recvptr=(self.recvptr+1) % 256
+			with currsock.port_lock:
+				self.recvptr=(self.recvptr+1) % 256
 			self.send_ack()
 		
 	def host_to_guest(self):
@@ -56,7 +57,7 @@ class PortProxy:
 				payload=make_port_payload(self.mode, self.servermode, self.hostport, self.guestport, self.sendptr, True, data)
 				logging.info(f'Sending payload to {self.guestnac} port {self.guestport}')
 				self.sbuf.append({'data':payload, 'time': get_timestamp()})
-				self.send_curr_payload()
+			self.send_curr_payload()
 		else:
 			self.est=False
 		
@@ -118,7 +119,7 @@ class PortProxy:
 	def retry_loop(self):
 		while self.est:
 			try:
-				with self.port_lock:
+				if True:
 					self.send_ack()
 					self.send_curr_payload()
 					
