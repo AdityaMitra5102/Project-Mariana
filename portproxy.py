@@ -46,7 +46,7 @@ class PortProxy:
 		self.dummybuf={}
 		
 	def guest_to_host(self, seqnum, payload):
-		print(f'Received from mariana {seqnum}')
+		logging.info(f'Received from mariana {seqnum}')
 		if seqnum==(self.recvptr+1) % 256:
 		
 			hash=crypto_hash(payload)
@@ -54,7 +54,7 @@ class PortProxy:
 				return
 		
 			self.connobj.sendall(payload)
-			#with self.port_lock:
+
 			self.recvptr=seqnum
 			self.dummybuf[hash]=get_timestamp()
 			self.send_ack()
@@ -65,14 +65,14 @@ class PortProxy:
 			try:
 				self.sendptr=(self.sendptr+1) % 256
 				payload=make_port_payload(self.mode, self.servermode, self.hostport, self.guestport, self.sendptr, True, data)
-				print(f'Adding {self.sendptr} to queue')
+				logging.info(f'Adding {self.sendptr} to queue')
 				self.sbuf[self.sendptr]={}
 				self.sbuf[self.sendptr]['data']=payload
 				self.sbuf[self.sendptr]['time']=get_timestamp()
 				self.send_curr_payload()
 				
 			except Exception as e:
-				print(e)
+				logging.error(f'Error adding to queue {e}')
 		else:
 			self.est=False
 		
@@ -81,7 +81,7 @@ class PortProxy:
 			try:
 				self.host_to_guest()
 			except Exception as e:
-				print(f'Couldnt read from socket {e}')
+				logging.error(f'Couldnt read from socket {e}')
 				self.sock.close()
 				port_destroyed(self)
 				if self.servermode:
@@ -93,8 +93,6 @@ class PortProxy:
 		if self.servermode:
 			self.init_port_thread()
 		
-	def print_state(self):
-		print(f'Send ptr {self.sendptr}\n recv ptr {self.recvptr} ')
 		
 	def get_port_proxy_id(self):
 		return get_socket_id(self.guestnac, self.guestport)
@@ -119,7 +117,7 @@ class PortProxy:
 	def process_ack(self, seqnum):
 		print(f'Receive port act {seqnum}')
 		if len(self.sbuf)==0:
-			print(f'Buf len {len(self.sbuf)}')
+			logging.info(f'Buf len {len(self.sbuf)}')
 			return
 	
 		if seqnum==self.currsend:
@@ -129,7 +127,7 @@ class PortProxy:
 			
 	def send_curr_payload(self):
 		if self.est and self.sbuf is not None and len(self.sbuf)>0:
-			print(f'Sending port {self.currsend}')
+			logging.info(f'Sending port {self.currsend}')
 			self.send_payload(self.guestnac, self.sbuf[self.currsend]['data'])
 
 			
