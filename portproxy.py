@@ -99,7 +99,9 @@ class PortProxy:
 			self.send_payload(self.guestnac, payload)
 			
 	def process_ack(self, seqnum):
-		if seqnum==self.sendptr:
+		mode, servermode, sourceport, destport, currseqnum, payloadpack, data=process_payload(self.sbuf[0]['data'])
+
+		if seqnum==currseqnum:
 			self.sbuf.pop(0)
 			send_curr_payload()
 			
