@@ -36,15 +36,23 @@ class PortProxy:
 		self.mode=mode
 		self.send_payload=send_payload
 		
-	def guest_to_host(self, payload):
-		self.connobj.sendall(payload)
+		self.sendptr=255
+		self.recvptr=255		
+		self.sbuf=[]
+		self.port_lock=threading.Lock()
+		
+	def guest_to_host(self, seqnum, payload):
+		if seqnum==(self.recvptr+1)%256:
+			self.connobj.sendall(payload)
+			self.recvptr=(self.recvptr+1)%256
+			self.send_ack()
 		
 	def host_to_guest(self):
 		data=self.connobj.recv(1024)
 		if data is not None:
-			payload=make_port_payload(self.mode, self.servermode, self.hostport, self.guestport, data)
+			payload=make_port_payload(self.mode, self.servermode, self.hostport, self.guestport, self.sendptr, True, data)
 			logging.info(f'Sending payload to {self.guestnac} port {self.guestport}')
-			self.send_payload(self.guestnac, payload)
+			self.sbuf.append({'data':payload, 'time': get_timestamp()})
 		else:
 			self.est=False
 		
@@ -79,6 +87,43 @@ class PortProxy:
 			self.hostport=uuid_bytes(str(uuid.uuid4()))
 		return data
 		
+	def send_ack(self):
+		if self.est:
+			payload=make_port_payload(self.mode, self.servermode, self.hostport, self.guestport, self.recvptr, False, b'')
+			self.send_payload(self.guestnac, payload)
+			
+	def process_ack(self, seqnum):
+		if seqnum==self.sendptr:
+			self.sbuf.pop(0)
+			self.sendptr=(self.sendptr+1)%256
+			send_curr_payload()
+			
+	def send_curr_payload(self):
+		if self.est and self.sbuf is not None and len(self.sbuf)>0:
+			self.send_payload(self.guestnac, self.sbuf[0]['data'])
+			
+	def retry_loop(self):
+		while self.est:
+			try:
+				with self.port_lock:
+					send_ack()
+					send_curr_payload()
+			except Exception as e:
+				logging.info(f'Error in port retry loop proxy {e}')
+			time.sleep(0.5)
+			
+	def cleanup_loop(self):
+		while self.est:
+			try:
+				if len(self.sbuf)>0:
+					lastsend=self.sbuf[0]['time']
+					if not check_valid_entry(lastsend, expiry=300):
+						self.sbuf=[]
+						self.est=False
+						port_destroyed(self)
+			except Exception as e:
+				logs.error(f'Error in port proxy cleanup {e}')
+		
 	def init_port(self):
 		self.sock=socket.socket(socket.AF_INET, self.opt)
 		self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -112,8 +157,12 @@ class PortProxy:
 		proxy_thread.start()
 		port_established(self)
 		if self.first_payload and len(self.first_payload)>0:
-			self.guest_to_host(self.first_payload)
+			self.guest_to_host(0, self.first_payload)
 		self.first_payload=None
+		proxy_retry_thread=threading.Thread(target=self.retry_loop)
+		proxy_retry_thread.start()
+		proxy_cleanup_thread=threading.Thread(target=self.cleanup_loop)
+		proxy_cleanup_thread.start()
 		
 	def init_port_thread(self):
 		init_port_thread=threading.Thread(target=self.init_port)

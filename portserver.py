@@ -5,7 +5,7 @@ import logging
 
 def process_port_payload_from_tunnel(nac, payload, send_payload, securityconfig):
 	global socket_list
-	mode, servermode, sourceport, destport, data=process_payload(payload)
+	mode, servermode, sourceport, destport, seqnum, payloadpack, data=process_payload(payload)
 	try:
 		destportint= int.from_bytes(destport)
 		if not (destportint in securityconfig['port_fw_allow'] or '*' in securityconfig['port_fw_allow']):
@@ -18,7 +18,13 @@ def process_port_payload_from_tunnel(nac, payload, send_payload, securityconfig)
 		port_socket=PortProxy(destport, sourceport, nac, mode, not servermode, 0, data, send_payload)
 		port_socket.init_port_thread()
 	else:
-		get_socket_from_list(socketid).guest_to_host(data)
+		currsock=get_socket_from_list(socketid)
+		with currsock.port_lock:
+			if payloadpack:
+				currsock.guest_to_host(seqnum, data)
+			else:
+				currsock.process_ack(seqnum)
+		
 		
 def create_proxy_port(listenport, destport, destnac, mode, send_payload):
 	serverport=True

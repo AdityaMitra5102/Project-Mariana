@@ -20,17 +20,18 @@ def get_socket_from_list(id):
 def check_socket_exists(id):
 	return id in socket_list
 
-def make_proxy_flag(mode, servermode):
-	return (int.from_bytes(bytes([mode]))*2+int.from_bytes(bytes([servermode]))).to_bytes(1)
+def make_proxy_flag(mode, servermode, payloadpack):
+	return (int.from_bytes(bytes([payloadpack]))*4+int.from_bytes(bytes([mode]))*2+int.from_bytes(bytes([servermode]))).to_bytes(1)
 	
 def make_port_bytes(port):
 	return port.to_bytes(16)
 
-def make_port_payload(mode, servermode, sourceport, destport, data):
+def make_port_payload(mode, servermode, sourceport, destport, seqnum, flag, data):
 	payload=header.encode()
-	payload+=make_proxy_flag(mode, servermode)
+	payload+=make_proxy_flag(mode, servermode, flag)
 	payload+=sourceport
 	payload+=destport
+	payload+=flag_bytes(seqnum)
 	payload+=data
 	return payload
 	
@@ -42,12 +43,13 @@ def process_payload(payload):
 	flag=payload[0]
 	servermode=(flag%2)==1
 	mode=(flag//2)==1
-	
+	payloadpack=(flag//4)==1
 	sourceport=payload[1:17]
 	destport=payload[17:33]
-	data=payload[33:]
+	seqnum=payload[33]
+	data=payload[34:]
 	
-	return mode, servermode, sourceport, destport, data
+	return mode, servermode, sourceport, destport, seqnum, payloadpack, data
 	
 def get_socket_id(nac, port):
 	return uuid_bytes(nac)+port
