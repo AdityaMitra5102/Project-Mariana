@@ -64,11 +64,11 @@ class PortProxy:
 			try:
 				self.host_to_guest()
 			except Exception as e:
-				logging.warn(f'Couldnt read from socket {e}')
+				print(f'Couldnt read from socket {e}')
 				self.sock.close()
 				port_destroyed(self)
 				if self.servermode:
-					init_port_thread()
+					self.init_port_thread()
 				return
 		logging.info(f'Socket closed')
 		self.sock.close()
