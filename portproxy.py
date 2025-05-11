@@ -149,7 +149,7 @@ class PortProxy:
 					self.dummybuf.pop(x)
 					
 			for x in self.sbuf:
-				if not check_valid_entry(self.sbuf[x]['time']):
+				if not check_valid_entry(self.sbuf[x]['time'], expire=600):
 					self.sbuf.pop(x)
 
 		
