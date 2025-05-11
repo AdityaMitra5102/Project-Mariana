@@ -54,15 +54,15 @@ class PortProxy:
 				return
 		
 			self.connobj.sendall(payload)
-			with self.port_lock:
-				self.recvptr=(self.recvptr+1) % 256
+			#with self.port_lock:
+			self.recvptr=seqnum
 			self.dummybuf[hash]=hash
 			self.send_ack()
 		
 	def host_to_guest(self):
 		data=self.connobj.recv(1024)
 		if data is not None:
-			with self.port_lock:
+			if True:
 				self.sendptr=(self.sendptr+1) % 256
 				payload=make_port_payload(self.mode, self.servermode, self.hostport, self.guestport, self.sendptr, True, data)
 				print(f'Adding {self.sendptr} to queue')
@@ -119,8 +119,8 @@ class PortProxy:
 			return
 		print(f'Receive port act {currseqnum}')
 		if seqnum==self.currsend:
-			with self.port_lock:
-				self.currsend+=1
+			#with self.port_lock:
+			self.currsend=seqnum+1
 				
 			
 	def send_curr_payload(self):
