@@ -62,15 +62,17 @@ class PortProxy:
 	def host_to_guest(self):
 		data=self.connobj.recv(1024)
 		if data is not None:
-			if True:
+			try:
 				self.sendptr=(self.sendptr+1) % 256
 				payload=make_port_payload(self.mode, self.servermode, self.hostport, self.guestport, self.sendptr, True, data)
 				print(f'Adding {self.sendptr} to queue')
 				self.sbuf[self.sendptr]={}
 				self.sbuf[self.sendptr]['data']=payload
 				self.sbuf[self.sendptr]['time']=get_timestamp()
-
-			self.send_curr_payload()
+				self.send_curr_payload()
+				
+			except Exception as e:
+				print(e)
 		else:
 			self.est=False
 		
