@@ -42,7 +42,7 @@ class PortProxy:
 		self.port_lock=threading.Lock()
 		
 	def guest_to_host(self, seqnum, payload):
-		print(f'Received from mariana {seqnum} {payload}')
+		print(f'Received from mariana {seqnum}')
 		if seqnum==(self.recvptr+1) % 256:
 			self.connobj.sendall(payload)
 			self.recvptr=(self.recvptr+1) % 256
@@ -110,7 +110,7 @@ class PortProxy:
 	def send_curr_payload(self):
 		if self.est and self.sbuf is not None and len(self.sbuf)>0:
 			mode, servermode, sourceport, destport, currseqnum, payloadpack, data=process_payload(self.sbuf[0]['data'])
-			print('Sending port {currseqnum}')
+			print(f'Sending port {currseqnum}')
 			self.send_payload(self.guestnac, self.sbuf[0]['data'])
 			
 			self.print_state()
