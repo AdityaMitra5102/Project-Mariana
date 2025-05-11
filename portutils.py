@@ -2,6 +2,8 @@ from utils import *
 import logging
 header='portproxy:'
 
+buflim=0xffffffff
+
 socket_list={}
 
 def port_established(port):
@@ -11,6 +13,8 @@ def port_established(port):
 	
 def port_destroyed(port):
 	global socket_list
+	port.sbuf={}
+	port.dummybuf={}
 	socket_list.pop(port.get_port_proxy_id())
 	logging.info('Port destroyed')
 
@@ -31,7 +35,7 @@ def make_port_payload(mode, servermode, sourceport, destport, seqnum, flag, data
 	payload+=make_proxy_flag(mode, servermode, flag)
 	payload+=sourceport
 	payload+=destport
-	payload+=flag_bytes(seqnum)
+	payload+=seqnum.to_bytes(4, 'big')
 	payload+=data
 	return payload
 	
@@ -46,8 +50,8 @@ def process_payload(payload):
 	payloadpack=(flag//4)==1
 	sourceport=payload[1:17]
 	destport=payload[17:33]
-	seqnum=payload[33]
-	data=payload[34:]
+	seqnum=payload[33:37]
+	data=payload[37:]
 	
 	return mode, servermode, sourceport, destport, seqnum, payloadpack, data
 	

@@ -38,8 +38,8 @@ class PortProxy:
 		self.send_payload=send_payload
 		
 		self.currsend=0
-		self.sendptr=255
-		self.recvptr=255		
+		self.sendptr=(-1)%(buflim+1)
+		self.recvptr=(-1)%(buflim+1)
 		self.sbuf={}
 		self.port_lock=threading.Lock()
 		
@@ -47,7 +47,7 @@ class PortProxy:
 		
 	def guest_to_host(self, seqnum, payload):
 		logging.info(f'Received from mariana {seqnum}')
-		if seqnum==(self.recvptr+1) % 256:
+		if seqnum==(self.recvptr+1) % (buflim+1):
 		
 			hash=crypto_hash(payload)
 			if hash in self.dummybuf:
@@ -63,7 +63,7 @@ class PortProxy:
 		data=self.connobj.recv(1024)
 		if data is not None:
 			try:
-				self.sendptr=(self.sendptr+1) % 256
+				self.sendptr=(self.sendptr+1) % (buflim+1)
 				payload=make_port_payload(self.mode, self.servermode, self.hostport, self.guestport, self.sendptr, True, data)
 				logging.info(f'Adding {self.sendptr} to queue')
 				self.sbuf[self.sendptr]={}
