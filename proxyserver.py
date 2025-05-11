@@ -2,6 +2,7 @@ from flask import Flask, request, Response, render_template
 import requests
 import logging
 import json
+import re
 import uuid
 from proxyutils import *
 from cargoship import *
@@ -11,6 +12,29 @@ from flask_cors import CORS
 from utils import *
 app = Flask(__name__, static_folder=None)
 CORS(app)
+
+def to_js_object(obj):
+	def format_key(k):
+		if re.match(r'^[A-Za-z_$][A-Za-z0-9_$]*$', k):
+			return k
+		else:
+			return f'"{k}"'
+
+	def format_value(v):
+		if isinstance(v, dict):
+			return to_js_object(v)
+		elif isinstance(v, str):
+			return f'"{v}"'
+		elif v is None:
+			return 'null'
+		else:
+			return str(v)
+        
+	items = [f"{format_key(k)}: {format_value(v)}" for k, v in obj.items()]
+	return '{' + ', '.join(items) + '}'
+
+app.jinja_env.filters['to_js_object'] = to_js_object
+
 from internals import *
 init_threads()
 def get_response(dest_nac, payload):
@@ -60,6 +84,53 @@ def proxy(path):
 	if host=='my.mariana':
 		resp= Response(f'{config["nac"]}.mariana')
 		return resp
+		
+	if host=='viz.mariana':
+		if request.path=='/':
+			print(routing_table)
+			node_table={}
+			temp_phonebook= get_whole_phonebook()
+			for contact in temp_phonebook:
+				contact_nac=temp_phonebook[contact]
+				contactx=contact+'.mariana'
+				node_table[contactx]={}
+				if contact_nac in routing_table:
+					node_table[contactx]['hop_count']=routing_table[contact_nac]['hop_count']+1
+					if routing_table[contact_nac]['hop_count'] ==0:
+						node_table[contactx]['next_hop']=f'{config["nac"]}.mariana'
+					else:
+						node_table[contactx]['next_hop']=f'{routing_table[contact_nac]['next_hop']}.mariana'
+
+					node_table[contactx]['description']=f'{contact_nac}.mariana: {routing_table[contact_nac]['desc'].decode('utf-8', 'ignore')}'
+				else:
+					node_table[contactx]['hop_count']=0
+					node_table[contactx]['next_hop']=None
+					node_table[contactx]['description']=f'{contact_nac}.mariana: Node offline'
+					
+			for tempnac in routing_table:
+				contact=phone_book_reverse_lookup(tempnac)
+				if contact in temp_phonebook:
+					continue
+				contact=tempnac
+				contact_nac=tempnac
+				contactx=contact+'.mariana'
+				node_table[contactx]={}
+				node_table[contactx]['hop_count']=routing_table[contact_nac]['hop_count']+1
+				if routing_table[contact_nac]['hop_count'] ==0:
+					node_table[contactx]['next_hop']=f'{config["nac"]}.mariana'
+				else:
+					node_table[contactx]['next_hop']=f'{routing_table[contact_nac]['next_hop']}.mariana'
+					
+				node_table[contactx]['description']=f'{contact_nac}.mariana: {routing_table[contact_nac]['desc'].decode('utf-8', 'ignore')}'
+				
+			json_data=node_table #json.dumps(node_table)
+			
+			return render_template('vizualizer.html', mynac=f'{config["nac"]}.mariana', mydesc='This node', json_data=json_data)
+		
+					
+					
+
+			
 		
 	if host=='phonebook.mariana':
 		if request.method=='GET':
