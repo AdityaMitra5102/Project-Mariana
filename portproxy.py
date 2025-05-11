@@ -125,7 +125,7 @@ class PortProxy:
 			try:
 				if len(self.sbuf)>0:
 					lastsend=self.sbuf[0]['time']
-					if not check_valid_entry(lastsend, expiry=300):
+					if not check_valid_entry(lastsend, expiry=5):
 						self.sbuf=[]
 						self.est=False
 						port_destroyed(self)
