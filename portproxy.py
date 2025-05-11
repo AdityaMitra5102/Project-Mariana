@@ -115,9 +115,11 @@ class PortProxy:
 			self.send_payload(self.guestnac, payload)
 			
 	def process_ack(self, seqnum):
-		if len(self.sbuf)==0:
-			return
 		print(f'Receive port act {currseqnum}')
+		if len(self.sbuf)==0:
+			print(f'Buf len {len(self.sbuf)}')
+			return
+	
 		if seqnum==self.currsend:
 			#with self.port_lock:
 			self.currsend=seqnum+1
@@ -127,7 +129,7 @@ class PortProxy:
 		if self.est and self.sbuf is not None and len(self.sbuf)>0:
 			print(f'Sending port {self.currsend}')
 			self.send_payload(self.guestnac, self.sbuf[self.currsend]['data'])
-			self.print_state()
+
 			
 	def retry_loop(self):
 		while self.est:

@@ -20,8 +20,10 @@ def process_port_payload_from_tunnel(nac, payload, send_payload, securityconfig)
 	else:
 		currsock=get_socket_from_list(socketid)
 		if payloadpack:
+			print(f'Received data {seqnum}')
 			currsock.guest_to_host(seqnum, data)
 		else:
+			print(f'Received ack {seqnum}')
 			currsock.process_ack(seqnum)
 		
 		
