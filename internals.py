@@ -39,6 +39,10 @@ trackerstart='trackerinfo:'
 
 securityconfig={'web_server_allow': True, 'clearnet_exit_proxy': True, 'port_fw_allow':['*'], 'cargo_ship_allow_exec':True, 'allow_mismatch_contact':False, 'desc': 'Mariana Node'}
 
+stat={'packets_sent':0, 'packets_received':0, 'packets_relayed':0, 'payloads_sent':0, 'payloads_received':0, 'routing_sent':0, 'routing_received':0, 'total_connected_nodes':0, 'directly_connected_nodes':0, 'known_public_nodes':0, 'memory_used_bytes':0, 'uptime_seconds':0}
+
+boot_time=get_timestamp()
+
 unverified_neighbors_table={}
 unverified_neighbors_table_lock=threading.Lock()
 
@@ -254,6 +258,19 @@ def get_contacts_verif():
 		
 	return temp
 
+############################# Stats #############################
+
+def gen_stats():
+	stat['total_connected_nodes']=len(routing_table)
+	stat['directly_connected_nodes']=len(cam_table)
+	stat['known_public_nodes']=len(trackers)
+	stat['memory_used_bytes']=psutil.Process().memory_info().rss
+	stat['uptime_seconds']=get_timestamp()-boot_time
+
+def get_stats():
+	gen_stats()
+	return stat
+
 ############################# Layer 1 Transfers #############################
 
 def l1sendto(data, addr):
@@ -331,6 +348,8 @@ def send_to_host(msg, nac):
 	ip=cam_table[nac]['ip']
 	port=cam_table[nac]['port']
 	l1sendto(msg, (ip, port))
+	stat['packets_sent']+=1
+	
 	
 ############################# Layer 3 Transfers #############################
 	
@@ -354,6 +373,7 @@ def add_to_routing(nac, hopcount, next_nac, pubkey, desc):
 		routing_table[nac]['desc']=desc
 	logs.info(f'{nac} added to routing table')
 	send_routing()
+	
 	
 def send(msg, nac, retry=0):
 	if retry>3:
@@ -410,6 +430,7 @@ def process_packet(packet, ip, port):
 		source_nac=uuid_str(packet[:16])
 		flag=packet[16]
 		logs.info(f'Packet from {source_nac} flag {flag}')
+		stat['packets_received']+=1
 		if flag>=3 and flag<7: #Payload packet
 			dest_nac=uuid_str(packet[17:33])
 			if dest_nac == config['nac']: #Packet for me
@@ -417,6 +438,7 @@ def process_packet(packet, ip, port):
 				process_self_packet(packet)
 			else:
 				logs.info(f'Received packet for f{dest_nac}. Forwarding')
+				stat['packets_relayed']+=1
 				send(packet, dest_nac) #Forward to destination
 		
 		process_special_packet(packet, ip, port)
@@ -552,6 +574,7 @@ def process_self_packet(packet):
 		logs.info(f'Received packet {seqnum} of {maxseq} for session {sess}')
 		
 	if packet_buffer[sess]['received']==packet_buffer[sess]['maxseq']+1:
+		stat['payloads_received']+=1
 		process_encrypted_payload(sess)
 				
 def process_encrypted_payload(sess):
@@ -575,6 +598,8 @@ def process_incoming_routing(source_nac, payload):
 			add_to_routing(nac, routinginfo[nac]['hop_count']+1, source_nac, base64.b64decode(routinginfo[nac]['pubkey'].encode()), base64.b64decode(routinginfo[nac]['desc'].encode()))
 		else:
 			logging.info('Cyclic routing entry not added.')
+			
+	stat['routing_received']+=1
 
 def process_incoming_tracker(source_nac, payload):
 	logs.info(f'Received tracker information from {source_nac}')
@@ -653,6 +678,7 @@ def send_payload(nac, payload, retry=0, core_data=False):
 	send(packet_frags[0], nac)
 	for frag in packet_frags:
 		send(frag, nac)
+	stat['payloads_sent']+=1
 		
 def send_packet_ack(nac, session):
 	packet=gen_full_ack(config['nac'], nac, session)
@@ -674,6 +700,7 @@ def send_routing():
 	payload=routerstart+json.dumps(routinginfo)
 	for nac in cam_table:
 		send_payload(nac, payload.encode(), core_data=True)
+		stat['routing_sent']+=1
 
 def send_tracker():
 	trackerinfo={}

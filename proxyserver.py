@@ -85,9 +85,14 @@ def proxy(path):
 		resp= Response(f'{config["nac"]}.mariana')
 		return resp
 		
+	if host=='stats.mariana':
+		if request.path=='/':
+			return render_template('metrics.html', mynac=f'{config["nac"]}.mariana')
+		if request.path=='/stat':
+			return get_stats()
+		
 	if host=='viz.mariana':
 		if request.path=='/':
-			print(routing_table)
 			node_table={}
 			temp_phonebook= get_whole_phonebook()
 			for contact in temp_phonebook:
@@ -125,7 +130,7 @@ def proxy(path):
 				
 			json_data=node_table #json.dumps(node_table)
 			
-			return render_template('vizualizer.html', mynac=f'{config["nac"]}.mariana', mydesc='This node', json_data=json_data)
+			return render_template('vizualizer.html', mynac=f'{config["nac"]}.mariana', mydesc=f'This node: {securityconfig['desc']}', json_data=json_data)
 		
 					
 					
