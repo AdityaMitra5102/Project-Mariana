@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Node Dashboard</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background-color: #1a1a1a;
+            color: #ffffff;
+            font-family: Arial, sans-serif;
+        }
+
+        h1 {
+            margin: 0 0 20px 0;
+            font-size: 24px;
+            color: #e0e0e0;
+        }
+
+        .dashboard {
+            display: flex;
+            gap: 20px;
+            height: 95vh;
+        }
+
+        .charts-container {
+            flex: 1;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            overflow-y: auto;
+        }
+
+        .chart {
+            background: #2a2a2a;
+            padding: 15px;
+            border-radius: 8px;
+        }
+
+        .chart h3 {
+            margin: 0 0 10px 0;
+            font-size: 14px;
+        }
+
+        .chart canvas {
+            width: 100%;
+            height: 200px;
+        }
+
+        .iframe-container {
+            flex: 1;
+        }
+
+        #networkMap {
+            width: 100%;
+            height: 100%;
+            border: none;
+            background: #2a2a2a;
+            border-radius: 8px;
+        }
+
+        .uptime-clock {
+            background: #2a2a2a;
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 32px;
+            text-align: center;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <h1>Mariana Node Stats {{mynac}}</h1>
+    <div class="dashboard">
+        <div class="charts-container">
+            <div class="chart">
+                <h3>Network Packets</h3>
+                <canvas id="packetsChart"></canvas>
+            </div>
+            <div class="chart">
+                <h3>Payloads</h3>
+                <canvas id="payloadsChart"></canvas>
+            </div>
+            <div class="chart">
+                <h3>Routing</h3>
+                <canvas id="routingChart"></canvas>
+            </div>
+            <div class="chart">
+                <h3>Nodes</h3>
+                <canvas id="nodesChart"></canvas>
+            </div>
+            <div class="chart">
+                <h3>Memory Usage</h3>
+                <canvas id="memoryChart"></canvas>
+            </div>
+            <div class="uptime-clock">
+                <div>UPTIME</div>
+                <div id="uptimeDisplay">00:00:00</div>
+            </div>
+        </div>
+        <div class="iframe-container">
+            <iframe id="networkMap" src="http://viz.mariana"></iframe>
+        </div>
+    </div>
+
+    <script>
+        // ... [Keep the existing history and chartsConfig objects] ...
+        // Remove uptime_seconds from history and chartsConfig
+        
+               let history = {
+            packets_received: [],
+            packets_relayed: [],
+            packets_sent: [],
+            payloads_received: [],
+            payloads_sent: [],
+            routing_received: [],
+            routing_sent: [],
+            directly_connected_nodes: [],
+            known_public_nodes: [],
+            total_connected_nodes: [],
+            memory_used_bytes: [],
+            uptime_seconds: []
+        };
+
+        const chartsConfig = [
+            {
+                id: 'packetsChart',
+                datasets: [
+                    { key: 'packets_received', color: '#4e79a7', label: 'Received' },
+                    { key: 'packets_relayed', color: '#f28e2c', label: 'Relayed' },
+                    { key: 'packets_sent', color: '#e15759', label: 'Sent' }
+                ]
+            },
+            {
+                id: 'payloadsChart',
+                datasets: [
+                    { key: 'payloads_received', color: '#76b7b2', label: 'Received' },
+                    { key: 'payloads_sent', color: '#59a14f', label: 'Sent' }
+                ]
+            },
+            {
+                id: 'routingChart',
+                datasets: [
+                    { key: 'routing_received', color: '#edc949', label: 'Received' },
+                    { key: 'routing_sent', color: '#af7aa1', label: 'Sent' }
+                ]
+            },
+            {
+                id: 'nodesChart',
+                datasets: [
+                    { key: 'directly_connected_nodes', color: '#ff9da7', label: 'Direct' },
+                    { key: 'known_public_nodes', color: '#9c755f', label: 'Public' },
+                    { key: 'total_connected_nodes', color: '#bab0ab', label: 'Total' }
+                ]
+            },
+            {
+                id: 'memoryChart',
+                datasets: [
+                    { key: 'memory_used_bytes', color: '#e15759', label: 'Memory (bytes)' }
+                ]
+            },
+            {
+                id: 'uptimeChart',
+                datasets: [
+                    { key: 'uptime_seconds', color: '#4e79a7', label: 'Uptime' }
+                ]
+            }
+        ];
+
+        function drawChart(canvasId, datasets) {
+            const canvas = document.getElementById(canvasId);
+            const ctx = canvas.getContext('2d');
+            const width = canvas.width;
+            const height = canvas.height;
+            
+            ctx.clearRect(0, 0, width, height);
+            ctx.fillStyle = '#2a2a2a';
+            ctx.fillRect(0, 0, width, height);
+
+            if (datasets.some(ds => ds.data.length === 0)) return;
+
+            const allValues = datasets.flatMap(ds => ds.data.map(d => d.value));
+            const max = Math.max(...allValues)+1;
+            const min = Math.min(...allValues)-1;
+            const range = max - min || 1;
+
+            // Draw axes
+            ctx.strokeStyle = '#666';
+            ctx.beginPath();
+            ctx.moveTo(30, height - 20);
+            ctx.lineTo(width - 10, height - 20);
+            ctx.moveTo(30, 20);
+            ctx.lineTo(30, height - 20);
+            ctx.stroke();
+
+            // Draw datasets
+            datasets.forEach(ds => {
+                if (ds.data.length === 0) return;
+                
+                ctx.beginPath();
+                ctx.strokeStyle = ds.color;
+                ctx.lineWidth = 2;
+                
+                ds.data.forEach((point, index) => {
+                    const x = 30 + (index * (width - 40) / (ds.data.length - 1));
+                    const y = height - 20 - ((point.value - min) / range * (height - 40));
+                    index === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+                });
+                
+                ctx.stroke();
+            });
+
+            // Draw labels
+            ctx.font = '12px Arial';
+            datasets.forEach((ds, i) => {
+                if (ds.data.length === 0) return;
+                ctx.fillStyle = ds.color;
+                ctx.fillText(`${ds.label}: ${ds.data[ds.data.length - 1].value}`, 10, 20 + (i * 15));
+            });
+        }
+
+        function reloadIframe() {
+            const iframe = document.getElementById('networkMap');
+            iframe.src = 'http://viz.mariana?t=' + Date.now();
+        }
+
+        function formatUptime(seconds) {
+            const hours = Math.floor(seconds / 3600);
+            const minutes = Math.floor((seconds % 3600) / 60);
+            const secs = seconds % 60;
+            return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+        }
+
+        function updateUptimeDisplay(seconds) {
+            document.getElementById('uptimeDisplay').textContent = formatUptime(seconds);
+        }
+
+        function fetchData() {
+        
+           fetch('/stat')
+                .then(response => response.json())
+                .then(data => {
+                reloadIframe();
+
+                    Object.keys(data).forEach(key => {
+                        if (history[key]) {
+                            history[key].push({ value: data[key], timestamp: Date.now() });
+                            if (history[key].length > 50) history[key].shift();
+                        }
+                    });
+
+                    // Update uptime display
+                    updateUptimeDisplay(data.uptime_seconds);
+
+                    // ... [Keep the existing chart drawing code] ...
+                    chartsConfig.forEach(config => {
+                        drawChart(config.id, config.datasets.map(ds => ({
+                            ...ds,
+                            data: history[ds.key]
+                        })));
+                    });
+                    
+                    reloadIframe();
+                })
+                .catch(console.error);
+        }
+  // Initialize canvas sizes
+        function initCanvasSize() {
+            document.querySelectorAll('canvas').forEach(canvas => {
+                const rect = canvas.getBoundingClientRect();
+                canvas.width = rect.width;
+                canvas.height = rect.height;
+            });
+        }
+
+        window.addEventListener('resize', initCanvasSize);
+        initCanvasSize();
+        fetchData();
+        setInterval(fetchData, 3000);
+
+        // ... [Keep the rest of the existing JavaScript code] ...
+    </script>
+</body>
+</html>

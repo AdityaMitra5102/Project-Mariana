@@ -81,7 +81,10 @@
             maxHop = Math.max(...Object.values(ROUTING_TABLE)
                 .filter(n => n.hop_count > 0)
                 .map(n => n.hop_count));
+                
             console.log(maxHop);
+            
+            if (!Number.isInteger(maxHop)) {maxHop=1;}
             // Generate positions for each node
             Object.entries(ROUTING_TABLE).forEach(([id, node]) => {
                 if (id === CENTER_NODE) return;
