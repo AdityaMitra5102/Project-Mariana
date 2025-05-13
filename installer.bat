@@ -1,3 +1,4 @@
+@echo off
 cd %UserProfile%\AppData\Local\Programs
 del %USERPROFILE%\AppData\Local\Microsoft\WindowsApps\python.exe
 del %USERPROFILE%\AppData\Local\Microsoft\WindowsApps\python3.exe
@@ -16,3 +17,5 @@ copy "startup.bat" "%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup"
 copy "chrome.bat" "%UserProfile%/Desktop"
 copy "chrome.bat" "%OneDrive%/Desktop"
 start /B "" "runner.bat"
+echo "Installation complete"
+exit
