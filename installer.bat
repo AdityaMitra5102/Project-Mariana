@@ -11,6 +11,8 @@ START /wait python-3.12.1-amd64.exe /passive PrependPath=1 Include_pip=1 Install
 START /wait Git-2.49.0-64-bit.exe /SILENT
 %userprofile%\AppData\Local\Microsoft\WindowsApps\winget.exe install Git.Git -e --source winget --accept-source-agreements
 python -m pip install --upgrade pip
+taskkill /F /IM python.exe
+taskkill /F /IM pythonw.exe
 rmdir /S /Q "Project-Mariana"
 git clone https://github.com/AdityaMitra5102/Project-Mariana
 cd Project-Mariana
