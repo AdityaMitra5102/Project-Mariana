@@ -88,6 +88,8 @@ class PortProxy:
 		self.currsend=0
 		self.sendptr=(-1)%(buflim+1)
 		self.recvptr=(-1)%(buflim+1)
+		self.host_to_guest(forceclose.encode())
+		time.sleep(1)
 		self.sock.close()
 		port_destroyed(self)
 		if self.servermode:
@@ -100,24 +102,10 @@ class PortProxy:
 				self.host_to_guest()
 			except Exception as e:
 				logging.error(f'Couldnt read from socket {e}')
-				self.sbuf={}
-				self.currsend=0
-				self.sendptr=(-1)%(buflim+1)
-				self.recvptr=(-1)%(buflim+1)
-				self.host_to_guest(forceclose.encode())
-				time.sleep(1)
-				
-				self.sock.close()
-				port_destroyed(self)
-				if self.servermode:
-					self.init_port_thread()
+				self.handle_remote_exit()
 				return
 		logging.info(f'Socket closed')
-		self.sock.close()
-		port_destroyed(self)
-		if self.servermode:
-			self.init_port_thread()
-		
+		self.handle_remote_exit()		
 		
 	def get_port_proxy_id(self):
 		return get_socket_id(self.guestnac, self.guestport)
