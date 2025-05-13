@@ -8,6 +8,8 @@ from portutils import *
 
 proxyhost='127.0.0.1'
 
+forceclose='$mariana$port$closed'
+
 class ConnectionObject:
 	def __init__(self, sendobj, recvobj):
 		self.recv=recvobj
@@ -53,14 +55,19 @@ class PortProxy:
 			if hash in self.dummybuf:
 				return
 		
+			if forceclose.encode() in payload:
+				handle_remote_exit()
+				return
+		
 			self.connobj.sendall(payload)
 
 			self.recvptr=seqnum
 			self.dummybuf[hash]=get_timestamp()
 			self.send_ack()
 		
-	def host_to_guest(self):
-		data=self.connobj.recv(1024)
+	def host_to_guest(self, data=None):
+		if data is None:
+			data=self.connobj.recv(65500)
 		if data is not None:
 			try:
 				self.sendptr=(self.sendptr+1) % (buflim+1)
@@ -75,6 +82,17 @@ class PortProxy:
 				logging.error(f'Error adding to queue {e}')
 		else:
 			self.est=False
+			
+	def handle_remote_exit(self):
+		self.sbuf={}
+		self.currsend=0
+		self.sendptr=(-1)%(buflim+1)
+		self.recvptr=(-1)%(buflim+1)
+		self.sock.close()
+		port_destroyed(self)
+		if self.servermode:
+			self.init_port_thread()
+
 		
 	def listen_loop(self):
 		while self.est:
@@ -82,6 +100,13 @@ class PortProxy:
 				self.host_to_guest()
 			except Exception as e:
 				logging.error(f'Couldnt read from socket {e}')
+				self.sbuf={}
+				self.currsend=0
+				self.sendptr=(-1)%(buflim+1)
+				self.recvptr=(-1)%(buflim+1)
+				self.host_to_guest(forceclose.encode())
+				time.sleep(1)
+				
 				self.sock.close()
 				port_destroyed(self)
 				if self.servermode:
