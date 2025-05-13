@@ -12,7 +12,6 @@ git clone https://github.com/AdityaMitra5102/Project-Mariana
 cd Project-Mariana
 start /wait ChromeSetup.exe /silent /install
 python -m pip install cryptography psutil requests flask
-sc create Mariana binPath= "cmd /c start /B \"\" \"%UserProfile%\AppData\Local\Programs\Project-Mariana\runner.bat\"" start=auto obj=LocalSystem type=own error=normal
-sc start Mariana
-mklink chrome.bat %UserProfile%/Desktop
-start "" "chrome.bat"
+copy "startup.bat" "%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup"
+copy "chrome.bat" "%UserProfile%/Desktop"
+copy "chrome.bat" "%OneDrive%/Desktop"
