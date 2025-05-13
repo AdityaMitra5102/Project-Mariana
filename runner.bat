@@ -2,5 +2,4 @@
 ECHO Checking for Mariana Updates
 cd %~dp0
 git pull
-start "" pythonw proxyserver.py
-exit
+start /B "" pythonw "%~dp0proxyserver.py"
