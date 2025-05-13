@@ -15,8 +15,8 @@ cd Project-Mariana
 start /wait ChromeSetup.exe /install
 python -m pip install cryptography psutil requests flask
 copy "startup.bat" "%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup"
-copy "chrome.bat" "%UserProfile%/Desktop"
-copy "chrome.bat" "%OneDrive%/Desktop"
+copy "mariana.bat" "%UserProfile%/Desktop"
+copy "mariana.bat" "%OneDrive%/Desktop"
 start /B "" "runner.bat"
 echo "Installation complete"
 exit
