@@ -15,7 +15,7 @@ for /f "tokens=2*" %%a in ('reg query "HKCU\Environment" /v PATH 2^>nul') do set
 echo User PATH: %USER_PATH%
 set "NEW_PATH=%SYS_PATH%;%USER_PATH%"
 echo Combined PATH: %NEW_PATH%
-set "PATH=%NEW_PATH%"
+set "PATH=%NEW_PATH%;%PATH%"
 echo Updated PATH: %PATH%
 where python
 python -m pip install --upgrade pip
