@@ -9,7 +9,7 @@ Restart=always
 RestartSec=1
 User=root
 WorkingDirectory=/home/vm_user/Project-Mariana
-ExecStart=/usr/bin/python3 /home/vm_user/Project-Mariana/proxyserver.py
+ExecStart=/usr/bin/python3 /etc/mar/Project-Mariana/proxyserver.py
 
 [Install]
 WantedBy=multi-user.target
