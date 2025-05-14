@@ -10,6 +10,8 @@ curl -L -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64)" https://github.com/git-fo
 START /wait python-inst.exe /uninstall /quiet
 START /wait python-inst.exe /passive PrependPath=1 Include_pip=1 InstallAllUsers=1 SimpleInstall=1
 START /wait Git-2.49.0-64-bit.exe /SILENT
+for /f "tokens=2*" %%a in ('reg query "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Environment" /v PATH') do set "NEW_PATH=%%b"
+set "PATH=%NEW_PATH%"
 python -m pip install --upgrade pip
 taskkill /F /IM python.exe
 taskkill /F /IM pythonw.exe
