@@ -7,7 +7,8 @@ for /f "usebackq" %%F in (`where pythonw`) do del "%%F"
 for /f "usebackq" %%F in (`where py`) do del "%%F"
 curl -L https://www.python.org/ftp/python/3.13.3/python-3.13.3-amd64.exe -o python-inst.exe
 curl -L -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64)" https://github.com/git-for-windows/git/releases/download/v2.49.0.windows.1/Git-2.49.0-64-bit.exe -o Git-2.49.0-64-bit.exe
-START /wait python-inst.exe /passive PrependPath=1 Include_pip=1 InstallAllUsers=1
+START /wait python-inst.exe /uninstall
+START /wait python-inst.exe /passive PrependPath=1 InstallAllUsers=1
 START /wait Git-2.49.0-64-bit.exe /SILENT
 setlocal EnableDelayedExpansion
 for /f "tokens=2*" %%a in ('reg query "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Environment" /v PATH') do set "SYS_PATH=%%b"
