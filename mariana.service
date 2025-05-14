@@ -8,7 +8,7 @@ Type=simple
 Restart=always
 RestartSec=1
 User=root
-WorkingDirectory=/home/vm_user/Project-Mariana
+WorkingDirectory=/etc/mar/Project-Mariana
 ExecStart=/usr/bin/python3 /etc/mar/Project-Mariana/proxyserver.py
 
 [Install]
