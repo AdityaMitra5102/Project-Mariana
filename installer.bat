@@ -3,7 +3,7 @@ taskkill /F /IM python.exe
 taskkill /F /IM pythonw.exe
 curl -L https://www.python.org/ftp/python/3.13.3/python-3.13.3-amd64.exe -o python-inst.exe
 curl -L -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64)" https://github.com/git-for-windows/git/releases/download/v2.49.0.windows.1/Git-2.49.0-64-bit.exe -o Git-2.49.0-64-bit.exe
-START /wait python-inst.exe /uninstall
+START /wait python-inst.exe /uninstall /passive
 START /wait python-inst.exe /passive PrependPath=1 InstallAllUsers=1 Include_exe=1
 START /wait Git-2.49.0-64-bit.exe /SILENT
 setlocal EnableDelayedExpansion
