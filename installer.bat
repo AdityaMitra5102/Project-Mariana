@@ -26,7 +26,7 @@ rmdir /S /Q "Project-Mariana"
 git clone https://github.com/AdityaMitra5102/Project-Mariana
 cd Project-Mariana
 start /wait ChromeSetup.exe /install
-python -m pip install cryptography psutil requests flask
+python -m pip install cryptography psutil requests flask flask-cors
 copy "startup.bat" "%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup"
 copy "mariana.bat" "%UserProfile%/Desktop"
 copy "mariana.bat" "%OneDrive%/Desktop"
