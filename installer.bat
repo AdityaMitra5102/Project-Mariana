@@ -29,6 +29,7 @@ copy "mariana.bat" "%UserProfile%/Desktop"
 copy "mariana.bat" "%OneDrive%/Desktop"
 taskkill /F /IM chrome.exe
 start /B "" "runner.bat"
+timeout /t 5
 start /B "" "mariana.bat"
 echo "Installation complete"
 exit
