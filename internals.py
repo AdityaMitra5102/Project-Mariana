@@ -336,8 +336,12 @@ def add_to_cam(nac, ip, port):
 		
 	if nac in cam_table:
 		logs.warning(f'NAC {nac} Already exists in CAM Table. Overwriting.')
+	else:
+		with cam_table_lock:
+			cam_table[nac]={}
+			cam_table[nac]['lastrouting']=0
+		
 	with cam_table_lock:
-		cam_table[nac]={}
 		cam_table[nac]['ip']=ip
 		cam_table[nac]['port']=port
 		cam_table[nac]['time']=currtime
@@ -595,9 +599,13 @@ def process_incoming_routing(source_nac, payload):
 	routinginfo=json.loads(payload)
 	for nac in routinginfo:
 		if routinginfo[nac]['next_hop'] != config['nac']:
-			add_to_routing(nac, routinginfo[nac]['hop_count']+1, source_nac, base64.b64decode(routinginfo[nac]['pubkey'].encode()), base64.b64decode(routinginfo[nac]['desc'].encode()))
+			if not check_valid_entry(cam_table[source_nac]['lastrouting'], expiry=35) or nac not in routing_table:
+				add_to_routing(nac, routinginfo[nac]['hop_count']+1, source_nac, base64.b64decode(routinginfo[nac]['pubkey'].encode()), base64.b64decode(routinginfo[nac]['desc'].encode()))
+			else:
+				logs.warn(f'Possible sybil attack. Announcement from {source_nac} dropped')
 		else:
 			logging.info('Cyclic routing entry not added.')
+	cam_table[source_nac]['lastrouting']=get_timestamp()
 			
 	stat['routing_received']+=1
 
