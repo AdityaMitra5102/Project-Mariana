@@ -1,4 +1,3 @@
-@echo off
 cd %UserProfile%\AppData\Local\Programs
 del %USERPROFILE%\AppData\Local\Microsoft\WindowsApps\python.exe
 del %USERPROFILE%\AppData\Local\Microsoft\WindowsApps\python3.exe
