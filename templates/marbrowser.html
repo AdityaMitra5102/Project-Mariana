@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mariana Browser</title>
+   <style>
+    body {
+        background-color: #000;
+        color: #33ff33;
+        font-family: 'Courier New', Courier, monospace;
+        margin: 0;
+        padding: 0;
+    }
+    .container {
+        max-width: 700px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+    h1, h2 {
+        color: #33ff33;
+        border-bottom: 1px solid #33ff33;
+        padding-bottom: 5px;
+        margin-top: 20px;
+    }
+    textarea {
+        width: 100%;
+        background-color: #000;
+        color: #33ff33;
+        border: 1px solid #33ff33;
+        resize: none;
+        padding: 10px;
+        font-family: 'Courier New', Courier, monospace;
+        box-sizing: border-box;
+        overflow: auto; /* Ensures scrollbar shows up */
+	   white-space: pre-wrap; /* Better line handling */
+    }
+    input[type="text"], input[type="number"], select {
+        width: 100%;
+        padding: 10px;
+        background-color: #000;
+        color: #33ff33;
+        border: 1px solid #33ff33;
+        font-family: 'Courier New', Courier, monospace;
+        margin-bottom: 10px;
+        box-sizing: border-box;
+    }
+    select option {
+        background-color: #000;
+        color: #33ff33;
+    }
+    button {
+        background-color: #000;
+        color: #33ff33;
+        border: 1px solid #33ff33;
+        padding: 10px 20px;
+        font-family: 'Courier New', Courier, monospace;
+        cursor: pointer;
+        transition: background-color 0.3s;
+    }
+    button:hover {
+        background-color: #111;
+    }
+    label {
+        display: block;
+        margin-top: 10px;
+        margin-bottom: 5px;
+        font-weight: bold;
+    }
+    /* Blinking cursor style */
+    #output::after {
+        content: "_";
+        animation: blink 1s infinite;
+    }
+    @keyframes blink {
+        0% { opacity: 1; }
+        50% { opacity: 0; }
+        100% { opacity: 1; }
+    }
+    .form-group {
+        margin-bottom: 15px;
+    }
+    .error-message {
+        color: #ff5555;
+        font-size: 14px;
+        margin-top: 5px;
+        display: none;
+    }
+</style>
+</head>
+<body>
+    <div class="container">
+        <h1>Download Mariana Browser 🖥️</h1>
+        <p>If you are seeing this page, Mariana Daemon has been Installed. Congratulations on joining the Internet of Freedom. <br><br> You need the Mariana browser to use Mariana's Qubit. The daemon installer would try to automatically install it (on Windows systems), in which case there would be a Desktop shortcut for the same. Click the button below to download if it has not been automatically installed, for both Windows and Linux systems.</p>
+	<button onclick='window.open("https://github.com/AdityaMitra5102/mariana-browser/releases/");'>Download Mariana Browser</button>
+<p><br><br>For advanced users not willing to install the Mariana Browser:</p>
+	<p>Alternatively you can run any web browser with a proxy server at http://localhost:8000 and open http://mariana.local to use Mariana without downloading the Mariana Browser. For example if you have Google Chrome installed, run the following on command prompt<br><br>
+"C:\Program Files\Google\Chrome\Application\chrome.exe" --incognito --proxy-server=http://localhost:8000 http://local.mariana
+</p>
+    </div>
+
+</body>
+</html>
