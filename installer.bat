@@ -28,6 +28,5 @@ start /B "" "runner.bat"
 cd ..
 START /wait msiexec /i mariana-browser.msi
 echo "Installation complete"
-taskkill /F /IM cmd.exe
-taskkill /F /IM conhost.exe
+
 exit
