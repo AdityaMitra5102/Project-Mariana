@@ -25,4 +25,4 @@ copy "startup.bat" "%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup"
 start /B "" "runner.bat"
 echo "Installation complete"
 timeout /T 30
-start "../mariana-browser.msi" 
+start "" "../mariana-browser.msi" 
