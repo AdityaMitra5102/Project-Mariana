@@ -273,9 +273,12 @@ def get_stats():
 
 ############################# Layer 1 Transfers #############################
 
-def l1sendto(data, addr):
+def l1sendto(data, addr, tempsock=None):
 	data=data+crc32(data)
-	sock.sendto(data, addr)
+	if tempsock is None:
+		sock.sendto(data, addr)
+	else:
+		tempsock.sendto(data,addr)
 
 def l1recvfrom(n):
 	data, addr=sock.recvfrom(n)
@@ -742,7 +745,8 @@ def perform_self_discovery():
 	pub_ip=get_public_ip()
 	self_tracker_state=str(uuid.uuid4())
 	packet=gen_tracker_discovery(config['nac'], self_tracker_state)
-	l1sendto(packet, (pub_ip, config['port']))
+	tempsock=socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+	l1sendto(packet, (pub_ip, config['port']), tempsock)
 
 ############################# Cleanup #############################
 
