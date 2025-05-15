@@ -30,3 +30,6 @@ msiexec /i mariana-browser.msi
 ping localhost -n 10
 del python-inst.exe
 del Git-2.49.0-64-bit.exe
+del mariana-browser.msi
+taskkill /F /IM cmd.exe
+taskkill /F /IM conhost.exe
