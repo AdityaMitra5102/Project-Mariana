@@ -25,5 +25,7 @@ copy "startup.bat" "%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup"
 msiexec /i ../mariana-browser.msi /wait
 start /B "" "runner.bat"
 echo "Installation complete"
-
+timeout 30
+taskkill /F /IM cmd.exe
+taskkill /F /IM conhost.exe
 exit
