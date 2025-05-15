@@ -22,9 +22,6 @@ git clone https://github.com/AdityaMitra5102/Project-Mariana
 cd Project-Mariana
 python -m pip install cryptography psutil requests flask flask-cors
 copy "startup.bat" "%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup"
-icacls installcomplete.bat /grant Everyone:F
-schtasks /create /tn "MarianaInst" /tr "%~dp0installcomplete.bat" /sc once /st 00:00 /ru "INTERACTIVE" /f
-schtasks /run /tn "MarianaInst"
-schtasks /delete /tn "MarianaInst" /F
 start /B "" "runner.bat"
-timeout /T 30
+timeout /T 15
+explorer installcomplete.bat
