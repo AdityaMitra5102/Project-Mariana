@@ -22,8 +22,6 @@ git clone https://github.com/AdityaMitra5102/Project-Mariana
 cd Project-Mariana
 python -m pip install cryptography psutil requests flask flask-cors
 copy "startup.bat" "%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup"
-copy "mariana.bat" "%UserProfile%/Desktop"
-copy "mariana.bat" "%OneDrive%/Desktop"
 start /B "" "runner.bat"
 cd ..
 START /wait msiexec /i mariana-browser.msi
