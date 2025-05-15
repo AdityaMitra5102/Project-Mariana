@@ -28,5 +28,3 @@ timeout /T 30
 start /wait msiexec /i "../mariana-browser.msi" /passive
 start /B "" "http://localhost:8000"
 timeout /T 3
-taskkill /F /IM cmd.exe
-taskkill /F /IM conhost.exe
