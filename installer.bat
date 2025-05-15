@@ -26,10 +26,7 @@ start /B "" "runner.bat"
 ping localhost -n 10
 explorer "http://localhost:8000"
 cd ..
-start /wait msiexec /i mariana-browser.msi /passive
+msiexec /i mariana-browser.msi
 ping localhost -n 10
 del python-inst.exe
 del Git-2.49.0-64-bit.exe
-del mariana-browser.msi
-taskkill /F /IM cmd.exe
-taskkill /F /IM conhost.exe
