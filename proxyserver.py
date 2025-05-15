@@ -59,6 +59,9 @@ def known_hosts():
 @app.route('/<path:path>', methods=['GET', 'POST'])
 def proxy(path):
 	host=str(request.headers.get('Host')).strip()
+	if host=='localhost:8000' or host=='127.0.0.1:8000':
+		return render_template('marbrowser.html')
+		
 	exit_node_proxy=False
 	ismar, nac=check_mariana_host(host, config['nac'], get_contact)
 	if not ismar:
