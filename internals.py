@@ -37,7 +37,7 @@ logs=logging.getLogger('mariana')
 routerstart='routinginfo:'
 trackerstart='trackerinfo:'
 
-securityconfig={'web_server_allow': True, 'clearnet_exit_proxy': True, 'port_fw_allow':['*'], 'cargo_ship_allow_exec':True, 'allow_mismatch_contact':False, 'desc': 'Mariana Node'}
+securityconfig={'web_server_allow': False, 'clearnet_exit_proxy': True, 'port_fw_allow':[], 'cargo_ship_allow_exec':True, 'allow_mismatch_contact':False, 'desc': 'Mariana Node'}
 
 stat={'packets_sent':0, 'packets_received':0, 'packets_relayed':0, 'payloads_sent':0, 'payloads_received':0, 'routing_sent':0, 'routing_received':0, 'total_connected_nodes':0, 'directly_connected_nodes':0, 'known_public_nodes':0, 'memory_used_bytes':0, 'uptime_seconds':0}
 
