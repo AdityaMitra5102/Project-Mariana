@@ -402,7 +402,7 @@ def send(msg, nac, retry=0):
 			
 ############################# Tracker management #############################
 
-def add_to_tracker(ip, port):
+def add_to_tracker(ip, port, gitannounce=False):
 	global trackers
 	trackerid=f'{ip}:{port}'
 	if trackerid in trackers:
@@ -415,7 +415,8 @@ def add_to_tracker(ip, port):
 	tracker={'ip': ip, 'port': port}
 	with trackers_lock:
 		trackers[trackerid]=tracker
-		post_comment(json.dumps(tracker))
+		if gitannounce:
+			post_comment(json.dumps(tracker))
 	save_tracker_list()
 	send_conn_req(ip, port)
 	return True
@@ -476,7 +477,7 @@ def process_self_discovery(packet, ip, port):
 	temp_state=uuid_str(packet[17:])
 	if temp_state==self_tracker_state:
 		logging.info('This system is routable. Promoting to tracker.')
-		add_to_tracker(get_public_ip(), config['port'])
+		add_to_tracker(get_public_ip(), config['port'], True)
 		self_public=True
 		
 def process_retransmission(packet):
