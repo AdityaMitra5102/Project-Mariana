@@ -26,11 +26,7 @@ On the user end, it opens Chrome (or any browser) proxied through the Mariana Da
 * Chrome or any other browser that supports using proxy server
 
 ## Installation and set-up
-* Clone this repository
-* Install dependencies
-* Start `proxyserver.py`
-* Start web browser with proxy to `http://localhost:8000`
-* Add a service to start `proxyserver.py` every time the computer boots up.
+* Check the releases section.
 
 ## Special notes for public nodes
 * Public nodes are defined as nodes that are not behind a NAT and are driectly accessible over the internet
