@@ -1,3 +1,3 @@
 @echo off
-start /B "" cmd /C "%UserProfile%\AppData\Local\Programs\Project-Mariana\runner.bat"
+start /B "" cmd /C "%AppData%\Project-Mariana\runner.bat"
 exit
