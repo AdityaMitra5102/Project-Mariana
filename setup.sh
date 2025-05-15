@@ -4,6 +4,7 @@ chmod -R 777 /etc/mar
 cd /etc/mar
 sudo apt-get update
 sudo apt-get install -y python3 python3-pip python3-flask python3-cryptography python3-psutil python3-requests python3-flask-cors git
+rm -rf Project-Mariana
 git clone https://github.com/AdityaMitra5102/Project-Mariana.git
 sudo cp Project-Mariana/mariana.service /etc/systemd/system
 sudo systemctl daemon-reload
