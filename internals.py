@@ -601,15 +601,20 @@ def process_incoming_routing(source_nac, payload):
 	logs.info(f'Received routing information from {source_nac}')
 	payload=payload[len(routerstart):].decode()
 	routinginfo=json.loads(payload)
+	routeadded=False
 	for nac in routinginfo:
 		if routinginfo[nac]['next_hop'] != config['nac']:
-			if not check_valid_entry(cam_table[source_nac]['lastrouting'], expiry=35) or nac not in routing_table:
+			if not check_valid_entry(cam_table[source_nac]['lastrouting'], expiry=20) or nac not in routing_table:
 				add_to_routing(nac, routinginfo[nac]['hop_count']+1, source_nac, base64.b64decode(routinginfo[nac]['pubkey'].encode()), base64.b64decode(routinginfo[nac]['desc'].encode()))
-			else:
-				logs.warn(f'Possible sybil attack. Announcement from {source_nac} dropped')
+				routeadded=True
 		else:
 			logging.info('Cyclic routing entry not added.')
-	cam_table[source_nac]['lastrouting']=get_timestamp()
+	
+	if routeadded:
+		cam_table[source_nac]['lastrouting']=get_timestamp()
+	else:
+		logs.warn(f'Possible sybil attack. Announcement from {source_nac} dropped')
+
 			
 	stat['routing_received']+=1
 
