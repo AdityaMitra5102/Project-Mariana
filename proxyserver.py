@@ -97,32 +97,14 @@ def proxy(path):
 	if host=='viz.mariana':
 		if request.path=='/':
 			node_table={}
-			temp_phonebook= get_whole_phonebook()
-			for contact in temp_phonebook:
-				contact_nac=temp_phonebook[contact]
-				contactx=contact+'.mariana'
-				node_table[contactx]={}
-				if contact_nac in routing_table:
-					node_table[contactx]['hop_count']=routing_table[contact_nac]['hop_count']+1
-					if routing_table[contact_nac]['hop_count'] ==0:
-						node_table[contactx]['next_hop']=f'{config["nac"]}.mariana'
-					else:
-						node_table[contactx]['next_hop']=f'{routing_table[contact_nac]['next_hop']}.mariana'
-
-					node_table[contactx]['description']=f'{contact_nac}.mariana: {routing_table[contact_nac]['desc'].decode('utf-8', 'ignore')}'
-				else:
-					node_table[contactx]['hop_count']=0
-					node_table[contactx]['next_hop']=None
-					node_table[contactx]['description']=f'{contact_nac}.mariana: Node offline'
-					
+								
 			for tempnac in routing_table:
-				contact=phone_book_reverse_lookup(tempnac)
-				if contact in temp_phonebook:
-					continue
 				contact=tempnac
 				contact_nac=tempnac
 				contactx=contact+'.mariana'
 				node_table[contactx]={}
+				if routing_table[contact_nac]['hop_count']>4:
+					continue
 				node_table[contactx]['hop_count']=routing_table[contact_nac]['hop_count']+1
 				if routing_table[contact_nac]['hop_count'] ==0:
 					node_table[contactx]['next_hop']=f'{config["nac"]}.mariana'
