@@ -78,9 +78,10 @@ def aes_decrypt(msg, key):
 	return cleartext
 	
 def payload_encrypt(payload, pubkey):
-	aeskey=aes_keygen()
+	aeskey, encaeskey=encaps(pubkey)
+	#aeskey=aes_keygen()
 	encpayload=aes_encrypt(payload, aeskey)
-	encaeskey=encrypt(aeskey, pubkey)
+	#encaeskey=encrypt(aeskey, pubkey)
 	aeslen=len(encaeskey)
 	aeslenbytes=aeslen.to_bytes(2, 'big')
 	finalpayload=aeslenbytes+encaeskey+encpayload
@@ -94,7 +95,7 @@ def payload_decrypt(payload_buffer, privkey):
 	if aessize==0:
 		return encrpayload #not encrypted
 	
-	aeskeydec=decrypt(aeskey, privkey)
+	aeskeydec=decaps(privkey, aeskey)
 	decpayload=aes_decrypt(encrpayload, aeskeydec)
 	return decpayload
 	
