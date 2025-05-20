@@ -1,3 +1,11 @@
+########################### Marianas Qubit ##########################
+# The Internet of Freedom
+# Marianas Qubit is an alternate internet stack built on top of the internet
+# with the mindset of counter surveilliance
+# "Ultimately, saying that you don't care about privacy because you have nothing to hide is no different from saying you don't care about freedom of speech because you have nothing to say." - Ed. Snowden
+#####################################################################
+
+
 import random
 import uuid
 import socket
@@ -434,7 +442,7 @@ def save_tracker_list():
 ############################# Process received packet #############################
 
 def process_packet(packet, ip, port):
-	try:
+	if True:
 		source_nac=uuid_str(packet[:16])
 		flag=packet[16]
 		logs.info(f'Packet from {source_nac} flag {flag}')
@@ -450,8 +458,8 @@ def process_packet(packet, ip, port):
 				send(packet, dest_nac) #Forward to destination
 		
 		process_special_packet(packet, ip, port)
-	except Exception as e:
-		logs.warn(f'Packet out of format. Ignoring {e}')
+	#except Exception as e:
+	#	logs.warn(f'Packet out of format. Ignoring {e}')
 		
 def process_special_packet(packet, ip, port):
 	source_nac=uuid_str(packet[:16])
