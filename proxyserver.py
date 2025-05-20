@@ -60,6 +60,10 @@ def known_hosts():
 def proxy(path):
 	host=str(request.headers.get('Host')).strip()
 	if host=='localhost:8000' or host=='127.0.0.1:8000':
+		if request.path=='/active':
+			if len(routing_table)>0:
+				return 'true'
+			return 'false'
 		return render_template('marbrowser.html')
 		
 	exit_node_proxy=False
