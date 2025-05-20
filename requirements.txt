@@ -1,1 +1,5 @@
-cryptography psutil requests flask flask-cors
+cryptography
+psutil
+requests
+flask
+flask-cors
