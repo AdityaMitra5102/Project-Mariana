@@ -263,6 +263,19 @@ canvas {
 
 }
 
+.phonebutton {
+    background-color: rgba(0, 0, 0, 0.7); /* Black with 70% opacity */
+    color: #33ff33;
+    border: 1px solid #33ff33;
+    padding: 10px 20px;
+    font-family: 'Courier New', Courier, monospace;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+.phonebutton:hover {
+    background-color: rgba(17, 17, 17, 0.7); /* Slightly lighter black/gray with 70% opacity */
+}
+	  
 @media screen and (max-width: 620px) {
 .searchBox:hover > .searchInput {
     width: 150px;
@@ -316,7 +329,8 @@ canvas {
 </div>
 	
     <div class="overlay-text"><center><h1>Marianas Qubit</h1><br>The Internet of Freedom. By Cryptane<br><h2>Ultimately, saying that you don't care about privacy because you have nothing to hide is no different from saying you don't care about freedom of speech because you have nothing to say. -Ed Snowden</h2><br>My Mariana: {{nac}}<br>
-    <a href="http://phonebook.mariana" target="_blank" class="overlay-text">Go to phonebook</a>
+	    <button class="phonebutton" onclick="window.open('http://phonebook.mariana');">Go to phonebook</button>
+    
     </center>
     
 
