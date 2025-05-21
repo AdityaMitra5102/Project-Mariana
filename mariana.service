@@ -9,7 +9,7 @@ Restart=always
 RestartSec=1
 User=root
 WorkingDirectory=/etc/mar/Project-Mariana
-ExecStartPre=/usr/bin/git pull
+ExecStartPre=-/usr/bin/git pull
 ExecStart=/usr/bin/python3 /etc/mar/Project-Mariana/proxyserver.py
 
 [Install]
