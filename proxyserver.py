@@ -83,7 +83,14 @@ def proxy(path):
 		
 
 	if host=='local.mariana':
-		return render_template('home.html', nac=f'{config["nac"]}.mariana')
+		if request.path=='/active':
+			if len(routing_table)>0:
+				return 'true'
+			return 'false'
+		
+		if len(routing_table)>0:
+			return render_template('home.html', nac=f'{config["nac"]}.mariana')
+		return render_template('notconnected.html')
 
 	if host=='hosts.mariana':
 		return known_hosts()
