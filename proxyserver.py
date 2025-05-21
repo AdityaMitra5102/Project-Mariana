@@ -156,6 +156,7 @@ def proxy(path):
 					temp_active[f'{tempnac}.mariana']={}
 					temp_active[f'{tempnac}.mariana']['desc']=routing_table[tempnac]['desc'].decode('utf-8', 'ignore')
 					temp_active[f'{tempnac}.mariana']['next_hop']=f'{routing_table[tempnac]['next_hop']}.mariana'
+					temp_active[f'{tempnac}.mariana']['hop_count']=routing_table[tempnac]['hop_count']
 				return json.dumps(temp_active)
 				
 		if request.method=='POST':

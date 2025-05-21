@@ -370,9 +370,9 @@ def send_to_host(msg, nac):
 	
 def add_to_routing(nac, hopcount, next_nac, pubkey, desc):
 	global routing_table
-	if hopcount>80:
+	if hopcount>20:
 		if nac in routing_table:
-			if routing_table[nac]['hop_count']>70:
+			if routing_table[nac]['hop_count']>15:
 				routing_table.pop(nac)
 		return
 	if nac==config['nac']:
