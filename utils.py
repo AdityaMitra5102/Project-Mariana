@@ -52,3 +52,10 @@ def check_valid_tracker(tracker):
 def get_public_ip():
 	resp=requests.get('http://api.ipify.org')
 	return resp.text
+
+def is_stick():
+	try:
+		stickpath='/etc/mar/stickmode'
+		return os.path.exists(stickpath)
+	except:
+		return False
