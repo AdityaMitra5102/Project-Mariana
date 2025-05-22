@@ -267,10 +267,10 @@ def proxy(path):
 		if request.method=='POST':
 			if request.path=='/save':
 				secjson=request.get_json()
-					if is_stick():
-						secjson['web_server_allow']=False
-						secjson['port_fw_allow']=[]
-						securityconfig=secjson
+				if is_stick():
+					secjson['web_server_allow']=False
+					secjson['port_fw_allow']=[]
+				securityconfig=secjson
 				save_securityconfig(secjson)
 				return 'Security Configurations saved'
 
