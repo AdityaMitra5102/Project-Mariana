@@ -58,6 +58,7 @@ def known_hosts():
 @app.route('/', defaults={'path': ''}, methods=['GET', 'POST'])
 @app.route('/<path:path>', methods=['GET', 'POST'])
 def proxy(path):
+	global securityconfig
 	host=str(request.headers.get('Host')).strip()
 	if host=='localhost:8000' or host=='127.0.0.1:8000':
 		if request.path=='/active':
@@ -258,12 +259,19 @@ def proxy(path):
 	if host=='security.mariana':
 		if request.method=='GET':
 			if request.path=='/':
+				if is_stick():
+					return render_template('security.html', stickwarn='You are on stick mode. Unable to enable Web Server or Port Proxy')
 				return render_template('security.html')
 			if request.path=='/view':
 				return json.dumps(securityconfig)
 		if request.method=='POST':
 			if request.path=='/save':
-				save_securityconfig(request.get_json())
+				secjson=request.get_json()
+					if is_stick():
+						secjson['web_server_allow']=False
+						secjson['port_fw_allow']=[]
+						securityconfig=secjson
+				save_securityconfig(secjson)
 				return 'Security Configurations saved'
 
 
