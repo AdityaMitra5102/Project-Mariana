@@ -59,6 +59,10 @@ def known_hosts():
 @app.route('/<path:path>', methods=['GET', 'POST'])
 def proxy(path):
 	global securityconfig
+	iseph=is_ephemeral()
+	ephwarn=''
+	if iseph:
+		ephwarn='Running in ephemeral mode. Any changes made will not persist.'
 	host=str(request.headers.get('Host')).strip()
 	if host=='localhost:8000' or host=='127.0.0.1:8000':
 		if request.path=='/active':
@@ -137,7 +141,7 @@ def proxy(path):
 	if host=='phonebook.mariana':
 		if request.method=='GET':
 			if request.path=='/':
-				return render_template('phonebook.html')
+				return render_template('phonebook.html', ephwarn=ephwarn)
 			if request.path=='/phonebook':
 				temp_phonebook= get_whole_phonebook()
 				temp_active_phonebook={}
@@ -260,8 +264,8 @@ def proxy(path):
 		if request.method=='GET':
 			if request.path=='/':
 				if is_stick():
-					return render_template('security.html', stickwarn='You are on stick mode. Unable to enable Web Server or Port Proxy')
-				return render_template('security.html')
+					return render_template('security.html', stickwarn='You are on stick mode. Unable to enable Web Server or Port Proxy', ephwarn=ephwarn)
+				return render_template('security.html', ephwarn=ephwarn)
 			if request.path=='/view':
 				return json.dumps(securityconfig)
 		if request.method=='POST':

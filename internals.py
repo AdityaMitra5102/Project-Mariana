@@ -100,10 +100,12 @@ except:
 			config['port']=port
 		except:
 			logs.warning(f'Port {port} unavailable. Retrying with another.')
-	fl=open(os.path.join(filepath, configfile), 'w')
-	fl.write(json.dumps(config))
-	fl.close()
-	logs.info('Config file written')
+			
+	if is_persist():
+		fl=open(os.path.join(filepath, configfile), 'w')
+		fl.write(json.dumps(config))
+		fl.close()
+		logs.info('Config file written')
 	
 			
 logs.info(f'Binded to port {config["port"]}')
@@ -114,9 +116,10 @@ try:
 	fl.close()
 	logs.info('Security config loaded')
 except:
-	fl=open(os.path.join(filepath, securityconfigfile), 'w')
-	fl.write(json.dumps(securityconfig, indent=4))
-	fl.close()
+	if is_persist():
+		fl=open(os.path.join(filepath, securityconfigfile), 'w')
+		fl.write(json.dumps(securityconfig, indent=4))
+		fl.close()
 	logs.info('Security config not found. Writing defaults')
 
 try:
@@ -154,9 +157,10 @@ try:
 except:
 	logs.warning('Private key not found. Generating keypair.')
 	privkey=generate_keypair()
-	fl=open(os.path.join(filepath, privkeyfile), 'wb')
-	fl.write(privkey)
-	fl.close()
+	if is_persist():
+		fl=open(os.path.join(filepath, privkeyfile), 'wb')
+		fl.write(privkey)
+		fl.close()
 	logs.info('Private key generated')
 
 selfpubkey=get_pub_key(privkey)
@@ -170,10 +174,11 @@ trackers=get_trackers_git(trackers)
 def save_securityconfig(updatedconfig):
 	global securityconfig
 	securityconfig=updatedconfig
-	fl=open(os.path.join(filepath, securityconfigfile), 'w')
-	fl.write(json.dumps(securityconfig, indent=4))
-	fl.close()
-	logs.info('Writing security config')
+	if is_persist():
+		fl=open(os.path.join(filepath, securityconfigfile), 'w')
+		fl.write(json.dumps(securityconfig, indent=4))
+		fl.close()
+		logs.info('Writing security config')
 
 
 
@@ -235,9 +240,10 @@ def delete_contact(humanalias):
 	return True
 	
 def save_phonebook_file():
-	fl=open(os.path.join(filepath, phonebookfile), 'w')
-	fl.write(json.dumps(phonebook))
-	fl.close()
+	if is_persist():
+		fl=open(os.path.join(filepath, phonebookfile), 'w')
+		fl.write(json.dumps(phonebook))
+		fl.close()
 	logs.info('Phonebook saved')	
 
 def get_whole_phonebook():
@@ -248,9 +254,10 @@ def write_phonebook_pub():
 	temp={}
 	for name in phonebookpub:
 		temp[name]=phonebookpub[name].hex()
-	fl=open(os.path.join(filepath, phonebooksecurityfile), 'w')
-	fl.write(json.dumps(temp))
-	fl.close()
+	if is_persist():		
+		fl=open(os.path.join(filepath, phonebooksecurityfile), 'w')
+		fl.write(json.dumps(temp))
+		fl.close()
 	
 def check_contacts_pubkey_match(humanalias):
 	nac=get_contact(humanalias)

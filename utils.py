@@ -1,3 +1,4 @@
+import pathlib
 import requests
 import time
 import uuid
@@ -59,3 +60,29 @@ def is_stick():
 		return os.path.exists(stickpath)
 	except:
 		return False
+		
+def delete_existing():
+	filelist=['config.json', 'privatekey.pem', 'phonebook.json', 'phonebooksec.json', 'security.json']
+	filepath = os.path.join(os.getenv('APPDATA') if os.name == 'nt' else os.path.expanduser('~/.config'), 'Mariana')
+	for x in filelist:
+		try:
+			finpath=os.path.join(filepath, x)
+			os.remove(finpath)
+		except:
+			pass	
+
+		
+def is_ephemeral():
+	try:
+		ephpath=['/etc/mar/ephemeral', f'{os.getenv('appdata')}/mareph']
+		for x in ephpath:
+			if os.path.exists(x):
+				delete_existing()
+				return True
+		return False
+	except:
+		return False
+	
+		
+def is_persist():
+	return not is_ephemeral()
