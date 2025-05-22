@@ -866,6 +866,8 @@ def request_retransmission():
 		
 def self_discovery_loop():
 	while not self_public:
+		if not is_persist():
+			break
 		try:
 			logs.info('Trying self discovery')
 			perform_self_discovery()
