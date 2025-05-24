@@ -89,6 +89,7 @@ def get_cargo_status(phone_book_reverse_lookup):
 		completeperc=0
 		if currtrans['current_pack']!=0:
 			completeperc=round(100.0*currtrans['current_pack']/(currtrans['total_packs']-1),2)
+			completeperc=min(100, completeperc)
 		
 		x={'NAC':phone_book_reverse_lookup(currtrans['nac'])+'.mariana', 'filename':currtrans['name'], 'percentage': str(completeperc), 'status': currtrans['status']}
 		currstatus.append(x)
