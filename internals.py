@@ -307,6 +307,10 @@ def l1recvfrom(n):
 ############################# Neighbor verification #############################
 
 def add_to_unverified_neighbor(nac, ip, port, pubkey, desc):
+	if nac in cam_table and nac in routing_table:
+		if ip==cam_table[nac]['ip'] and port==cam_table[nac]['port'] and pubkey==routing_table[nac]['pubkey']:
+			add_neighbor(nac, ip, port, pubkey, desc)
+
 	with unverified_neighbors_table_lock:
 		logs.info(f'Adding unverified neighbor {nac}. Verifying.')
 		if nac not in unverified_neighbors_table:
