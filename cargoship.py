@@ -177,7 +177,7 @@ def handle_cargo_incoming_packet(src_nac,payload, send_payload, securityconfig):
 		
 		if cargostatus[identifier]['current_pack']==cargostatus[identifier]['total_packs'] and cargostatus[identifier]['total_packs']>1:
 			cargostatus[identifier]['status']='Sending complete'
-			cargostatus[identifier]['current_pack']=seqnum
+			cargostatus[identifier]['current_pack']=seqnum+1
 			sendbuf.pop(identifier)
 			return
 		
