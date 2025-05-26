@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Status Page</title>
+</head>
+<body>
+  <h3>Device is Online</h3>
+  <script>
+    window.onload = () => {
+      if (window.opener && !window.opener.closed) {
+        window.opener.postMessage('online', '*');
+      }
+    };
+  </script>
+</body>
+</html>
