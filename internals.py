@@ -176,6 +176,8 @@ self_public=False
 
 trackers=get_trackers_git(trackers)
 
+l2retry=10
+
 ############################# Security Config #############################
 
 def save_securityconfig(updatedconfig):
@@ -301,8 +303,7 @@ def get_stats():
 def l1sendto(data, addr, tempsock=None):
 	data=data+crc32(data)
 	if tempsock is None:
-		for i in range(10):
-			sock.sendto(data, addr)
+		sock.sendto(data, addr)
 	else:
 		tempsock.sendto(data,addr)
 
@@ -334,7 +335,9 @@ def add_to_unverified_neighbor(nac, ip, port, pubkey, desc):
 		unverified_neighbors_table[nac]['time']=get_timestamp()
 		unverified_neighbors_table[nac]['desc']=desc
 		packet=gen_verif_init(config['nac'], ciphertext)
-		l1sendto(packet, (ip, port))
+		for xx in range(l2retry):
+			time.sleep(0.1)
+			l1sendto(packet, (ip, port))
 		
 def verify_neighbor(nac, secret):
 	if nac not in unverified_neighbors_table:
@@ -350,7 +353,9 @@ def verify_self_as_neighbor(nac, ciphertext):
 	logs.info(f'Verifying myself to {nac}')
 	resp=decaps(privkey, ciphertext)
 	packet=gen_verif_complete(config['nac'], resp)
-	l1sendto(packet, (unverified_neighbors_table[nac]['ip'], unverified_neighbors_table[nac]['port']))
+	for xx in range(l2retry):
+		time.sleep(0.1)
+		l1sendto(packet, (unverified_neighbors_table[nac]['ip'], unverified_neighbors_table[nac]['port']))
 			
 		
 
@@ -704,16 +709,22 @@ def send_conn_accept(nac):
 	packet=gen_conn_accept(config['nac'], selfpubkey, securityconfig['desc'])
 	ip=unverified_neighbors_table[nac]['ip']
 	port=unverified_neighbors_table[nac]['port']
-	l1sendto(packet, (ip, port))
+	for xx in range(l2retry):
+		time.sleep(0.1)
+		l1sendto(packet, (ip, port))
 	
 def send_conn_reject(nac, ip, port):
 	packet=get_conn_reject(config['nac'])
-	l1sendto(packet, (ip, port))
+	for xx in range(l2retry):
+		time.sleep(0.1)
+		l1sendto(packet, (ip, port))
 
 def send_conn_req(ip, port):
 	#logs.info(f'Sending connection request to node at {ip}:{port}')
 	packet=gen_conn_req(config['nac'], selfpubkey, securityconfig['desc'])
-	l1sendto(packet, (ip, port))
+	for xx in range(l2retry):
+		time.sleep(0.1)
+		l1sendto(packet, (ip, port))
 	
 def send_payload(nac, payload, retry=0, core_data=False):
 	if not core_data:
