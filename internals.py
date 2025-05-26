@@ -301,7 +301,8 @@ def get_stats():
 def l1sendto(data, addr, tempsock=None):
 	data=data+crc32(data)
 	if tempsock is None:
-		sock.sendto(data, addr)
+		for i in range(10):
+			sock.sendto(data, addr)
 	else:
 		tempsock.sendto(data,addr)
 
