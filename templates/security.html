@@ -172,6 +172,12 @@
             </div>
             
             <div class="form-group">
+                <label>
+                    <input type="checkbox" id="allowUnknownNac"> Allow Unknown NAC
+                </label>
+            </div>
+            
+            <div class="form-group">
                 <label>Port Firewall Allow List:</label>
                 
                 <div class="wildcard-option">
@@ -208,6 +214,7 @@
         const webServerAllowInput = document.getElementById('webServerAllow');
         const clearnetExitProxyInput = document.getElementById('clearnetExitProxy');
         const allowMismatchContactInput = document.getElementById('allowMismatchContact');
+        const allowUnknownNacInput = document.getElementById('allowUnknownNac');
         const wildcardOptionInput = document.getElementById('wildcardOption');
         const portsContainer = document.getElementById('portsContainer');
         const addPortBtn = document.getElementById('addPortBtn');
@@ -276,6 +283,7 @@
                 web_server_allow: webServerAllowInput.checked,
                 clearnet_exit_proxy: clearnetExitProxyInput.checked,
                 allow_mismatch_contact: allowMismatchContactInput.checked,
+                allow_unknown_nac: allowUnknownNacInput.checked,
                 port_fw_allow: portFwAllow,
                 cargo_ship_allow_exec: cargoShipAllowExecInput.checked
             };
@@ -287,6 +295,7 @@
             webServerAllowInput.checked = data.web_server_allow;
             clearnetExitProxyInput.checked = data.clearnet_exit_proxy;
             allowMismatchContactInput.checked = data.allow_mismatch_contact || false;
+            allowUnknownNacInput.checked = data.allow_unknown_nac !== undefined ? data.allow_unknown_nac : true;
             cargoShipAllowExecInput.checked = data.cargo_ship_allow_exec;
             
             // Handle port firewall allow list
