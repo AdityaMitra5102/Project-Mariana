@@ -176,7 +176,7 @@ self_public=False
 
 trackers=get_trackers_git(trackers)
 
-l2retry=10
+l2retry=3
 l2retrydelay=0
 ############################# Security Config #############################
 
@@ -741,7 +741,7 @@ def send_conn_reject(nac, ip, port):
 		l1sendto(packet, (ip, port))
 
 def send_conn_req(ip, port):
-	#logs.info(f'Sending connection request to node at {ip}:{port}')
+	logs.info(f'Sending connection request to node at {ip}:{port}')
 	packet=gen_conn_req(config['nac'], selfpubkey, securityconfig['desc'])
 	for xx in range(l2retry):
 		time.sleep(l2retrydelay)
@@ -982,7 +982,7 @@ def conn_keepalive_loop():
 
 		except Exception as e:
 			logs.error(f'Error occurred while opening tracker {e}')
-		time.sleep(15)	
+		time.sleep(3)	
 
 def local_node_discovery_loop():
 	while True:
@@ -1031,7 +1031,7 @@ def init_threads():
 	tracker_thread.start()
 	receive_thread.start()
 	keepalive_thread.start()
-	discovery_thread.start()
+	#discovery_thread.start()
 	self_discovery_thread.start()
 	retransmission_thread.start()
 	cargoship_thread.start()
