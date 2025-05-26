@@ -741,7 +741,7 @@ def send_conn_reject(nac, ip, port):
 		l1sendto(packet, (ip, port))
 
 def send_conn_req(ip, port):
-	logs.info(f'Sending connection request to node at {ip}:{port}')
+	#logs.info(f'Sending connection request to node at {ip}:{port}')
 	packet=gen_conn_req(config['nac'], selfpubkey, securityconfig['desc'])
 	for xx in range(l2retry):
 		time.sleep(l2retrydelay)
@@ -1031,7 +1031,7 @@ def init_threads():
 	tracker_thread.start()
 	receive_thread.start()
 	keepalive_thread.start()
-	#discovery_thread.start()
+	discovery_thread.start()
 	self_discovery_thread.start()
 	retransmission_thread.start()
 	cargoship_thread.start()
