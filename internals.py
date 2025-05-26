@@ -487,7 +487,7 @@ def save_tracker_list():
 ############################# Process received packet #############################
 
 def process_packet(packet, ip, port):
-	try:
+	if True:
 		source_nac=uuid_str(packet[:16])
 		tables_keep_active(source_nac)
 		flag=packet[16]
@@ -504,8 +504,8 @@ def process_packet(packet, ip, port):
 				send(packet, dest_nac) #Forward to destination
 		
 		process_special_packet(packet, ip, port)
-	except Exception as e:
-		logs.warn(f'Packet out of format. Ignoring {e}')
+	#except Exception as e:
+	#	logs.warn(f'Packet out of format. Ignoring {e}')
 		
 def process_special_packet(packet, ip, port):
 	source_nac=uuid_str(packet[:16])
@@ -721,8 +721,15 @@ def check_no_mitm(nac):
 
 def send_conn_accept(nac):
 	packet=gen_conn_accept(config['nac'], selfpubkey, securityconfig['desc'])
-	ip=unverified_neighbors_table[nac]['ip']
-	port=unverified_neighbors_table[nac]['port']
+	ip=''
+	port=0
+	if nac in unverified_neighbors_table:
+		ip=unverified_neighbors_table[nac]['ip']
+		port=unverified_neighbors_table[nac]['port']
+	else:
+		ip=cam_table[nac]['ip']
+		port=cam_table[nac]['port']
+	
 	for xx in range(l2retry):
 		time.sleep(l2retrydelay)
 		l1sendto(packet, (ip, port))
