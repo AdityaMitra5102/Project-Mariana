@@ -45,7 +45,8 @@ logs=logging.getLogger('mariana')
 routerstart='routinginfo:'
 trackerstart='trackerinfo:'
 
-securityconfig={'web_server_allow': False, 'clearnet_exit_proxy': True, 'port_fw_allow':[], 'cargo_ship_allow_exec':True, 'allow_mismatch_contact':False, 'desc': 'Mariana Node'}
+securityconfigdefault={'web_server_allow': False, 'clearnet_exit_proxy': True, 'port_fw_allow':[], 'cargo_ship_allow_exec':True, 'allow_mismatch_contact':False, 'allow_unknown_nac':True, 'desc': 'Mariana Node'}
+securityconfig=securityconfigdefault
 
 stat={'packets_sent':0, 'packets_received':0, 'packets_relayed':0, 'payloads_sent':0, 'payloads_received':0, 'routing_sent':0, 'routing_received':0, 'total_connected_nodes':0, 'directly_connected_nodes':0, 'known_public_nodes':0, 'memory_used_bytes':0, 'uptime_seconds':0}
 
@@ -113,6 +114,11 @@ logs.info(f'Binded to port {config["port"]}')
 try:
 	fl=open(os.path.join(filepath, securityconfigfile), 'r')
 	securityconfig=json.load(fl)
+	for tempx in securityconfigdefault:
+		if tempx not in securityconfig:
+			securityconfig[tempx]=securityconfigdefault[tempx]
+			save_securityconfig(securityconfig)
+			
 	fl.close()
 	logs.info('Security config loaded')
 except:
@@ -216,6 +222,9 @@ def save_contact(humanalias, nac):
 	save_phonebook_file()
 	write_phonebook_pub()
 	return True
+	
+def check_phonebook_saved_nac(nac):
+	return nac!=phone_book_reverse_lookup(nac)
 	
 def update_contact_pub(humanalias):
 	if humanalias not in phonebook:
@@ -662,6 +671,13 @@ def process_payload(source_nac, payload):
 		if not check_no_mitm(source_nac):
 			logs.info(f'Possible MITM. Packet from {source_nac} dropped.')
 			return
+			
+		if not securityconfig['allow_unknown_nac']:
+			if not check_phonebook_saved_nac(nac):
+				logs.info(f'Unknown NAC {nac} not allowed. Packet dropped.')
+				return
+
+			
 		resp=user_response(source_nac, payload, send_payload, phone_book_reverse_lookup, securityconfig)
 		if resp is not None:
 			send_payload(source_nac, resp)
@@ -700,8 +716,13 @@ def send_conn_req(ip, port):
 def send_payload(nac, payload, retry=0, core_data=False):
 	if not core_data:
 		if not check_no_mitm(nac):
-			logs.info(f'Possible MITM to {nac}. Packet not sent.')
+			logs.info(f'Possible MITM to {nac}. Payload not sent.')
 			return
+			
+		if not securityconfig['allow_unknown_nac']:
+			if not check_phonebook_saved_nac(nac):
+				logs.info(f'Unknown NAC {nac} not allowed. Payload not sent.')
+				return
 			
 	if nac not in routing_table:
 		if retry>=3:
