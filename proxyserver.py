@@ -69,6 +69,8 @@ def proxy(path):
 			if len(routing_table)>0:
 				return 'true'
 			return 'false'
+		if request.path=='/checkstatus':
+			return render_template('statuschecker.html')
 		return render_template('marbrowser.html')
 		
 	exit_node_proxy=False
@@ -92,6 +94,8 @@ def proxy(path):
 			if len(routing_table)>0:
 				return 'true'
 			return 'false'
+		if request.path=='/checkstatus':
+			return render_template('statuschecker.html')
 		
 		if len(routing_table)>0:
 			return render_template('home.html', nac=f'{config["nac"]}.mariana')
