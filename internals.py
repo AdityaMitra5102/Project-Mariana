@@ -967,6 +967,12 @@ def conn_keepalive_loop():
 				tracker_ip=trackers[tracker]['ip']
 				tracker_port=trackers[tracker]['port']
 				send_conn_req(tracker_ip, tracker_port)
+				
+			for nac in cam_table:
+				tracker_ip=cam_table[nac]['ip']
+				tracker_port=cam_table[nac]['port']
+				send_conn_req(tracker_ip, tracker_port)
+
 		except Exception as e:
 			logs.error(f'Error occurred while opening tracker {e}')
 		time.sleep(15)	
