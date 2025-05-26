@@ -177,7 +177,7 @@ self_public=False
 trackers=get_trackers_git(trackers)
 
 l2retry=10
-
+l2retrydelay=0.001
 ############################# Security Config #############################
 
 def save_securityconfig(updatedconfig):
@@ -336,7 +336,7 @@ def add_to_unverified_neighbor(nac, ip, port, pubkey, desc):
 		unverified_neighbors_table[nac]['desc']=desc
 		packet=gen_verif_init(config['nac'], ciphertext)
 		for xx in range(l2retry):
-			time.sleep(0.1)
+			time.sleep(l2retrydelay)
 			l1sendto(packet, (ip, port))
 		
 def verify_neighbor(nac, secret):
@@ -354,7 +354,7 @@ def verify_self_as_neighbor(nac, ciphertext):
 	resp=decaps(privkey, ciphertext)
 	packet=gen_verif_complete(config['nac'], resp)
 	for xx in range(l2retry):
-		time.sleep(0.1)
+		time.sleep(l2retrydelay)
 		l1sendto(packet, (unverified_neighbors_table[nac]['ip'], unverified_neighbors_table[nac]['port']))
 			
 		
@@ -710,20 +710,20 @@ def send_conn_accept(nac):
 	ip=unverified_neighbors_table[nac]['ip']
 	port=unverified_neighbors_table[nac]['port']
 	for xx in range(l2retry):
-		time.sleep(0.1)
+		time.sleep(l2retrydelay)
 		l1sendto(packet, (ip, port))
 	
 def send_conn_reject(nac, ip, port):
 	packet=get_conn_reject(config['nac'])
 	for xx in range(l2retry):
-		time.sleep(0.1)
+		time.sleep(l2retrydelay)
 		l1sendto(packet, (ip, port))
 
 def send_conn_req(ip, port):
 	#logs.info(f'Sending connection request to node at {ip}:{port}')
 	packet=gen_conn_req(config['nac'], selfpubkey, securityconfig['desc'])
 	for xx in range(l2retry):
-		time.sleep(0.1)
+		time.sleep(l2retrydelay)
 		l1sendto(packet, (ip, port))
 	
 def send_payload(nac, payload, retry=0, core_data=False):
