@@ -177,7 +177,7 @@ self_public=False
 trackers=get_trackers_git(trackers)
 
 l2retry=10
-l2retrydelay=0.001
+l2retrydelay=0
 ############################# Security Config #############################
 
 def save_securityconfig(updatedconfig):
@@ -315,6 +315,15 @@ def l1recvfrom(n):
 		return data, addr
 	logs.info(f'CRC Mismatch, packet dropped from {addr}')
 	return None, None
+
+def tables_keep_active(nac):
+	if nac in cam_table:
+		cam_table[nac]['time']=get_timestamp()
+	if nac in routing_table:
+		routing_table[nac]['time']=get_timestamp()
+	if nac in unverified_neighbors_table:
+		unverified_neighbors_table[nac]['time']=get_timestamp()
+
 
 ############################# Neighbor verification #############################
 
@@ -474,8 +483,9 @@ def save_tracker_list():
 ############################# Process received packet #############################
 
 def process_packet(packet, ip, port):
-	if True:
+	try:
 		source_nac=uuid_str(packet[:16])
+		tables_keep_active(source_nac)
 		flag=packet[16]
 		logs.info(f'Packet from {source_nac} flag {flag}')
 		stat['packets_received']+=1
@@ -490,8 +500,8 @@ def process_packet(packet, ip, port):
 				send(packet, dest_nac) #Forward to destination
 		
 		process_special_packet(packet, ip, port)
-	#except Exception as e:
-	#	logs.warn(f'Packet out of format. Ignoring {e}')
+	except Exception as e:
+		logs.warn(f'Packet out of format. Ignoring {e}')
 		
 def process_special_packet(packet, ip, port):
 	source_nac=uuid_str(packet[:16])
