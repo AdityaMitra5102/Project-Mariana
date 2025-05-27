@@ -71,10 +71,11 @@ def main():
 	signal.signal(signal.SIGINT, handle_signal)   # Ctrl+C
 	signal.signal(signal.SIGTERM, handle_signal)  # taskkill / PID
 
-	tray_icon = pystray.Icon("ProxyToggler")
+	tray_icon = pystray.Icon("MarianaTray")
 	tray_icon.icon = create_image()
-	tray_icon.title = "Proxy Running"
+	tray_icon.title = "Mariana Running"
 	tray_icon.menu = pystray.Menu(
+		pystray.MenuItem("Browse", open_browser, default=True),
 		pystray.MenuItem("Exit", on_exit)
 	)
 
