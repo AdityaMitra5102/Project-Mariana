@@ -55,6 +55,8 @@ def known_hosts():
 	resp+='</body></HTML>'
 	return resp
 	
+def get_self_id():
+	return make_id_string(selfpubkey)
 
 @app.route('/', defaults={'path': ''}, methods=['GET', 'POST'])
 @app.route('/<path:path>', methods=['GET', 'POST'])
@@ -99,7 +101,7 @@ def proxy(path):
 			return render_template('statuschecker.html')
 		
 		if len(routing_table)>0:
-			return render_template('home.html', nac=f'{config["nac"]}.mariana')
+			return render_template('home.html', nac=f'{config["nac"]}.mariana', id=get_self_id())
 		return render_template('notconnected.html')
 
 	if host=='hosts.mariana':
