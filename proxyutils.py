@@ -71,7 +71,7 @@ def user_response(source_nac, payload, send_payload, phone_book_reverse_lookup, 
 					return
 				tempserverhost=check_host
 				try:
-					respx=requests.get(f'https://{tempserverhost}', timeout=3)
+					respx=requests.get(f'https://{tempserverhost}', timeout=3,  proxies={'http':None, 'https':None})
 					tempscheme='https'
 				except:
 					tempscheme='http'
@@ -84,7 +84,7 @@ def user_response(source_nac, payload, send_payload, phone_book_reverse_lookup, 
 			
 			data=bytes.fromhex(params['data'])
 			
-			resp=requests.request(method=params['method'].lower(), url=newurl, headers=params['headers'], params=params['args'], data=data)
+			resp=requests.request(method=params['method'].lower(), url=newurl, headers=params['headers'], params=params['args'], data=data,  proxies={'http':None, 'https':None})
 			dummyheaders={}
 			
 			for key, value in resp.headers.items():

@@ -1,3 +1,4 @@
+import threading
 from flask import Flask, request, Response, render_template
 import requests
 import logging
@@ -331,7 +332,15 @@ def proxy(path):
 		logging.error(f"Error proxying request: {e}")
 		return f"Error proxying request: {str(e)}", 500
 
-if __name__ == '__main__':
-
+def start_proxyserver():
 	logging.info("Starting proxy server on port 8000")
 	app.run(host='0.0.0.0', port=8000)
+
+def start_proxythread():
+	proxythread=threading.Thread(target=start_proxyserver)
+	proxythread.start()		
+
+if __name__ == '__main__':
+	start_proxythread()
+	
+	
