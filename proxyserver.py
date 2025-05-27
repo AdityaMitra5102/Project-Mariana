@@ -54,6 +54,7 @@ def known_hosts():
 		resp=resp+f'{nac}.mariana <a href="http://{nac}.mariana">Open</a> <br>'
 	resp+='</body></HTML>'
 	return resp
+	
 
 @app.route('/', defaults={'path': ''}, methods=['GET', 'POST'])
 @app.route('/<path:path>', methods=['GET', 'POST'])
@@ -173,6 +174,7 @@ def proxy(path):
 					temp_active[f'{tempnac}.mariana']['desc']=routing_table[tempnac]['desc'].decode('utf-8', 'ignore')
 					temp_active[f'{tempnac}.mariana']['next_hop']=f'{routing_table[tempnac]['next_hop']}.mariana'
 					temp_active[f'{tempnac}.mariana']['hop_count']=routing_table[tempnac]['hop_count']
+					temp_active[f'{tempnac}.mariana']['id']=make_id_string(routing_table[tempnac]['pubkey'])
 					if routing_table[tempnac]['hop_count']==0:
 						temp_active[f'{tempnac}.mariana']['next_hop']=f'{cam_table[tempnac]['ip']}:{cam_table[tempnac]['port']}'
 				return json.dumps(temp_active)

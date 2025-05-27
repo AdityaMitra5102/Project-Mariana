@@ -6,6 +6,8 @@ import socket
 import os
 import math
 
+from crypto import *
+
 def get_timestamp():
 	return int(time.time())
 	
@@ -53,6 +55,12 @@ def check_valid_tracker(tracker):
 def get_public_ip():
 	resp=requests.get('http://api.ipify.org')
 	return resp.text
+	
+def make_id_string(pubkey):
+	x=crc32(pubkey).hex().upper()
+	x = x[:4] + '-' + x[4:]
+	return x
+	
 
 def is_stick():
 	try:
