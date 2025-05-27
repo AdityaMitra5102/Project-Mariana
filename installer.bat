@@ -8,7 +8,7 @@ curl -L -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64)" https://download-installe
 START /wait python-inst.exe /uninstall /passive
 START /wait python-inst.exe /passive PrependPath=1 InstallAllUsers=1 Include_exe=1
 START /wait Git-2.49.0-64-bit.exe /SILENT
-msiexec /i firefox.msi /passive
+msiexec -i firefox.msi 
 setlocal EnableDelayedExpansion
 for /f "tokens=2*" %%a in ('reg query "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Environment" /v PATH') do set "SYS_PATH=%%b"
 for /f "tokens=2*" %%a in ('reg query "HKCU\Environment" /v PATH 2^>nul') do set "USER_PATH=%%b"
