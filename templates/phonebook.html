@@ -95,6 +95,7 @@ th, td {
                 <tr>
                     <th>Name</th>
                     <th>NAC</th>
+                    <th>ID</th>
                     <th>Description</th>
                     <th>Status</th>
                     <th>Verification</th>
@@ -115,6 +116,7 @@ th, td {
             <thead>
                 <tr>
                     <th>NAC</th>
+                    <th>ID</th>
                     <th>Description</th>
                     <th>Copy</th>
                     <th>Open</th>
@@ -220,11 +222,16 @@ th, td {
                 // Store NAC for later comparison
                 contactNacs.add(nac);
                 
-                // Apply search filter
+                // Get ID from active nodes data if available
+                const nodeInfo = activeNodes[nac];
+                const nodeId = nodeInfo ? (nodeInfo.id || '') : '';
+                
+                // Apply search filter (including ID in search)
                 if (searchTerm && 
                     !alias.toLowerCase().includes(searchTerm.toLowerCase()) && 
                     !nac.toLowerCase().includes(searchTerm.toLowerCase()) &&
-                    !description.toLowerCase().includes(searchTerm.toLowerCase())) {
+                    !description.toLowerCase().includes(searchTerm.toLowerCase()) &&
+                    !nodeId.toLowerCase().includes(searchTerm.toLowerCase())) {
                     continue;
                 }
                 
@@ -242,12 +249,14 @@ th, td {
                 // Highlight matching text if there's a search term
                 const highlightedAlias = highlightText(alias, searchTerm);
                 const highlightedNac = highlightText(nac, searchTerm);
+                const highlightedId = highlightText(nodeId, searchTerm);
                 const highlightedDesc = highlightText(description, searchTerm);
                 
                 const row = document.createElement('tr');
                 row.innerHTML = `
                     <td>${highlightedAlias}</td>
                     <td>${highlightedNac}</td>
+                    <td>${highlightedId}</td>
                     <td>${highlightedDesc}</td>
                     <td>${status}</td>
                     ${verificationCell}
@@ -262,30 +271,34 @@ th, td {
             const nodesBody = document.getElementById('nodes-body');
             nodesBody.innerHTML = '';
             
-            for (const [nodeId, nodeInfo] of Object.entries(activeNodes)) {
+            for (const [nodeNac, nodeInfo] of Object.entries(activeNodes)) {
                 // Skip if this node is already in contacts
-                if (contactNacs.has(nodeId)) continue;
+                if (contactNacs.has(nodeNac)) continue;
                 
                 const description = nodeInfo.desc || '';
+                const nodeId = nodeInfo.id || '';
                 
-                // Apply search filter
+                // Apply search filter (including ID in search)
                 if (searchTerm && 
-                    !nodeId.toLowerCase().includes(searchTerm.toLowerCase()) &&
-                    !description.toLowerCase().includes(searchTerm.toLowerCase())) {
+                    !nodeNac.toLowerCase().includes(searchTerm.toLowerCase()) &&
+                    !description.toLowerCase().includes(searchTerm.toLowerCase()) &&
+                    !nodeId.toLowerCase().includes(searchTerm.toLowerCase())) {
                     continue;
                 }
                 
                 // Highlight matching text if there's a search term
-                const highlightedNodeId = highlightText(nodeId, searchTerm);
+                const highlightedNodeNac = highlightText(nodeNac, searchTerm);
+                const highlightedId = highlightText(nodeId, searchTerm);
                 const highlightedDesc = highlightText(description, searchTerm);
                 
                 const row = document.createElement('tr');
                 row.innerHTML = `
-                    <td>${highlightedNodeId}</td>
+                    <td>${highlightedNodeNac}</td>
+                    <td>${highlightedId}</td>
                     <td>${highlightedDesc}</td>
-                    <td><button onclick="copyToClipboard('${nodeId}')">Copy</button></td>
-                    <td><button onclick="window.open('http://${nodeId}')">Open</button></td>
-                    <td><button onclick="saveNode('${nodeId}')">Save</button></td>
+                    <td><button onclick="copyToClipboard('${nodeNac}')">Copy</button></td>
+                    <td><button onclick="window.open('http://${nodeNac}')">Open</button></td>
+                    <td><button onclick="saveNode('${nodeNac}')">Save</button></td>
                 `;
                 nodesBody.appendChild(row);
             }
@@ -365,7 +378,7 @@ th, td {
         }
         
         // Function to save a node as a contact
-        async function saveNode(nodeId) {
+        async function saveNode(nodeNac) {
             let alias = prompt('Enter a name for this contact:');
             
             if (alias) {
@@ -375,12 +388,12 @@ th, td {
                 }
                 
                 // Get description from the node data or use empty string
-                const description = (activeNodes[nodeId] && activeNodes[nodeId].desc) || '';
+                const description = (activeNodes[nodeNac] && activeNodes[nodeNac].desc) || '';
                 
                 try {
                     const formData = new FormData();
                     formData.append('alias', alias);
-                    formData.append('contact', nodeId);
+                    formData.append('contact', nodeNac);
                     formData.append('description', description);
                     
                     const response = await fetch('/save', {
