@@ -9,7 +9,7 @@ start "" wscript "%temp%\msg.vbs"
 taskkill /F /IM python.exe
 taskkill /F /IM pythow.exe
 
-start /B "" pythonw "%~dp0wintray.py"
+start /B "" pythonw "wintray.py"
 git config --global --add safe.directory %~dp0
 git pull
 python -m pip install --upgrade pip
