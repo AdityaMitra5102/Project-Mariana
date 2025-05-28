@@ -54,10 +54,7 @@ def on_exit(icon, item=None):
 	exit_requested = True
 	disable_proxy()
 	icon.stop()
-	try:
-		os.system('taskkill /F /IM firefox.exe')
-	except:
-		pass
+
 	os._exit(0)
 
 def open_browser():
