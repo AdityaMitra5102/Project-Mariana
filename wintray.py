@@ -7,6 +7,7 @@ import signal
 import sys
 import os
 import logging
+import subprocess
 from proxyserver import *
 
 # Flag for controlling shutdown
@@ -26,6 +27,8 @@ def start_proxy():
 		winreg.SetValueEx(key, "ProxyServer", 0, winreg.REG_SZ, "http=localhost:8000;https=localhost:8000")
 		winreg.SetValueEx(key, "ProxyOverride", 0, winreg.REG_SZ, "<local>")
 		winreg.CloseKey(key)
+		subprocess.run(["setx", "HTTP_PROXY", "http://localhost:8000"], check=True)
+		subprocess.run(["setx", "HTTPS_PROXY", "http://localhost:8000"], check=True)
 		_refresh_proxy()
 		logging.info("[+] Proxy enabled.")
 		start_proxythread()
@@ -37,6 +40,9 @@ def disable_proxy():
 		key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, r"Software\Microsoft\Windows\CurrentVersion\Internet Settings", 0, winreg.KEY_SET_VALUE)
 		winreg.SetValueEx(key, "ProxyEnable", 0, winreg.REG_DWORD, 0)
 		winreg.CloseKey(key)
+		subprocess.run(["setx", "HTTP_PROXY", ""], check=True)
+		subprocess.run(["setx", "HTTPS_PROXY", ""], check=True)
+
 		_refresh_proxy()
 		print("[+] Proxy disabled.")
 	except Exception as e:
@@ -84,3 +90,4 @@ def main():
 
 if __name__ == "__main__":
 	main()
+
