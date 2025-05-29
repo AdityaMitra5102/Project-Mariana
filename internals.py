@@ -341,11 +341,12 @@ def add_to_unverified_neighbor(nac, ip, port, pubkey, desc):
 		logs.info(f'Adding unverified neighbor {nac}. Verifying.')
 		if nac not in unverified_neighbors_table:
 			unverified_neighbors_table[nac]={}
+			unverified_neighbors_table[nac]['challenge']=[]
 		unverified_neighbors_table[nac]['ip']=ip
 		unverified_neighbors_table[nac]['port']=port
 		unverified_neighbors_table[nac]['pubkey']=pubkey
 		shared_secret, ciphertext=encaps(pubkey)
-		unverified_neighbors_table[nac]['challenge']=shared_secret
+		unverified_neighbors_table[nac]['challenge'].append(shared_secret)
 		unverified_neighbors_table[nac]['time']=get_timestamp()
 		unverified_neighbors_table[nac]['desc']=desc
 		packet=gen_verif_init(config['nac'], ciphertext)
@@ -358,10 +359,11 @@ def verify_neighbor(nac, secret):
 	print(f'Received verification from {nac}')
 	if nac not in unverified_neighbors_table:
 		return
-	if secret==unverified_neighbors_table[nac]['challenge']:
+	if secret in unverified_neighbors_table[nac]['challenge']:
 			logs.info(f'Verified neighbor {nac}.')
 			with unverified_neighbors_table_lock:
 				add_neighbor(nac, unverified_neighbors_table[nac]['ip'],unverified_neighbors_table[nac]['port'],unverified_neighbors_table[nac]['pubkey'], unverified_neighbors_table[nac]['desc'])
+				unverified_neighbors_table.pop(nac)
 		
 def verify_self_as_neighbor(nac, ciphertext):
 	if nac not in unverified_neighbors_table:
