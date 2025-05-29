@@ -5,13 +5,20 @@ import os
 import threading
 import logging
 
-downdir=(next((d for d in [os.path.join(os.path.expanduser('~'), name) for name in ['Downloads', 'downloads', 'Download', 'download']] if os.path.isdir(d)), os.path.join(os.path.expanduser('~'), 'Downloads')))
+def get_savepath():
+	downdir=None
+	try:
+		downdir=get_cargodowndir()
+	except:
+		downdir=None
+	if downdir is None or downdir=='':
+		downdir=(next((d for d in [os.path.join(os.path.expanduser('~'), name) for name in ['Downloads', 'downloads', 'Download', 'download']] if os.path.isdir(d)), os.path.join(os.path.expanduser('~'), 'Downloads')))
+	savepath='CargoShip'
+	savepath=os.path.join(downdir, savepath)
+	pathlib.Path(savepath).mkdir(parents=True, exist_ok=True)
+	return savepath
 
-savepath='CargoShip'
-
-savepath=os.path.join(downdir, savepath)
-
-pathlib.Path(savepath).mkdir(parents=True, exist_ok=True)
+get_savepath()
 
 cargoshipheader='cargo'
 
@@ -145,6 +152,7 @@ def handle_cargo_incoming_packet(src_nac,payload, send_payload, securityconfig):
 		cargostatus[identifier]['current_pack']=seqnum
 		cargostatus[identifier]['time']=get_timestamp()			
 		if (seqnum+1)==cargostatus[identifier]['total_packs']:
+			savepath=get_savepath()
 			cargostatus[identifier]['status']='Writing.'
 			tempfilename=cargostatus[identifier]['name']
 			while pathlib.Path(os.path.join(savepath, tempfilename)).is_file():

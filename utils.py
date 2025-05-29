@@ -91,6 +91,15 @@ def is_ephemeral():
 	except:
 		return False
 	
+def get_cargodowndir():
+	ephpath=['/etc/mar/downdir', f'{os.getenv('appdata')}/downdir']
+	for x in ephpath:
+		if os.path.exists(x):
+			fl=open(x, 'r')
+			cont=fl.read()
+			fl.close()
+			return cont
+	return None
 		
 def is_persist():
 	return not is_ephemeral()
