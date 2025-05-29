@@ -363,13 +363,13 @@ def verify_neighbor(nac, secret):
 				add_neighbor(nac, unverified_neighbors_table[nac]['ip'],unverified_neighbors_table[nac]['port'],unverified_neighbors_table[nac]['pubkey'], unverified_neighbors_table[nac]['desc'])
 				unverified_neighbors_table.pop(nac)
 		
-def verify_self_as_neighbor(nac, ciphertext):
+def verify_self_as_neighbor(nac, ciphertext, ip, port):
 	logs.info(f'Verifying myself to {nac}')
 	resp=decaps(privkey, ciphertext)
 	packet=gen_verif_complete(config['nac'], resp)
 	for xx in range(l2retry):
 		time.sleep(l2retrydelay)
-		l1sendto(packet, (unverified_neighbors_table[nac]['ip'], unverified_neighbors_table[nac]['port']))
+		l1sendto(packet, (ip, port))
 			
 		
 
@@ -560,7 +560,7 @@ def process_verif_init(packet, ip, port):
 		return
 	flag=packet[16]
 	ciphertext=packet[17:]
-	verify_self_as_neighbor(source_nac, ciphertext)
+	verify_self_as_neighbor(source_nac, ciphertext, ip, port)
 	
 def process_verif_complete(packet, ip, port):
 	source_nac=uuid_str(packet[:16])
