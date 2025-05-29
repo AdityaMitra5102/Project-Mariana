@@ -90,13 +90,15 @@
 </head>
 <body>
     <div class="container">
-        <h1>Download Mariana Browser 🖥️</h1>
-        <p>If you are seeing this page, Mariana Daemon has been Installed. Congratulations on joining the Internet of Freedom. <br><br> You need the Mariana browser to use Mariana's Qubit. The daemon installer will try to install it  automatically (on Windows systems), creating a Desktop shortcut and a Start Menu entry. <br> If it has not been installed automatically, click the button below to download it for Windows and Linux. </p>
-	<button onclick='window.open("https://github.com/AdityaMitra5102/mariana-browser/releases/");'>Download Mariana Browser</button>
-<p><br><br>For advanced users not willing to install the Mariana Browser:</p>
-	<p>Alternatively you can run any web browser with a proxy server at http://localhost:8000 and open http://mariana.local to use Mariana without downloading the Mariana Browser. For example if you have Google Chrome installed, run the following on command prompt<br><br>
-"C:\Program Files\Google\Chrome\Application\chrome.exe" --incognito --proxy-server=http://localhost:8000 http://local.mariana
+        <h1>Download Browser for Mariana 🖥️</h1>
+        <p>If you are seeing this page, Mariana Daemon has been Installed. Congratulations on joining the Internet of Freedom. <br><br> You need the a browser with proxy to use Mariana's Qubit. The daemon installer will try to install Firefox  automatically (on Windows systems), creating a Desktop shortcut and a Start Menu entry to Mariana. <br> If it has not been installed automatically download Firefox or Chromium. (Chrome works as well but I do not recommend.) </p>
+	
+<p><br><br>For users on Linux systems not supporting System wide proxy:</p>
+	<p>You can run any web browser with a proxy server at http://localhost:8000 and open http://mariana.local to use Mariana. For example if you have Chromium installed, run the following on the terminal<br><br>
+chromium-browser --proxy-server=http://localhost:8000 http://local.mariana
 </p>
+<br><br>
+It is recommended to use incognito or in-private mode.
     </div>
 
 </body>
