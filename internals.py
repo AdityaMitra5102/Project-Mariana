@@ -39,7 +39,7 @@ phonebookfile='phonebook.json'
 phonebooksecurityfile='phonebooksec.json'
 securityconfigfile='security.json'
 
-logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', filename='pqi.log', filemode='a')
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')#, filename='pqi.log', filemode='a')
 logs=logging.getLogger('mariana')
 
 routerstart='routinginfo:'
@@ -352,11 +352,9 @@ def add_to_unverified_neighbor(nac, ip, port, pubkey, desc):
 		packet=gen_verif_init(config['nac'], ciphertext)
 		for xx in range(l2retry):
 			time.sleep(l2retrydelay)
-			print(f'Requesting verification from {nac}')
 			l1sendto(packet, (ip, port))
 		
 def verify_neighbor(nac, secret):
-	print(f'Received verification from {nac}')
 	if nac not in unverified_neighbors_table:
 		return
 	if secret in unverified_neighbors_table[nac]['challenge']:
@@ -366,14 +364,11 @@ def verify_neighbor(nac, secret):
 				unverified_neighbors_table.pop(nac)
 		
 def verify_self_as_neighbor(nac, ciphertext):
-	if nac not in unverified_neighbors_table:
-		return
 	logs.info(f'Verifying myself to {nac}')
 	resp=decaps(privkey, ciphertext)
 	packet=gen_verif_complete(config['nac'], resp)
 	for xx in range(l2retry):
 		time.sleep(l2retrydelay)
-		print(f'Verifying self to {nac}')
 		l1sendto(packet, (unverified_neighbors_table[nac]['ip'], unverified_neighbors_table[nac]['port']))
 			
 		

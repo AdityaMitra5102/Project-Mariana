@@ -85,6 +85,7 @@ def user_response(source_nac, payload, send_payload, phone_book_reverse_lookup, 
 			data=bytes.fromhex(params['data'])
 			
 			resp=requests.request(method=params['method'].lower(), url=newurl, headers=params['headers'], params=params['args'], data=data,  proxies={'http':None, 'https':None})
+			logging.info(f'Got headers {resp.headers}')
 			dummyheaders={}
 			
 			for key, value in resp.headers.items():
