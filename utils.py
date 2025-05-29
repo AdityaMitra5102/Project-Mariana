@@ -53,7 +53,7 @@ def check_valid_tracker(tracker):
 	return tracker_ip not in iplist
 	
 def get_public_ip():
-	resp=requests.get('http://api.ipify.org')
+	resp=requests.get('http://api.ipify.org', proxies={'http':None, 'https':None})
 	return resp.text
 	
 def make_id_string(pubkey):
