@@ -331,6 +331,7 @@ def add_to_unverified_neighbor(nac, ip, port, pubkey, desc):
 	if nac in cam_table and nac in routing_table:
 		if ip==cam_table[nac]['ip'] and port==cam_table[nac]['port'] and pubkey==routing_table[nac]['pubkey']:
 			add_neighbor(nac, ip, port, pubkey, desc)
+			return
 
 	if not securityconfig['verify_neighbors']:
 		add_neighbor(nac, ip, port, pubkey, desc)
@@ -985,7 +986,7 @@ def conn_keepalive_loop():
 
 		except Exception as e:
 			logs.error(f'Error occurred while opening tracker {e}')
-		time.sleep(3)	
+		time.sleep(15)	
 
 def local_node_discovery_loop():
 	while True:
@@ -1001,7 +1002,7 @@ def retransmission_loop():
 			request_retransmission()
 		except Exception as e:
 			logs.error(f'Couldnt request retransmission {e}')
-		time.sleep(3)
+		time.sleep(10)
 		
 def cargoship_loop():
 	while True:
