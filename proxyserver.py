@@ -337,10 +337,10 @@ def start_proxyserver():
 	app.run(host='0.0.0.0', port=8000)
 
 def start_proxythread():
-	proxythread=threading.Thread(target=start_proxyserver)
+	proxythread=threading.Thread(target=start_proxyserver, daemon=True)
 	proxythread.start()		
 
 if __name__ == '__main__':
-	start_proxythread()
+	start_proxyserver()
 	
 	

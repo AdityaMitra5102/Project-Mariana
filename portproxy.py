@@ -195,18 +195,18 @@ class PortProxy:
 				
 		
 		self.est=True
-		proxy_thread=threading.Thread(target=self.listen_loop)
+		proxy_thread=threading.Thread(target=self.listen_loop, daemon=True)
 		proxy_thread.start()
 		port_established(self)
 		if self.first_payload and len(self.first_payload)>0:
 			self.guest_to_host(0, self.first_payload)
 		self.first_payload=None
-		proxy_retry_thread=threading.Thread(target=self.retry_loop)
+		proxy_retry_thread=threading.Thread(target=self.retry_loop, daemon=True)
 		proxy_retry_thread.start()
-		proxy_cleanup_thread=threading.Thread(target=self.cleanup_loop)
+		proxy_cleanup_thread=threading.Thread(target=self.cleanup_loop, daemon=True)
 		proxy_cleanup_thread.start()
 		
 	def init_port_thread(self):
-		init_port_thread=threading.Thread(target=self.init_port)
+		init_port_thread=threading.Thread(target=self.init_port, daemon=True)
 		init_port_thread.start()
 		

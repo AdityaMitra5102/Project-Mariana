@@ -61,7 +61,7 @@ def make_send_data(dest_nac, filedata, filename, send_payload):
 	send_payload(dest_nac, metapack)
 
 def cargo_send(dest_nac, filedata, filename, send_payload):
-	cargo_meta_thread=threading.Thread(target=make_send_data, args=(dest_nac, filedata, filename, send_payload,))
+	cargo_meta_thread=threading.Thread(target=make_send_data, args=(dest_nac, filedata, filename, send_payload,), daemon=True)
 	cargo_meta_thread.start()
 	
 def attempt_cargo_send(send_payload):

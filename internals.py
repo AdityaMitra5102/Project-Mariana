@@ -963,7 +963,7 @@ def receive_packet_loop():
 			src_ip, src_port=addr
 			logs.info(f'Received packet from {src_ip}:{src_port}')
 			#process_packet(data, src_ip, src_port)
-			process_packet_thread=threading.Thread(target=process_packet, args=(data, src_ip, src_port,))
+			process_packet_thread=threading.Thread(target=process_packet, args=(data, src_ip, src_port,), daemon=True)
 			process_packet_thread.start()
 		except Exception as e:
 			logs.error(f'Error occurred while receiving packet {e}')
@@ -1019,15 +1019,15 @@ def cleanup_loop():
 		
 def init_threads():
 	save_tracker_list()
-	routing_thread=threading.Thread(target=send_routing_loop)
-	tracker_thread=threading.Thread(target=send_tracker_loop)
-	receive_thread=threading.Thread(target=receive_packet_loop)
-	keepalive_thread=threading.Thread(target=conn_keepalive_loop)
-	discovery_thread=threading.Thread(target=local_node_discovery_loop)
-	retransmission_thread=threading.Thread(target=retransmission_loop)
-	self_discovery_thread=threading.Thread(target=self_discovery_loop)
-	cargoship_thread=threading.Thread(target=cargoship_loop)
-	cleanup_thread=threading.Thread(target=cleanup_loop)
+	routing_thread=threading.Thread(target=send_routing_loop, daemon=True)
+	tracker_thread=threading.Thread(target=send_tracker_loop, daemon=True)
+	receive_thread=threading.Thread(target=receive_packet_loop, daemon=True)
+	keepalive_thread=threading.Thread(target=conn_keepalive_loop, daemon=True)
+	discovery_thread=threading.Thread(target=local_node_discovery_loop, daemon=True)
+	retransmission_thread=threading.Thread(target=retransmission_loop, daemon=True)
+	self_discovery_thread=threading.Thread(target=self_discovery_loop, daemon=True)
+	cargoship_thread=threading.Thread(target=cargoship_loop, daemon=True)
+	cleanup_thread=threading.Thread(target=cleanup_loop, daemon=True)
 	routing_thread.start()
 	tracker_thread.start()
 	receive_thread.start()
