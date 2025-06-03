@@ -969,7 +969,12 @@ def receive_packet_loop():
 			logs.error(f'Error occurred while receiving packet {e}')
 		
 def conn_keepalive_loop():
+	global trackers
 	while True:
+		try:
+			trackers=get_trackers_git(trackers)
+		except:
+			pass
 		try:
 			for tracker in trackers:
 				tracker_ip=trackers[tracker]['ip']
