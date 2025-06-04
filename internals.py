@@ -552,6 +552,7 @@ def process_retransmission(packet):
 	req=int.from_bytes(packet[49:], 'big')
 	if sess in sending_buffer:
 		pack=sending_buffer[sess]['packets'][req]
+		source_nac=sending_buffer[sess]['dest']
 		send(pack, source_nac)
 	
 def process_full_ack(packet):
@@ -792,6 +793,7 @@ def send_payload(nac, payload, retry=0, core_data=False):
 	packet_frags, sess=gen_payload_seq(config['nac'], nac, payload, routing_table[nac]['pubkey'])
 	with sending_buffer_lock:
 		sending_buffer[sess]={}
+		sending_buffer[sess]['dest']=nac
 		sending_buffer[sess]['packets']=packet_frags
 		sending_buffer[sess]['time']=get_timestamp()
 	logs.info(f'Sending payload to {nac}')

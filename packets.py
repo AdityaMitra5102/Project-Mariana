@@ -62,7 +62,7 @@ def gen_tracker_discovery(nac, state):
 	return packet
 
 def gen_retransmission_req(src_nac, dest_nac, session, req):
-	packet=uuid_bytes(src_nac)
+	packet=os.urandom(16)
 	packet+=flag_bytes(4)
 	packet+=uuid_bytes(dest_nac)
 	packet+=uuid_bytes(session)
@@ -70,7 +70,7 @@ def gen_retransmission_req(src_nac, dest_nac, session, req):
 	return packet
 	
 def gen_full_ack(src_nac, dest_nac, session):
-	packet=uuid_bytes(src_nac)
+	packet=os.urandom(16)
 	packet+=flag_bytes(5)
 	packet+=uuid_bytes(dest_nac)
 	packet+=uuid_bytes(session)
