@@ -1,5 +1,6 @@
 from utils import *
 from crypto import *
+import os
 
 def gen_conn_accept(src_nac, pubkey, desc):
 	packet=uuid_bytes(src_nac)
@@ -34,13 +35,13 @@ def gen_verif_complete(src_nac, resp):
 	
 
 def gen_payload_seq(src_nac, dest_nac, payload, dest_pubkey):
-	packet=uuid_bytes(src_nac)
+	packet=os.urandom(16)
 	packet=packet+flag_bytes(3)
 	packet=packet+uuid_bytes(dest_nac)
 	session=str(uuid.uuid4())
 	sessionbytes=uuid_bytes(session)
 	
-	encr_payload=payload_encrypt(payload, dest_pubkey)
+	encr_payload=payload_encrypt(payload, dest_pubkey, uuid_bytes(src_nac))
 	fragments=segment_payload(encr_payload)
 	
 	maxseq=len(fragments)-1

@@ -28,12 +28,18 @@ def flag_bytes(flag):
 def check_valid_conn(nac, ip, port):
 	return True #Modify this function to blacklist machines
 	
-def segment_payload(payload, maxsize=800):
+def segment_payload(payload, maxsize=815):
 	total_packets=math.ceil(len(payload)/maxsize)
 	fragments=[]
 	for i in range(total_packets):
 		fragments.append(payload[maxsize*i:maxsize*(i+1)])
 	return fragments
+
+def xor_16b(x, y):
+	a=int.from_bytes(x)
+	b=int.from_bytes(y)
+	c=a^b
+	return c.to_bytes(16)
 
 def list_ip_addresses():
 	iplist=[]

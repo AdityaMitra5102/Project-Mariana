@@ -642,12 +642,25 @@ def process_self_packet(packet):
 
 		if seqnum not in packet_buffer[sess]:
 			packet_buffer[sess][seqnum]=payload
+			if seqnum==0:
+				snac, rpay=get_nac_first(payload)
+				packet_buffer[sess][seqnum]=rpay
+				packet_buffer[sess]['source_nac']=snac
 			packet_buffer[sess]['received']=packet_buffer[sess]['received']+1
 		logs.info(f'Received packet {seqnum} of {maxseq} for session {sess}')
 		
 	if packet_buffer[sess]['received']==packet_buffer[sess]['maxseq']+1:
 		stat['payloads_received']+=1
 		process_encrypted_payload(sess)
+		
+def get_nac_first(fpayload):
+	encsender=fpayload[:44]
+	enckey=fpayload[44:44+768]
+	remainpayload=fpayload[44:]
+	x=enckey+encsender
+	sender_nac=payload_decrypt(x, privkey)
+	return sender_nac, remainpayload
+	
 				
 def process_encrypted_payload(sess):
 	logs.info(f'Received full packet for {sess}')
@@ -775,13 +788,15 @@ def send_payload(nac, payload, retry=0, core_data=False):
 		logs.error(f'Node {nac} not known. Wait for routing table updates. Retrying 3 times in 30 secs.')
 		send_payload(nac, payload, retry=retry+1, core_data=core_data)
 		return
+		
 	packet_frags, sess=gen_payload_seq(config['nac'], nac, payload, routing_table[nac]['pubkey'])
 	with sending_buffer_lock:
 		sending_buffer[sess]={}
 		sending_buffer[sess]['packets']=packet_frags
 		sending_buffer[sess]['time']=get_timestamp()
 	logs.info(f'Sending payload to {nac}')
-	send(packet_frags[0], nac)
+	for tt in range(3):
+		send(packet_frags[0], nac)
 	for frag in packet_frags:
 		send(frag, nac)
 	stat['payloads_sent']+=1

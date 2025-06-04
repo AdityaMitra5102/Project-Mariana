@@ -77,21 +77,17 @@ def aes_decrypt(msg, key):
 	cleartext=aesgcm.decrypt(nonce, msg, associated_data=None)
 	return cleartext
 	
-def payload_encrypt(payload, pubkey):
+def payload_encrypt(payload, pubkey, nac):
 	aeskey, encaeskey=encaps(pubkey)
-	#aeskey=aes_keygen()
 	encpayload=aes_encrypt(payload, aeskey)
-	#encaeskey=encrypt(aeskey, pubkey)
-	aeslen=len(encaeskey)
-	aeslenbytes=aeslen.to_bytes(2, 'big')
-	finalpayload=aeslenbytes+encaeskey+encpayload
+	encnac=aes_encrypt(nac, aeskey)
+	finalpayload=encnac+encaeskey+encpayload
 	return finalpayload
 	
 def payload_decrypt(payload_buffer, privkey):
-	aessizebytes=payload_buffer[:2]
-	aessize=int.from_bytes(aessizebytes, 'big')
-	aeskey=payload_buffer[2:2+aessize]
-	encrpayload=payload_buffer[2+aessize:]
+	aessize=768
+	aeskey=payload_buffer[:aessize]
+	encrpayload=payload_buffer[aessize:]
 	if aessize==0:
 		return encrpayload #not encrypted
 	
