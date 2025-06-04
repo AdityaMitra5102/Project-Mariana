@@ -39,7 +39,7 @@ phonebookfile='phonebook.json'
 phonebooksecurityfile='phonebooksec.json'
 securityconfigfile='security.json'
 
-logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')#, filename='pqi.log', filemode='a')
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', filename='pqi.log', filemode='a')
 logs=logging.getLogger('mariana')
 
 routerstart='routinginfo:'
@@ -860,7 +860,7 @@ def cam_table_cleanup():
 			with cam_table_lock:
 				logs.info(f'Removing expired entry from CAM table {nac}')
 				cam_table.pop(nac)
-				if nac in routing_table and routing_table[nac]['hopcount']==0:
+				if nac in routing_table and routing_table[nac]['hop_count']==0:
 					with routing_table_lock:
 						logs.info(f'Removing expired entry from Routing table {nac}')
 						routing_table.pop(nac)
@@ -874,13 +874,14 @@ def routing_table_cleanup():
 		if not check_valid_entry(routing_table[nac]['time']):
 			with routing_table_lock:
 				logs.info(f'Removing expired entry from Routing table {nac}')
+				hopcount=routing_table[nac]['hop_count']
 				routing_table.pop(nac)
-				if nac in cam_table:
+				if hopcount==0 and nac in cam_table:
 					with cam_table_lock:
 						logs.info(f'Removing expired entry from CAM table {nac}')
 						cam_table.pop(nac)
-						if nac in online_trackers:
-							online_trackers.remove(nac)
+				if nac in online_trackers:
+					online_trackers.remove(nac)
 
 				
 def sending_buffer_cleanup():
@@ -1035,7 +1036,7 @@ def cleanup_loop():
 		cam_table_cleanup()
 		routing_table_cleanup()
 		sending_buffer_cleanup()
-		time.sleep(60)
+		time.sleep(40)
 		
 def init_threads():
 	save_tracker_list()
