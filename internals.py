@@ -63,6 +63,7 @@ routing_table_lock=threading.Lock()
 
 trackers={}
 trackers_lock=threading.Lock()
+online_trackers=[]
 
 packet_buffer={}
 packet_buffer_lock=threading.Lock()
@@ -381,6 +382,7 @@ def add_neighbor(nac, ip, port, pubkey, desc):
 
 def add_to_cam(nac, ip, port):
 	global cam_table
+	global online_trackers
 	currtime=get_timestamp()
 	if nac==config['nac']:
 		logs.warning('Not adding self NAC to CAM Table.')
@@ -397,6 +399,10 @@ def add_to_cam(nac, ip, port):
 		cam_table[nac]['ip']=ip
 		cam_table[nac]['port']=port
 		cam_table[nac]['time']=currtime
+		trackerid=f'{ip}:{port}'
+		if trackerid in trackers:
+			if nac not in online_trackers:
+				online_trackers.append(nac)		
 	
 def send_to_host(msg, nac):
 	if nac not in cam_table:
@@ -436,7 +442,7 @@ def add_to_routing(nac, hopcount, next_nac, pubkey, desc):
 	send_routing()
 	
 	
-def send(msg, nac, retry=0):
+def send(msg, nac, retry=0, randomize_route=True):
 	if retry>3:
 		logs.error("Max retry reached. Dropping packet.")
 		return
@@ -452,7 +458,10 @@ def send(msg, nac, retry=0):
 	else:
 		if nac!=config['nac']:
 			logs.info('Forwarding to next hop relay node')
-			send(msg, routing_table[nac]['next_hop'])
+			next_hop=routing_table[nac]['next_hop']
+			if randomize_route and next_hop in online_trackers:
+				next_hop=get_random_from_list(online_trackers)
+			send(msg, next_hop)
 			
 ############################# Tracker management #############################
 
@@ -502,7 +511,7 @@ def process_packet(packet, ip, port):
 			else:
 				logs.info(f'Received packet for f{dest_nac}. Forwarding')
 				stat['packets_relayed']+=1
-				send(packet, dest_nac) #Forward to destination
+				send(packet, dest_nac, randomize_route=False) #Forward to destination
 		
 		process_special_packet(packet, ip, port)
 	#except Exception as e:
@@ -851,10 +860,13 @@ def cam_table_cleanup():
 			with cam_table_lock:
 				logs.info(f'Removing expired entry from CAM table {nac}')
 				cam_table.pop(nac)
-				if nac in routing_table and not check_valid_entry(routing_table[nac]['time']):
+				if nac in routing_table and routing_table[nac]['hopcount']==0:
 					with routing_table_lock:
 						logs.info(f'Removing expired entry from Routing table {nac}')
 						routing_table.pop(nac)
+				if nac in online_trackers:
+					online_trackers.remove(nac)
+						
 				
 def routing_table_cleanup():
 	temp=list(routing_table.keys())
@@ -863,10 +875,13 @@ def routing_table_cleanup():
 			with routing_table_lock:
 				logs.info(f'Removing expired entry from Routing table {nac}')
 				routing_table.pop(nac)
-				if nac in cam_table and not check_valid_entry(cam_table[nac]['time']):
+				if nac in cam_table:
 					with cam_table_lock:
 						logs.info(f'Removing expired entry from CAM table {nac}')
 						cam_table.pop(nac)
+						if nac in online_trackers:
+							online_trackers.remove(nac)
+
 				
 def sending_buffer_cleanup():
 	temp=list(sending_buffer.keys())

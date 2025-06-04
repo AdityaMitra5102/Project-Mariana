@@ -5,6 +5,7 @@ import uuid
 import socket
 import os
 import math
+import random
 
 from crypto import *
 
@@ -79,6 +80,10 @@ def delete_existing():
 		except:
 			pass	
 
+def get_random_from_list(x):
+	if not x or len(x)==0:
+		return None
+	return random.choice(x)
 		
 def is_ephemeral():
 	try:
