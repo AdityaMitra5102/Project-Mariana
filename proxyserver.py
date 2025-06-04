@@ -322,7 +322,7 @@ def proxy(path):
 			dummyheaders=respdict['headers']
 			dummyheaders['Host']=host
 			dummyheaders['Access-Control-Allow-Origin'] = "*"
-			if 'html' in dummyheaders['Content-Type']:
+			if 'Content-Type' in dummyheaders and 'html' in dummyheaders['Content-Type']:
 				content=rewrite_content(content)
 			response = Response(content, status_code)
 			response.headers=dummyheaders
