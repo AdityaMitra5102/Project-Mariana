@@ -658,7 +658,7 @@ def get_nac_first(fpayload):
 	enckey=fpayload[44:44+768]
 	remainpayload=fpayload[44:]
 	x=enckey+encsender
-	sender_nac=payload_decrypt(x, privkey)
+	sender_nac=uuid_str(payload_decrypt(x, privkey))
 	return sender_nac, remainpayload
 	
 				
