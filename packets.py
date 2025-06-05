@@ -35,8 +35,8 @@ def gen_verif_complete(src_nac, resp):
 	
 
 def gen_payload_seq(src_nac, dest_nac, payload, dest_pubkey):
-	packet=os.urandom(16)
-	packet=packet+flag_bytes(3)
+
+	packet=flag_bytes(3)
 	packet=packet+uuid_bytes(dest_nac)
 	session=str(uuid.uuid4())
 	sessionbytes=uuid_bytes(session)
@@ -49,8 +49,9 @@ def gen_payload_seq(src_nac, dest_nac, payload, dest_pubkey):
 
 	packets=[]
 	for seq in range(maxseq+1):
+		dummypacket=os.urandom(16)+packet
 		seqnum=seq.to_bytes(4, 'big')
-		currentpacket=packet+seqnum+maxseqbytes+sessionbytes+fragments[seq]
+		currentpacket=dummypacket+seqnum+maxseqbytes+sessionbytes+fragments[seq]
 		packets.append(currentpacket)
 		
 	return packets, session, authkey
