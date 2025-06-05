@@ -549,8 +549,9 @@ def process_retransmission(packet):
 	flag=packet[16]
 	dest_nac=uuid_str(packet[17:33])
 	sess=uuid_str(packet[33:49])
-	req=int.from_bytes(packet[49:], 'big')
-	if sess in sending_buffer:
+	req=int.from_bytes(packet[49:53], 'big')
+	authkey=packet[53:]
+	if sess in sending_buffer and 'authkey' in sending_buffer[sess] and sending_buffer[sess]['authkey']==authkey:
 		pack=sending_buffer[sess]['packets'][req]
 		source_nac=sending_buffer[sess]['dest']
 		send(pack, source_nac)
@@ -560,8 +561,9 @@ def process_full_ack(packet):
 	flag=packet[16]
 	dest_nac=uuid_str(packet[17:33])
 	sess=uuid_str(packet[33:49])
+	authkey=packet[49:]
 	with sending_buffer_lock:
-		if sess in sending_buffer:
+		if sess in sending_buffer and 'authkey' in sending_buffer[sess] and sending_buffer[sess]['authkey']==authkey:
 			sending_buffer.pop(sess)
 			
 def process_verif_init(packet, ip, port):
@@ -638,15 +640,18 @@ def process_self_packet(packet):
 			packet_buffer[sess]['received']=0
 			packet_buffer[sess]['time']=get_timestamp()
 			packet_buffer[sess]['retry']=0
+			packet_buffer[sess]['authkey']=b''
 			
 			logs.info(f'Receiving for session {sess} from {source_nac}')
 
 		if seqnum not in packet_buffer[sess]:
 			packet_buffer[sess][seqnum]=payload
 			if seqnum==0:
-				snac, rpay=get_nac_first(payload)
+				snac, rpay, authkey=get_nac_first(payload)
 				packet_buffer[sess][seqnum]=rpay
 				packet_buffer[sess]['source_nac']=snac
+				packet_buffer[sess]['authkey']=authkey
+
 			packet_buffer[sess]['received']=packet_buffer[sess]['received']+1
 		logs.info(f'Received packet {seqnum} of {maxseq} for session {sess}')
 		
@@ -659,19 +664,20 @@ def get_nac_first(fpayload):
 	enckey=fpayload[44:44+768]
 	remainpayload=fpayload[44:]
 	x=enckey+encsender
-	sender_nac=uuid_str(payload_decrypt(x, privkey))
-	return sender_nac, remainpayload
+	decx, authkey=payload_decrypt(x, privkey)
+	sender_nac=uuid_str(decx)
+	return sender_nac, remainpayload, authkey
 	
 				
 def process_encrypted_payload(sess):
 	logs.info(f'Received full packet for {sess}')
-	send_packet_ack(packet_buffer[sess]['source_nac'], sess)
+	send_packet_ack(packet_buffer[sess]['source_nac'], sess, packet_buffer[sess]['authkey'])
 	logs.info(f'Sending ACK for {sess}')
 	
 	payload_buffer=packet_buffer[sess][0]
 	for ctr in range(1, packet_buffer[sess]['maxseq']+1):
 		payload_buffer=payload_buffer+packet_buffer[sess][ctr]
-	payload=payload_decrypt(payload_buffer, privkey)
+	payload, authkey=payload_decrypt(payload_buffer, privkey)
 	source_nac=packet_buffer[sess]['source_nac']
 	process_payload(source_nac, payload)
 
@@ -790,12 +796,13 @@ def send_payload(nac, payload, retry=0, core_data=False):
 		send_payload(nac, payload, retry=retry+1, core_data=core_data)
 		return
 		
-	packet_frags, sess=gen_payload_seq(config['nac'], nac, payload, routing_table[nac]['pubkey'])
+	packet_frags, sess, authkey=gen_payload_seq(config['nac'], nac, payload, routing_table[nac]['pubkey'])
 	with sending_buffer_lock:
 		sending_buffer[sess]={}
 		sending_buffer[sess]['dest']=nac
 		sending_buffer[sess]['packets']=packet_frags
 		sending_buffer[sess]['time']=get_timestamp()
+		sending_buffer[sess]['authkey']=authkey
 	logs.info(f'Sending payload to {nac}')
 	for tt in range(3):
 		send(packet_frags[0], nac)
@@ -803,12 +810,12 @@ def send_payload(nac, payload, retry=0, core_data=False):
 		send(frag, nac)
 	stat['payloads_sent']+=1
 		
-def send_packet_ack(nac, session):
-	packet=gen_full_ack(config['nac'], nac, session)
+def send_packet_ack(nac, session, authkey):
+	packet=gen_full_ack(config['nac'], nac, session, authkey)
 	send(packet, nac)
 	
-def send_retry_req(nac, sess, pack):
-	packet=gen_retransmission_req(config['nac'], nac, sess, pack)
+def send_retry_req(nac, sess, pack, authkey):
+	packet=gen_retransmission_req(config['nac'], nac, sess, pack. authkey)
 	send(packet, nac)
 		
 def send_routing():
@@ -949,7 +956,7 @@ def request_retransmission():
 		if not check_valid_entry(packet_buffer[sess]['time'], expiry=3):
 			missing_packs=find_missing_packets(sess)
 			for m in missing_packs:
-				send_retry_req(packet_buffer[sess]['source_nac'], sess, m)
+				send_retry_req(packet_buffer[sess]['source_nac'], sess, m, packet_buffer[sess]['authkey'])
 			packet_buffer[sess]['retry']+=1
 			packet_buffer[sess]['time']=get_timestamp()			
 				

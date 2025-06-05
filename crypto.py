@@ -82,7 +82,10 @@ def payload_encrypt(payload, pubkey, nac):
 	encpayload=aes_encrypt(payload, aeskey)
 	encnac=aes_encrypt(nac, aeskey)
 	finalpayload=encnac+encaeskey+encpayload
-	return finalpayload
+	
+	keychecksum=crypto_hash(aeskey)
+	
+	return finalpayload, keychecksum
 	
 def payload_decrypt(payload_buffer, privkey):
 	aessize=768
@@ -93,7 +96,8 @@ def payload_decrypt(payload_buffer, privkey):
 	
 	aeskeydec=decaps(privkey, aeskey)
 	decpayload=aes_decrypt(encrpayload, aeskeydec)
-	return decpayload
+	keychecksum=crypto_hash(aeskeydec)
+	return decpayload, keychecksum
 	
 def crypto_hash(data):
 	return hashlib.md5(data).digest()
