@@ -497,7 +497,7 @@ def save_tracker_list():
 ############################# Process received packet #############################
 
 def process_packet(packet, ip, port):
-	if True:
+	try:
 		source_nac=uuid_str(packet[:16])
 		tables_keep_active(source_nac)
 		flag=packet[16]
@@ -514,8 +514,8 @@ def process_packet(packet, ip, port):
 				send(packet, dest_nac, randomize_route=False) #Forward to destination
 		
 		process_special_packet(packet, ip, port)
-	#except Exception as e:
-	#	logs.warn(f'Packet out of format. Ignoring {e}')
+	except Exception as e:
+		logs.warn(f'Packet out of format. Ignoring {e}')
 		
 def process_special_packet(packet, ip, port):
 	source_nac=uuid_str(packet[:16])
@@ -815,7 +815,7 @@ def send_packet_ack(nac, session, authkey):
 	send(packet, nac)
 	
 def send_retry_req(nac, sess, pack, authkey):
-	packet=gen_retransmission_req(config['nac'], nac, sess, pack. authkey)
+	packet=gen_retransmission_req(config['nac'], nac, sess, pack, authkey)
 	send(packet, nac)
 		
 def send_routing():
@@ -921,7 +921,7 @@ def find_missing_packets(sess):
 	maxseq=packet_buffer[sess]['maxseq']
 	missing_packs=[]
 	packetnos=list(packet_buffer[sess].keys())
-	to_remove=['source_nac', 'maxseq', 'received', 'time', 'retry']
+	to_remove=['source_nac', 'maxseq', 'received', 'time', 'retry', 'authkey']
 	for r in to_remove:
 		try:
 			packetnos.remove(r)
