@@ -135,11 +135,11 @@ def proxy(path):
 				else:
 					node_table[contactx]['next_hop']=f'{routing_table[contact_nac]["next_hop"]}.mariana'
 					
-				node_table[contactx]['description']=f'{contact_nac}.mariana: {routing_table[contact_nac]["desc"].decode('utf-8', 'ignore')}'
+				node_table[contactx]['description']=f'{contact_nac}.mariana: {routing_table[contact_nac]["desc"].decode("utf-8", "ignore")}'
 				
 			json_data=node_table #json.dumps(node_table)
 			
-			return render_template('vizualizer.html', mynac=f'{config["nac"]}.mariana', mydesc=f'This node: {securityconfig['desc']}', json_data=json_data)
+			return render_template('vizualizer.html', mynac=f'{config["nac"]}.mariana', mydesc=f'This node: {securityconfig["desc"]}', json_data=json_data)
 		
 					
 					
@@ -175,11 +175,11 @@ def proxy(path):
 				for tempnac in routing_table:
 					temp_active[f'{tempnac}.mariana']={}
 					temp_active[f'{tempnac}.mariana']['desc']=routing_table[tempnac]['desc'].decode('utf-8', 'ignore')
-					temp_active[f'{tempnac}.mariana']['next_hop']=f'{routing_table[tempnac]['next_hop']}.mariana'
+					temp_active[f'{tempnac}.mariana']['next_hop']=f'{routing_table[tempnac]["next_hop"]}.mariana'
 					temp_active[f'{tempnac}.mariana']['hop_count']=routing_table[tempnac]['hop_count']
 					temp_active[f'{tempnac}.mariana']['id']=make_id_string(routing_table[tempnac]['pubkey'])
 					if routing_table[tempnac]['hop_count']==0:
-						temp_active[f'{tempnac}.mariana']['next_hop']=f'{cam_table[tempnac]['ip']}:{cam_table[tempnac]['port']}'
+						temp_active[f'{tempnac}.mariana']['next_hop']=f'{cam_table[tempnac]["ip"]}:{cam_table[tempnac]["port"]}'
 				return json.dumps(temp_active)
 				
 		if request.method=='POST':
@@ -304,7 +304,7 @@ def proxy(path):
 	headers = dict(request.headers) 
 	if not exit_node_proxy:
 		headers['Access-Control-Allow-Origin'] = "*"
-		headers['mariana-host']= f'{config['nac']}.mariana'
+		headers['mariana-host']= f'{config["nac"]}.mariana'
 	
 	try:
 		if True:
@@ -344,3 +344,4 @@ if __name__ == '__main__':
 	start_proxyserver()
 	
 	
+
