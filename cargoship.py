@@ -163,7 +163,7 @@ def handle_cargo_incoming_packet(src_nac,payload, send_payload, securityconfig):
 			fragtemp=0
 			for frag in receivebuf[identifier]:
 				tempdata+=frag
-				cargostatus[identifier]['status']=f'Writing {fragtemp} of {cargostatus[identifier]['total_packs']}'
+				cargostatus[identifier]['status']=f'Writing {fragtemp} of {cargostatus[identifier]["total_packs"]}'
 				fragtemp+=1
 			fptr.write(tempdata)
 			fptr.close()
@@ -198,3 +198,4 @@ def handle_cargo_incoming_packet(src_nac,payload, send_payload, securityconfig):
 		
 		
 		
+
