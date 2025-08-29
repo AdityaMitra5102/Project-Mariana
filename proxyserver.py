@@ -135,7 +135,7 @@ def proxy(path):
 				else:
 					node_table[contactx]['next_hop']=f'{routing_table[contact_nac]["next_hop"]}.mariana'
 					
-				node_table[contactx]['description']=f'{contact_nac}.mariana: {routing_table[contact_nac]['desc'].decode('utf-8', 'ignore')}'
+				node_table[contactx]['description']=f'{contact_nac}.mariana: {routing_table[contact_nac]["desc"].decode('utf-8', 'ignore')}'
 				
 			json_data=node_table #json.dumps(node_table)
 			
