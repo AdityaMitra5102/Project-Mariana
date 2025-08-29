@@ -93,7 +93,7 @@ def get_random_from_list(x):
 		
 def is_ephemeral():
 	try:
-		ephpath=['/etc/mar/ephemeral', f'{os.getenv('appdata')}/mareph']
+		ephpath=['/etc/mar/ephemeral', f'{os.getenv("appdata")}/mareph']
 		for x in ephpath:
 			if os.path.exists(x):
 				delete_existing()
@@ -103,7 +103,7 @@ def is_ephemeral():
 		return False
 	
 def get_cargodowndir():
-	ephpath=['/etc/mar/downdir', f'{os.getenv('appdata')}/downdir']
+	ephpath=['/etc/mar/downdir', f'{os.getenv("appdata")}/downdir']
 	for x in ephpath:
 		if os.path.exists(x):
 			fl=open(x, 'r')
@@ -113,4 +113,5 @@ def get_cargodowndir():
 	return None
 		
 def is_persist():
+
 	return not is_ephemeral()
