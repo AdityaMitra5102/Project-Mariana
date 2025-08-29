@@ -133,7 +133,7 @@ def proxy(path):
 				if routing_table[contact_nac]['hop_count'] ==0:
 					node_table[contactx]['next_hop']=f'{config["nac"]}.mariana'
 				else:
-					node_table[contactx]['next_hop']=f'{routing_table[contact_nac]['next_hop']}.mariana'
+					node_table[contactx]['next_hop']=f'{routing_table[contact_nac]["next_hop"]}.mariana'
 					
 				node_table[contactx]['description']=f'{contact_nac}.mariana: {routing_table[contact_nac]['desc'].decode('utf-8', 'ignore')}'
 				
