@@ -1,5 +1,5 @@
 import threading
-from flask import Flask, request, Response, render_template
+from flask import Flask, request, Response, render_template, jsonify
 import requests
 import logging
 import json
@@ -111,6 +111,9 @@ def proxy(path):
 	if host=='my.mariana':
 		resp= Response(f'{config["nac"]}.mariana')
 		return resp
+		
+	if host=='myid.mariana':
+		return jsonify({'nac': f'{config["nac"]}.mariana', 'id': get_self_id()})
 		
 	if host=='stats.mariana':
 		if request.path=='/':

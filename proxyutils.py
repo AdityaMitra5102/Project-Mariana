@@ -1,7 +1,7 @@
 from utils import *
 from portserver import *
 from cargoship import *
-
+from internals import *
 import userops
 import requests
 import uuid
@@ -78,6 +78,8 @@ def user_response(source_nac, payload, send_payload, phone_book_reverse_lookup, 
 				if 'Referer' in params['headers']:
 					params['headers']['Referer']=f'http://{serverhost}'
 					
+			params['headers']['mariana-src-nac']=source_nac+'.mariana'
+			pramas['headers']['mariana-src-id']=make_id_string(routing_table[source_nac]['pubkey'])
 				
 			newurl=requests.urllib3.util.Url(scheme=tempscheme, auth=url.auth, host=tempserverhost, path=url.path, query=url.query, fragment=url.fragment)
 			target_url=str(newurl)
@@ -135,33 +137,16 @@ def check_referrer(referer, selfnac, get_contact):
 	validity, nac= check_mariana_host(host, selfnac, get_contact)
 	return validity, nac
 
+
 def check_mariana_host(host, selfnac, get_contact):
 	if not host.endswith(hostend):
 		return False, None
 	nac=host[:-len(hostend)]
-	if nac=='local':
-		return True, None
-	if nac=='hosts':
-		return True, None
-	if nac==selfnac:
-		return True, nac
-	if nac=='my':
-		return True, None
-	if nac=='createproxy':
-		return True, None
-	if nac=='trenchtalk':
-		return True, None
-	if nac=='cargoship':
-		return True, None
-	if nac=='phonebook':
-		return True, None
-	if nac=='security':
-		return True, None
-	if nac=='viz':
-		return True, None
-	if nac=='stats':
-		return True, None
+
+	internalhosts=['local', 'hosts', selfnac, 'my', 'myid', 'createproxy', 'trenchtalk', 'cargoship', 'phonebook', 'security', 'viz', 'stats']
 	
+	if nac in internalhosts:
+		return True, None	
 	tempnac=get_contact(nac)
 	if tempnac is not None:
 		return True, tempnac	
