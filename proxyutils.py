@@ -7,6 +7,9 @@ import requests
 import uuid
 import json
 import logging
+import os
+from time import time
+import threading
 
 header='mariana'
 portheader='portproxy:'
@@ -25,7 +28,10 @@ def make_trench_payload(msg):
 	
 def get_trench_packet(payload):
 	try:
-		return payload[len(trenchheader):].decode()
+		payload= payload[len(trenchheader):]
+		uniqueid=payload[:8]
+		payload=payload[8:].decode()
+		return payload, uniqueid
 	except Exception as e:
 		logging.info('Error decoding Trench talk message')
 		return 'Error decoding Trench talk message'
@@ -35,7 +41,7 @@ def make_payload_packet(session, flag, payload):
 	packet=header.encode()
 	packet=packet+uuid_bytes(session)
 	packet=packet+flag_bytes(flag)
-	packet=packet+payload.encode()
+	packet=packet+os.urandom(8)+payload.encode()
 	return packet
 	
 def get_packet_payload(payload):
@@ -108,8 +114,8 @@ def user_response(source_nac, payload, send_payload, phone_book_reverse_lookup, 
 		process_port_payload_from_tunnel(source_nac, payload, send_payload, securityconfig)
 		
 	elif payload.startswith(trenchheader.encode()):
-		msg=get_trench_packet(payload)
-		add_trench_message(source_nac, msg, phone_book_reverse_lookup)
+		msg, uniqueid=get_trench_packet(payload)
+		add_trench_message(source_nac, msg, phone_book_reverse_lookup, uniqueid)
 		
 	elif payload.startswith(cargoshipheader.encode()):
 		handle_cargo_incoming_packet(source_nac, payload, send_payload, securityconfig)
@@ -117,10 +123,15 @@ def user_response(source_nac, payload, send_payload, phone_book_reverse_lookup, 
 	else:
 		return None
 		
-def add_trench_message(nac, msg, phone_book_reverse_lookup):
-	global trenchmsg
+delivereduid={}
+		
+def add_trench_message(nac, msg, phone_book_reverse_lookup, uniqueid):
+	global trenchmsg, delivereduid
+	if uniqueid in delivereduid:
+		return	
 	nac=phone_book_reverse_lookup(nac)
 	textmsg={'NAC': nac+hostend, 'message': msg}
+	delivereduid[uniqueid]=get_timestamp()
 	trenchmsg.append(textmsg)
 		
 def get_trench_messages():
@@ -156,3 +167,20 @@ def check_mariana_host(host, selfnac, get_contact):
 		return True, nac
 	except:
 		return False, None
+
+def delivereduid_cleanup():
+	while True:
+		topop=[]
+		for x in delivereduid:
+			if check_valid_entry(delivereduid[x], expiry=300):
+				topop.append(x)
+			
+		for y in topop:
+			delivereduid.pop(y)
+		
+		time.sleep(60)
+		
+
+def start_delivereduid_cleanup():
+	proxythread=threading.Thread(target=delivereduid_cleanup, daemon=True)
+	proxythread.start()

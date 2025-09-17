@@ -232,7 +232,8 @@ def proxy(path):
 			for dest_nac_send in dest_nac_list:
 				dest_nac_check, dest_nac=check_mariana_host(dest_nac_send, config['nac'], get_contact)
 				if dest_nac_send and dest_nac in routing_table:
-					send_payload(dest_nac, trench_payload)
+					for xx in range(5):
+						send_payload(dest_nac, trench_payload)
 			return f'Sent to {tosend} if exists in routing table'
 
 	if host=='cargoship.mariana':
@@ -337,9 +338,11 @@ def proxy(path):
 
 def start_proxyserver():
 	logging.info("Starting proxy server on port 8000")
+	start_delivereduid_cleanup()
 	app.run(host='0.0.0.0', port=8000)
 
 def start_proxythread():
+	start_delivereduid_cleanup()
 	proxythread=threading.Thread(target=start_proxyserver, daemon=True)
 	proxythread.start()		
 
