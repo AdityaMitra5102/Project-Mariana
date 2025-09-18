@@ -340,12 +340,10 @@ def start_proxyserver():
 	logging.info("Starting proxy server on port 8000")
 	start_delivereduid_cleanup()
 	proxyport=8000
-	while True:
-		try:
-			app.run(host='0.0.0.0', proxyport=8000)
-			break
-		except:
-			proxyport=proxyport+1
+	try:
+		app.run(host='0.0.0.0', proxyport=8000)
+	except:
+		app.run(host='0.0.0.0')
 		
 
 def start_proxythread():
@@ -357,5 +355,6 @@ if __name__ == '__main__':
 	start_proxyserver()
 	
 	
+
 
 
