@@ -24,7 +24,7 @@ trenchmsg=[]
 serverhost='localhost'
 
 def make_trench_payload(msg):
-	return trenchheader.encode()+msg.encode()
+	return trenchheader.encode()+os.urandom(8)+msg.encode()
 	
 def get_trench_packet(payload):
 	try:
@@ -41,7 +41,7 @@ def make_payload_packet(session, flag, payload):
 	packet=header.encode()
 	packet=packet+uuid_bytes(session)
 	packet=packet+flag_bytes(flag)
-	packet=packet+os.urandom(8)+payload.encode()
+	packet=packet+payload.encode()
 	return packet
 	
 def get_packet_payload(payload):
