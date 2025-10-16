@@ -468,7 +468,7 @@ def send(msg, nac, retry=0, randomize_route=True):
 def add_to_tracker(ip, port, gitannounce=False):
 	global trackers
 	temptracker={"ip":ip, "port":port}
-	if not check_valid_tracker(temptracker):
+	if not check_valid_tracker(temptracker) and not gitannounce:
 		return False
 	trackerid=f'{ip}:{port}'
 	if trackerid in trackers:

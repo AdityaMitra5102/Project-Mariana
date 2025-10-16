@@ -295,6 +295,8 @@ def proxy(path):
 	if host=='relay.mariana':
 		if request.path=='/export':
 			return Response(json.dumps(get_current_tracker(), indent=4), mimetype='application/json', headers={'Content-Disposition':'attachment;filename=relay.json'})
+		if request.path=='/exportselfwarn':
+			return render_template('selftrackerwarn.html', selfport=config['port'])
 		if request.path=='/exportself':
 			return Response(json.dumps(get_self_as_tracker(), indent=4), mimetype='application/json', headers={'Content-Disposition':'attachment;filename=selfrelay.json'})
 		if request.path=='/import':
