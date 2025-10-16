@@ -1,5 +1,5 @@
 import threading
-from flask import Flask, request, Response, render_template, jsonify
+from flask import Flask, request, Response, render_template, jsonify, redirect
 import requests
 import logging
 import json
@@ -7,6 +7,7 @@ import re
 import uuid
 from proxyutils import *
 from cargoship import *
+from trackerutils import *
 from flask_cors import CORS
 
 
@@ -90,8 +91,6 @@ def proxy(path):
 			return Response(respcont, 400)
 		exit_node_proxy=True
 		nac=refnac
-
-		
 
 	if host=='local.mariana':
 		if request.path=='/active':
@@ -292,7 +291,20 @@ def proxy(path):
 				securityconfig=secjson
 				save_securityconfig(secjson)
 				return 'Security Configurations saved'
-
+				
+	if host=='relay.mariana':
+		if request.path=='/export':
+			return Response(json.dumps(get_current_tracker(), indent=4), mimetype='application/json', headers={'Content-Disposition':'attachment;filename=relay.json'})
+		if request.path=='/exportself':
+			return Response(json.dumps(get_self_as_tracker(), indent=4), mimetype='application/json', headers={'Content-Disposition':'attachment;filename=selfrelay.json'})
+		if request.path=='/import':
+			file=request.files['file']
+			contentstr=file.read().decode('utf-8')
+			contentjson=json.loads(contentstr)
+			parse_trackers(contentjson)
+			return redirect('http://security.mariana')
+			
+		return 'Invalid route'
 
 	with routing_table_lock:
 		if nac not in routing_table:

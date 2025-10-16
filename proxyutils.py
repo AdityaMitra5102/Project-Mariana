@@ -154,7 +154,7 @@ def check_mariana_host(host, selfnac, get_contact):
 		return False, None
 	nac=host[:-len(hostend)]
 
-	internalhosts=['local', 'hosts', selfnac, 'my', 'myid', 'createproxy', 'trenchtalk', 'cargoship', 'phonebook', 'security', 'viz', 'stats']
+	internalhosts=['local', 'hosts', selfnac, 'my', 'myid', 'createproxy', 'trenchtalk', 'cargoship', 'phonebook', 'security', 'viz', 'stats', 'relay']
 	
 	if nac in internalhosts:
 		return True, None	

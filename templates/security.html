@@ -207,6 +207,16 @@
             <button type="submit" id="saveBtn">Save Configuration</button>
         </form>
         
+        <button type="button" onclick="window.location.href='http://relay.mariana/export';">Export Relays</button>
+        <button type="button" onclick="window.location.href='http://relay.mariana/exportself';">Export Self as Relay</button>
+        <br>
+        <form method="POST" action="http://relay.mariana/import" enctype="multipart/form-data">
+        <label>Upload relay file</label>
+        <input type="file" name="file" accept=".json" required>
+        <button type="submit">Add relays</button>
+        </form>
+        
+        <br>
         <div id="output" class="status-message" style="display: none;"></div>
         
         <button onclick="window.open('http://stats.mariana', target='_blank')">Node stats</button>

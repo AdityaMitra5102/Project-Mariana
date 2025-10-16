@@ -13,14 +13,14 @@ def post_comment(comment_body):
 	try:
 		logging.info(f'Attempting to post {comment_body}')
 		data = {"body": comment_body}
-		response = requests.post(url, headers=headers, data=json.dumps(data))
+		response = requests.post(url, headers=headers, data=json.dumps(data), proxies={'http':None, 'https':None})
 		logging.info(f'Github comment creation status_code {response.status_code} {response.text}')
 	except Exception as e:
 		logging.error(f'Github comment creation failed {e}')
 
 def get_comment():
 	try:
-		response = requests.get(url, headers=headers)
+		response = requests.get(url, headers=headers, proxies={'http':None, 'https':None})
 		logging.info(f'Github comment creation status_code {response.status_code}')
 		comments=response.json()
 		res=[]
