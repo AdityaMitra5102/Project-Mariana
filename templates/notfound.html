@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NAC not found</title>
+   <style>
+    body {
+        background-color: #000;
+        color: #33ff33;
+        font-family: 'Courier New', Courier, monospace;
+        margin: 0;
+        padding: 0;
+    }
+    .container {
+        max-width: 700px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+    h1, h2 {
+        color: #33ff33;
+        border-bottom: 1px solid #33ff33;
+        padding-bottom: 5px;
+        margin-top: 20px;
+    }
+    textarea {
+        width: 100%;
+        background-color: #000;
+        color: #33ff33;
+        border: 1px solid #33ff33;
+        resize: none;
+        padding: 10px;
+        font-family: 'Courier New', Courier, monospace;
+        box-sizing: border-box;
+        overflow: auto; /* Ensures scrollbar shows up */
+	   white-space: pre-wrap; /* Better line handling */
+    }
+    input[type="text"] {
+        width: 100%;
+        padding: 10px;
+        background-color: #000;
+        color: #33ff33;
+        border: 1px solid #33ff33;
+        font-family: 'Courier New', Courier, monospace;
+        margin-bottom: 10px;
+        box-sizing: border-box;
+    }
+    input[type="number"] {
+        width: 100px;
+        padding: 10px;
+        background-color: #000;
+        color: #33ff33;
+        border: 1px solid #33ff33;
+        font-family: 'Courier New', Courier, monospace;
+        margin-bottom: 10px;
+        box-sizing: border-box;
+    }
+    input[type="checkbox"] {
+        appearance: none;
+        width: 20px;
+        height: 20px;
+        background-color: #000;
+        border: 1px solid #33ff33;
+        display: inline-block;
+        vertical-align: middle;
+        cursor: pointer;
+        position: relative;
+    }
+    input[type="checkbox"]:checked::after {
+        content: "✓";
+        color: #33ff33;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 16px;
+    }
+    button {
+        background-color: #000;
+        color: #33ff33;
+        border: 1px solid #33ff33;
+        padding: 10px 20px;
+        font-family: 'Courier New', Courier, monospace;
+        cursor: pointer;
+        transition: background-color 0.3s;
+    }
+    button:hover {
+        background-color: #111;
+    }
+    label {
+        display: block;
+        margin-top: 10px;
+        margin-bottom: 5px;
+        font-weight: bold;
+    }
+    /* Blinking cursor style */
+    #output::after {
+        content: "_";
+        animation: blink 1s infinite;
+    }
+    @keyframes blink {
+        0% { opacity: 1; }
+        50% { opacity: 0; }
+        100% { opacity: 1; }
+    }
+    .form-group {
+        margin-bottom: 20px;
+    }
+    .port-input-group {
+        display: flex;
+        align-items: center;
+        margin-bottom: 10px;
+    }
+    .port-input-group button {
+        margin-left: 10px;
+        padding: 5px 10px;
+    }
+    .status-message {
+        margin-top: 20px;
+        padding: 10px;
+        border: 1px solid #33ff33;
+    }
+    .ports-container {
+        margin-top: 10px;
+    }
+    .wildcard-option {
+        margin-top: 10px;
+        display: flex;
+        align-items: center;
+    }
+    .wildcard-option label {
+        display: inline;
+        margin-left: 10px;
+    }
+    .small-button {
+        padding: 2px 8px;
+        margin-left: 10px;
+    }
+</style>
+</head>
+<body>
+    <div class="container">
+<H1>Error ❌</H1><br>
+<p>{{host}} not found</p><br>
+<p>The requested node might be offline at the moment or this is not a valid NAC.</p>
+</div>
+</body>
+</html>

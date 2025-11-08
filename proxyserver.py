@@ -311,8 +311,7 @@ def proxy(path):
 	with routing_table_lock:
 		if nac not in routing_table:
 			logging.warning(f'HOST {host} NOT IN ROUTING TABLE.')
-			respcont='Host not in routing table.'.encode()
-			return Response(respcont, 400)
+			return Response(render_template('notfound.html', host=host), 400)
 
 	target_url = host
 	if path:
