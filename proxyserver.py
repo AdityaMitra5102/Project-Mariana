@@ -82,13 +82,11 @@ def proxy(path):
 	ismar, nac=check_mariana_host(host, config['nac'], get_contact)
 	if not ismar:
 		if 'Referer' not in request.headers:
-			respcont='Not in Mariana. Use standard web browser.'.encode()
-			return Response(respcont, 400)
+			return Response(render_template('notfound.html'), 400)
 		referer=request.headers.get('Referer')
 		refvalid, refnac=check_referrer(referer, config['nac'], get_contact)
 		if not refvalid:
-			respcont='Not in Mariana. Use standard web browser.'.encode()
-			return Response(respcont, 400)
+			return Response(render_template('notfound.html'), 400)
 		exit_node_proxy=True
 		nac=refnac
 
@@ -311,7 +309,7 @@ def proxy(path):
 	with routing_table_lock:
 		if nac not in routing_table:
 			logging.warning(f'HOST {host} NOT IN ROUTING TABLE.')
-			return Response(render_template('notfound.html', host=host), 400)
+			return Response(render_template('notfound.html'), 400)
 
 	target_url = host
 	if path:
