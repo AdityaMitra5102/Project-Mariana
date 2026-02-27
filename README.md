@@ -1,5 +1,7 @@
 # Project Mariana’s Qubit
 
+## Homepage: https://marianasqubit.pages.dev
+
 ![poster](poster.jpg)
 
 Mariana’s Qubit is a next-generation, anonymous routing protocol, designed to build a fully functional and quantum-resilient network stack. While for a layman, it is similar to Tor, it is quite different at the fundamental and protocol level. Project Mariana’s Qubit builds an entire network stack, analogous to the OSI model to securely route traffic anonymously via relays and proxies. It is truly decentralized, unlike Tor which maintains a centralized relay list for bootstrapping. 
@@ -39,3 +41,4 @@ On the user end, it opens Chrome (or any browser) proxied through the Mariana Da
 # Special note for public nodes who want anonymity
 * Add a service to frequently modify the `config.json` to set NAC to a random UUID v4 string. Do not delete the config file as that will reset the port number and you might have to re-configure that from firewall.
 * The service may delete the `privatekey.pem` file to rotate keypair.
+
