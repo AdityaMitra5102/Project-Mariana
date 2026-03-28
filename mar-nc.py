@@ -31,9 +31,8 @@ def main():
 	args = parser.parse_args()
 
 	nac_uuid = args.nac
-	url = f"http://localhost:8000?listenport={args.source_port}&destport={args.dest_port}&proto={args.protocol}&destnac={nac_uuid}"
-	headers = {"Host": "createproxy.mariana"}
-
+	url = f"http://createproxy.mariana?listenport={args.source_port}&destport={args.dest_port}&proto={args.protocol}&destnac={nac_uuid}"
+	
 	print(f"[+] Sending request to initiate tunnel...")
 	try:
 		r = requests.get(url, headers=headers)
