@@ -1034,6 +1034,8 @@ def conn_keepalive_loop():
 		time.sleep(15)	
 
 def local_node_discovery_loop():
+	if no_find_neighbor():
+		return
 	while True:
 		try:
 			local_node_discovery()

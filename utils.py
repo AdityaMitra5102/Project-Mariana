@@ -113,5 +113,15 @@ def get_cargodowndir():
 	return None
 		
 def is_persist():
-
 	return not is_ephemeral()
+
+def no_find_neighbor():
+	try:
+		noneighpath=['/etc/mar/neighbordiscoveryoff', f'{os.getenv("appdata")}/neighbordiscoveryoff']
+		for x in noneighpath:
+			if os.path.exists(x):
+				return True
+		return False
+	except:
+		return False
+
