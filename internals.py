@@ -917,6 +917,14 @@ def sending_buffer_cleanup():
 		if not check_valid_entry(sending_buffer[sess]['time'], expiry=180):
 			with sending_buffer_lock:
 				sending_buffer.pop(sess)
+				
+def packet_buffer_cleanup():
+	temp=list(packet_buffer.keys())
+	for sess in temp:
+		if not check_valid_entry(packet_buffer[sess]['time'], expiry=600):
+			with packet_buffer_lock:
+				packet_buffer.pop(sess)
+				
 
 ############################# Retransmission #############################		
 
@@ -1061,11 +1069,15 @@ def cargoship_loop():
 			
 def cleanup_loop():
 	while True:
-		unverified_neighbors_table_cleanup()
-		cam_table_cleanup()
-		routing_table_cleanup()
-		sending_buffer_cleanup()
-		time.sleep(40)
+		try:
+			unverified_neighbors_table_cleanup()
+			cam_table_cleanup()
+			routing_table_cleanup()
+			sending_buffer_cleanup()
+			packet_buffer_cleanup()
+			time.sleep(40)
+		except:
+			pass
 		
 def init_threads():
 	save_tracker_list()

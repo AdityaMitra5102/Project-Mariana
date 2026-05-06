@@ -1,5 +1,5 @@
 import threading
-from flask import Flask, request, Response, render_template, jsonify, redirect
+from flask import Flask, request, Response, render_template, jsonify, redirect, send_file
 import requests
 import logging
 import json
@@ -9,6 +9,8 @@ from proxyutils import *
 from cargoship import *
 from trackerutils import *
 from flask_cors import CORS
+import base64
+import io
 
 
 from utils import *
@@ -43,10 +45,10 @@ def get_response(dest_nac, payload):
 	session=str(uuid.uuid4())
 	packet=make_payload_packet(session, 0, payload)
 	send_payload(dest_nac, packet)
-	while session not in webpackets:
+	while session not in webpackets or 'content' not in webpackets[session]:
 		logging.info(f'Waiting for response to session {session}')
 		time.sleep(1)
-	resp=webpackets[session]
+	resp=webpackets[session]['content']
 	webpackets.pop(session)
 	return resp
 
@@ -89,6 +91,9 @@ def proxy(path):
 			return Response(render_template('notfound.html'), 400)
 		exit_node_proxy=True
 		nac=refnac
+		
+	if not nac and path=='favicon.ico':
+		return send_file(io.BytesIO(base64.b64decode(iconb64)), mimetype='image/x-icon')
 
 	if host=='local.mariana':
 		if request.path=='/active':
