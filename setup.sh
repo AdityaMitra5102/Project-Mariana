@@ -2,6 +2,7 @@ sudo mkdir -p /etc/mar
 sudo touch /etc/mar/test
 chmod -R 777 /etc/mar
 cd /etc/mar
+rm /etc/apt/sources.list.d/mozilla.list
 echo "deb [trusted=yes] https://packages.mozilla.org/apt mozilla main" | sudo tee -a /etc/apt/sources.list.d/mozilla.list
 sudo apt-get update
 sudo apt-get install -y python3 python3-pip python3-flask python3-cryptography python3-psutil python3-requests python3-flask-cors git
