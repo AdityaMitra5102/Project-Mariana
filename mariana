@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 command -v firefox &>/dev/null || (sudo apt-get update -qq && sudo apt-get install -y firefox)
-nohup env http_proxy=http://localhost:8000 https_proxy=http://localhost:8000 firefox "http://abc.com" &>/dev/null &
+nohup env http_proxy=http://localhost:8000 https_proxy=http://localhost:8000 firefox "http://local.mariana" &>/dev/null &
 disown
