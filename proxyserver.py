@@ -11,6 +11,7 @@ from trackerutils import *
 from flask_cors import CORS
 import base64
 import io
+from utils import *
 
 
 from utils import *
@@ -105,7 +106,10 @@ def proxy(path):
 		
 		if len(routing_table)>0:
 			return render_template('home.html', nac=f'{config["nac"]}.mariana', id=get_self_id())
-		return render_template('notconnected.html')
+		if is_stick():
+			return render_template('notconnected.html', stick_display = "block")	
+		else:
+			return render_template('notconnected.html', stick_display = "none")
 
 	if host=='hosts.mariana':
 		return known_hosts()
