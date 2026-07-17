@@ -81,6 +81,22 @@ sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
 
 config={'nac':'', 'port':0}
+	
+try:
+	fl=open(os.path.join(filepath, privkeyfile), 'rb')
+	privkey=fl.read()
+	fl.close()
+	logs.info('Private key loaded')
+except:
+	logs.warning('Private key not found. Generating keypair.')
+	privkey=generate_keypair()
+	if is_persist():
+		fl=open(os.path.join(filepath, privkeyfile), 'wb')
+		fl.write(privkey)
+		fl.close()
+	logs.info('Private key generated')
+
+selfpubkey=get_pub_key(privkey)
 
 try:
 	fl=open(os.path.join(filepath, configfile), 'r')
@@ -92,7 +108,7 @@ try:
 except:
 	logs.warning('Config file not found or port unavailable. Creating...')
 	if config['nac']=='':
-		config['nac']=str(uuid.uuid4())
+		config['nac']=str(uuid.UUID(bytes = crypto_hash(selfpubkey)))
 	port_create_fail=True
 	port=0
 	while port_create_fail:
@@ -156,22 +172,8 @@ try:
 	logs.info('Trackers loaded')
 except:
 	logs.info('Trackers not found. May not be able to connect to network.')
-	
-try:
-	fl=open(os.path.join(filepath, privkeyfile), 'rb')
-	privkey=fl.read()
-	fl.close()
-	logs.info('Private key loaded')
-except:
-	logs.warning('Private key not found. Generating keypair.')
-	privkey=generate_keypair()
-	if is_persist():
-		fl=open(os.path.join(filepath, privkeyfile), 'wb')
-		fl.write(privkey)
-		fl.close()
-	logs.info('Private key generated')
 
-selfpubkey=get_pub_key(privkey)
+
 self_tracker_state=str(uuid.uuid4())
 self_public=False
 
@@ -431,13 +433,14 @@ def add_to_routing(nac, hopcount, next_nac, pubkey, desc):
 		if check_valid_entry(routing_table[nac]['time']) and routing_table[nac]['hop_count']<hopcount:
 			logs.info('Shorter path exists. Route unchanged. If this route is invalid, it will expire in 60 seconds')
 			return
-	with routing_table_lock:
-		routing_table[nac]={}
-		routing_table[nac]['hop_count']=hopcount
-		routing_table[nac]['next_hop']=next_nac
-		routing_table[nac]['pubkey']=pubkey
-		routing_table[nac]['time']=currtime
-		routing_table[nac]['desc']=desc
+	if uuid_bytes(nac) == crypto_hash(pubkey):
+		with routing_table_lock:
+			routing_table[nac]={}
+			routing_table[nac]['hop_count']=hopcount
+			routing_table[nac]['next_hop']=next_nac
+			routing_table[nac]['pubkey']=pubkey
+			routing_table[nac]['time']=currtime
+			routing_table[nac]['desc']=desc
 	logs.info(f'{nac} added to routing table')
 	send_routing()
 	
