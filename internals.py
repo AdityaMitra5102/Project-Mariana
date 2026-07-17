@@ -441,7 +441,9 @@ def add_to_routing(nac, hopcount, next_nac, pubkey, desc):
 			routing_table[nac]['pubkey']=pubkey
 			routing_table[nac]['time']=currtime
 			routing_table[nac]['desc']=desc
-	logs.info(f'{nac} added to routing table')
+		logs.info(f'{nac} added to routing table')
+	else:
+		logs.info(f"{nac} mismatch with public key")
 	send_routing()
 	
 	
