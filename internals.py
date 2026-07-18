@@ -116,6 +116,7 @@ except:
 	port=0
 	while port_create_fail:
 		port=random.randint(1024, 2048) if port_read!=0 else port_read
+		port_read=0
 		try:
 			sock.bind(('0.0.0.0', port))
 			port_create_fail=False
