@@ -98,12 +98,15 @@ except:
 
 selfpubkey=get_pub_key(privkey)
 
+port_read=0
 try:
 	fl=open(os.path.join(filepath, configfile), 'r')
 	fileconf=json.load(fl)
 	fl.close()
 	config['nac']=fileconf['nac']
 	config['port']=fileconf['port']
+	port_read = config['port']
+	assert config['nac']==str(uuid.UUID(bytes = crypto_hash(selfpubkey)))
 	sock.bind(('0.0.0.0', config['port']))
 except:
 	logs.warning('Config file not found or port unavailable. Creating...')
@@ -112,7 +115,7 @@ except:
 	port_create_fail=True
 	port=0
 	while port_create_fail:
-		port=random.randint(1024, 2048)
+		port=random.randint(1024, 2048) if port_read!=0 else port_read
 		try:
 			sock.bind(('0.0.0.0', port))
 			port_create_fail=False
