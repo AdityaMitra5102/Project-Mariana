@@ -191,7 +191,7 @@ def delivereduid_cleanup():
 				
 		for y in expwebpackets:
 			try:
-				webpackets.pop(x)
+				webpackets.pop(y)
 			except:
 				pass
 		
